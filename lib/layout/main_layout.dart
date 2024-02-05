@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:spt/view/focus_mode_page.dart';
 import 'package:spt/view/home_page.dart';
 import 'package:spt/view/subject_select_page.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -16,7 +17,12 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
 
-  StreamController<int> indexController = StreamController<int>();
+  StreamController<int> indexController = StreamController<int>.broadcast();
+  StreamController<int> subjectSelectionController = StreamController<int>.broadcast();
+  
+  selectSubject(int index) {
+    subjectSelectionController.sink.add(index);
+  }
 
   changeIndex(int index) {
     indexController.sink.add(index);
@@ -31,10 +37,10 @@ class _MainLayoutState extends State<MainLayout> {
           children: [
             Positioned(
                 bottom: 70,
-                height: MediaQuery.of(context).size.height - 60,
+                height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,
-                  initialData: 0,
+                  initialData: 1,
                   builder: (context, snapshot) {
                     if(snapshot.hasData){
                       int index = snapshot.data!;
@@ -42,7 +48,25 @@ class _MainLayoutState extends State<MainLayout> {
                         case 0:
                           return const HomePage();
                         case 1:
-                          return const SubjectSelectionPage();
+                          return StreamBuilder(
+                              stream: subjectSelectionController.stream,
+                              initialData: 1,
+                              builder: (context, snapshot) {
+                                if(snapshot.hasData){
+                                  int index = snapshot.data!;
+                                  if(index ==0){
+                                    return SubjectSelectionPage(
+                                      selectSubject: selectSubject,
+                                    );
+                                  }else{
+                                    return FocusMode();
+                                  }
+                                }
+                                else{
+                                  return const Center(child: CircularProgressIndicator(), );
+                                }
+                              }
+                          );
                         case 2:
                           return Text('Page 3');
                         case 3:

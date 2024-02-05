@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class SubjectSelectionPage extends StatefulWidget {
-  const SubjectSelectionPage({super.key});
+  final Function(int) selectSubject;
+  const SubjectSelectionPage({super.key, required this.selectSubject});
 
   @override
   State<SubjectSelectionPage> createState() => _SubjectSelectionPageState();
@@ -330,7 +331,9 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                                 Container(
                                                   margin: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
                                                   child: IconButton(
-                                                    onPressed: () {},
+                                                    onPressed: () {
+                                                      widget.selectSubject(1);
+                                                    },
                                                     icon: Icon(
                                                       Icons.done,
                                                       color: Color(0xFF00C897),
