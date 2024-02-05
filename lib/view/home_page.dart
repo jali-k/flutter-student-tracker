@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
           ),
           Positioned(
               bottom: 10,
-              height: 650,
+              height: 600,
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     SizedBox(height: 10),
                     Container(
-                      height: 565,
+                      height: 500,
                       child: SingleChildScrollView(
                         child: Column(
                           children: [

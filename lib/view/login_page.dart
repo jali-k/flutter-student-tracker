@@ -36,6 +36,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.55,
                   width: MediaQuery.of(context).size.width,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(50),
+                    ),
+                  ),
                   child: Column(
                     children: [
                       const SizedBox(height: 40),
@@ -79,7 +85,9 @@ class _LoginPageState extends State<LoginPage> {
                         width: MediaQuery.of(context).size.width * 0.8,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/home');
+                          },
                           child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             primary: Colors.black,
