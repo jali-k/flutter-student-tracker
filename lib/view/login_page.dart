@@ -1,4 +1,8 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:spt/services/auth_services.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -8,6 +12,69 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
+  final StreamController<bool> _loadingStream = StreamController<bool>();
+
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _loadingStream.close();
+    super.dispose();
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+    _loadingStream.add(true);
+    Future.delayed(Duration(seconds: 2), () {
+      _loadingStream.add(false);
+    });
+  }
+
+  void _checkLogin() async {
+    User? user = await AuthService.getCurrentUser();
+    if(user != null) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
+
+  _login() async {
+    // validate email and passwords
+    // call the auth service
+    _loadingStream.add(true);
+    String? error;
+    if(emailController.text == "" && passwordController.text=="") {
+      error = 'Please enter email and password';
+    }else{
+      String email = emailController.text;
+      // String email = "test@mail.com";
+      String password = passwordController.text;
+      // String password = "123456";
+      User? user = await AuthService.signInWithEmailAndPassword(email, password);
+      if(user != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+        _loadingStream.add(false);
+      }else{
+        error = 'Could not sign in with those credentials';
+      }
+
+    }
+    if(error != null) {
+      _loadingStream.add(false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: TextField(
+                          controller: emailController,
                           decoration: InputDecoration(
                             hintText: 'Email Address',
                             border: OutlineInputBorder(
@@ -70,6 +138,8 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: TextField(
+                          controller: passwordController,
+                          obscureText: true,
                           decoration: InputDecoration(
                             hintText: 'Password',
                             border: OutlineInputBorder(
@@ -86,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
                         height: 50,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushNamed(context, '/home');
+                            _login();
                           },
                           child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
                           style: ElevatedButton.styleFrom(
@@ -114,7 +184,21 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 )
-              )
+              ),
+              StreamBuilder<bool>(
+                stream: _loadingStream.stream,
+                builder: (context, snapshot) {
+                  if(snapshot.hasData && snapshot.data == true) {
+                    return Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return Container();
+                },
+              ),
             ],
           ),
         ),
