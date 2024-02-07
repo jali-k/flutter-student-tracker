@@ -26,6 +26,7 @@ class AuthService {
   // sign in with email and password
   static Future<User?> signInWithEmailAndPassword(String email, String password) async {
     try {
+      print('email: $email, password: $password');
       UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
       Student? student = await _firestore.collection('students').doc(user!.uid).get().then((value) => Student(

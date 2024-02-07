@@ -1,10 +1,12 @@
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Student{
   String firstName;
   String lastName;
   String email;
   String uid;
-  DateTime createdAt;
+  Timestamp createdAt;
 
   Student({
     required this.firstName,
@@ -26,7 +28,7 @@ class Student{
       lastName: list[1],
       email: list[2],
       uid: list[3],
-      createdAt: DateTime.parse(list[4])
+      createdAt: list[4] as Timestamp
     );
   }
 

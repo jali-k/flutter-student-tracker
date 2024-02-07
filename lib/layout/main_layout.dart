@@ -2,6 +2,8 @@
 
 import 'dart:async';
 
+// import 'package:dash_bubble/dash_bubble.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/view/focus_mode_page.dart';
 import 'package:spt/view/home_page.dart';
@@ -22,14 +24,19 @@ class _MainLayoutState extends State<MainLayout> {
 
   StreamController<int> indexController = StreamController<int>.broadcast();
   StreamController<int> subjectSelectionController = StreamController<int>.broadcast();
+  QueryDocumentSnapshot? lesson;
   
-  selectSubject(int index) {
+  selectSubject(int index,QueryDocumentSnapshot lesson) {
+    setState(() {
+      this.lesson = lesson;
+    });
     subjectSelectionController.sink.add(index);
   }
 
   changeIndex(int index) {
     indexController.sink.add(index);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +50,7 @@ class _MainLayoutState extends State<MainLayout> {
                 height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,
-                  initialData: 2,
+                  initialData: 1,
                   builder: (context, snapshot) {
                     if(snapshot.hasData){
                       int index = snapshot.data!;
@@ -63,7 +70,7 @@ class _MainLayoutState extends State<MainLayout> {
                                         selectSubject: selectSubject,
                                       );
                                     case 1:
-                                      return FocusMode();
+                                      return FocusMode(lesson: lesson!);
                                       case 2:
                                         return LeaderBoardPage();
                                     default:
@@ -76,8 +83,8 @@ class _MainLayoutState extends State<MainLayout> {
                               }
                           );
                         case 2:
-                          // return StudentMarksPage();
-                          return StudentPaperPositionPage();
+                          return StudentMarksPage();
+                          // return StudentPaperPositionPage();
                         case 3:
                           return Text('Page 4');
                         default:

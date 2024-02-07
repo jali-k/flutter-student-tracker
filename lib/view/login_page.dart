@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _checkLogin();
+    // _checkLogin();
     _loadingStream.add(true);
     Future.delayed(Duration(seconds: 2), () {
       _loadingStream.add(false);

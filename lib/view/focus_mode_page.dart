@@ -1,17 +1,121 @@
 
 
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
 class FocusMode extends StatefulWidget {
-  const FocusMode({super.key});
+  final QueryDocumentSnapshot<Object?> lesson;
+  const FocusMode({super.key, required this.lesson});
 
   @override
   State<FocusMode> createState() => _FocusModeState();
 }
 
 class _FocusModeState extends State<FocusMode> {
+  late String lessonId;
+  int selectedTime = 25;
+  Map<String, int> countDown = {
+    'minutes': 25,
+    'seconds': 0,
+  };
+  String ButtonText = 'Start';
+  Timer? timer, timer2;
+
+  showOverlay() async {
+    if(!await FlutterOverlayWindow.isPermissionGranted()){
+      await FlutterOverlayWindow.requestPermission();
+    }else{
+      await FlutterOverlayWindow.showOverlay(overlayTitle: "",height: 1100,width: 800,enableDrag: true);
+      await FlutterOverlayWindow.shareData(countDown);
+    }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    lessonId = widget.lesson.id;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    showOverlay();
+
+  }
+
+  startFocusingSession() {
+    // Start the timer
+if(ButtonText == 'Start'){
+      setState(() {
+        ButtonText = 'Stop';
+      });
+      timer = Timer(Duration(minutes: selectedTime), (){
+        // Show the alert
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Time is up!'),
+              content: const Text('Time to take a break'),
+              actions: [
+                TextButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        setState(() {
+          ButtonText = 'Start';
+        });
+      });
+    }else{
+      setState(() {
+        ButtonText = 'Start';
+      });
+      timer!.cancel();
+    }
+
+    countDown = {
+      'minutes': selectedTime,
+      'seconds': 0,
+    };
+
+    // Show the timer
+    timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if(countDown['seconds'] == 0){
+          int? minutes = countDown['minutes'];
+          countDown = {
+            'minutes': minutes! - 1,
+            'seconds': 59,
+          };
+        }else{
+          int? seconds = countDown['seconds'];
+          countDown = {
+            'minutes': countDown['minutes']!,
+            'seconds': seconds! - 1,
+          };
+        }
+        if(countDown['minutes'] == 0 && countDown['seconds'] == 0){
+          timer2?.cancel();
+        }
+      });
+    });
+
+
+    // Show the statistics
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -37,13 +141,19 @@ class _FocusModeState extends State<FocusMode> {
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF00C897),
                 ),),
+
               ],
             ),
           ),
+          Text('${widget.lesson.id}',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),),
           SizedBox(height: 20,),
           // Time selection
           DropdownButton(
-            value: 25,
+            value: selectedTime,
             items: const [
               DropdownMenuItem(
                 child: Text('25 mins'),
@@ -55,7 +165,13 @@ class _FocusModeState extends State<FocusMode> {
               ),
             ],
             onChanged: (value) {
-              print(value);
+              setState(() {
+                selectedTime = value as int;
+                countDown = {
+                  'minutes': selectedTime,
+                  'seconds': 0,
+                };
+              });
             },
           ),
           SizedBox(height: 20,),
@@ -84,14 +200,14 @@ class _FocusModeState extends State<FocusMode> {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Color(0xFF6B9162),
+                  color: Color(0xFF6C9263),
                   width: 10,
                 ),
 
               ),
               child: Center(
                 child: Text(
-                    '25:00',
+                    '${countDown['minutes']}:${countDown['seconds']! < 10 ? '0' + countDown['seconds'].toString() : countDown['seconds']}',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -103,8 +219,10 @@ class _FocusModeState extends State<FocusMode> {
           SizedBox(height: 40,),
           // Start button
           ElevatedButton(
-            onPressed: (){},
-            child: const Text('Start', style: TextStyle(
+            onPressed: (){
+              startFocusingSession();
+            },
+            child: Text(ButtonText, style: TextStyle(
               fontSize: 24,
             ),),
             style: ElevatedButton.styleFrom(
@@ -421,6 +539,7 @@ class _FocusModeState extends State<FocusMode> {
     },
     );
   }
+
 }
 
 class ChartData {
