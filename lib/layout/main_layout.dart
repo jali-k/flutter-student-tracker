@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:spt/view/focus_mode_page.dart';
 import 'package:spt/view/home_page.dart';
 import 'package:spt/view/leaderboard_page.dart';
+import 'package:spt/view/student_paper_position_view.dart';
 import 'package:spt/view/subject_select_page.dart';
+import 'package:spt/view/view_paper.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 class MainLayout extends StatefulWidget {
@@ -41,7 +43,7 @@ class _MainLayoutState extends State<MainLayout> {
                 height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,
-                  initialData: 1,
+                  initialData: 2,
                   builder: (context, snapshot) {
                     if(snapshot.hasData){
                       int index = snapshot.data!;
@@ -51,7 +53,7 @@ class _MainLayoutState extends State<MainLayout> {
                         case 1:
                           return StreamBuilder(
                               stream: subjectSelectionController.stream,
-                              initialData: 2,
+                              initialData: 0,
                               builder: (context, snapshot) {
                                 if(snapshot.hasData){
                                   int index = snapshot.data!;
@@ -74,7 +76,8 @@ class _MainLayoutState extends State<MainLayout> {
                               }
                           );
                         case 2:
-                          return Text('Page 3');
+                          // return StudentMarksPage();
+                          return StudentPaperPositionPage();
                         case 3:
                           return Text('Page 4');
                         default:

@@ -12,7 +12,22 @@ class LeaderBoardPage extends StatefulWidget {
 class _LeaderBoardPageState extends State<LeaderBoardPage> {
 
   final isSelected = [true, false, false, false, false];
+  int selected = 0;
   final myID = 5;
+
+  void handleSelected(int i) {
+    for (int j = 0; j < isSelected.length; j++) {
+      if (j == i) {
+        isSelected[j] = true;
+      } else {
+        isSelected[j] = false;
+      }
+    }
+    setState(() {
+      selected = i;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +173,6 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                 ],
               ),
             ),
-
         ),
           SizedBox(height: 20,),
           Container(
@@ -266,13 +280,4 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
     );
   }
 
-  void handleSelected(int i) {
-    for (int j = 0; j < isSelected.length; j++) {
-      if (j == i) {
-        isSelected[j] = true;
-      } else {
-        isSelected[j] = false;
-      }
-    }
-  }
 }
