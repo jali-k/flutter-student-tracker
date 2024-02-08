@@ -17,7 +17,7 @@ class FocusService{
 
   static CollectionReference getFocusReference(String subjectName, String lessonId,String focusID){
     String userID = _auth.currentUser!.uid;
-    return _firestore.collection('focus').doc(subjectName).collection("lessons").doc(lessonId).collection(focusID);
+    return _firestore.collection('focusData').doc(subjectName).collection("lessons").doc(lessonId).collection(focusID);
   }
 
   static focusOnLesson(QueryDocumentSnapshot lesson, String lessonContent, int duration,String subjectName) async {
@@ -73,9 +73,8 @@ class FocusService{
 
   static getStudentSubjectFocus(String subjectName) async {
     String userID = _auth.currentUser!.uid;
-    QuerySnapshot focusData = await _firestore.collection('focus').doc('biology').collection('lessons').get();
+    QuerySnapshot focusData = await _firestore.collection('focusData').doc(subjectName).collection("lessons").get();
     print(focusData.docs);
-
 
   }
 
