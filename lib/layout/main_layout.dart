@@ -25,10 +25,14 @@ class _MainLayoutState extends State<MainLayout> {
   StreamController<int> indexController = StreamController<int>.broadcast();
   StreamController<int> subjectSelectionController = StreamController<int>.broadcast();
   QueryDocumentSnapshot? lesson;
+  String lessonContent = '';
+  String subjectName = '';
   
-  selectSubject(int index,QueryDocumentSnapshot lesson) {
+  selectSubject(int index,QueryDocumentSnapshot lesson,String lessonContent,String subjectName) {
     setState(() {
       this.lesson = lesson;
+      this.lessonContent = lessonContent;
+      this.subjectName = subjectName;
     });
     subjectSelectionController.sink.add(index);
   }
@@ -50,7 +54,7 @@ class _MainLayoutState extends State<MainLayout> {
                 height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,
-                  initialData: 1,
+                  initialData: 0,
                   builder: (context, snapshot) {
                     if(snapshot.hasData){
                       int index = snapshot.data!;
@@ -70,7 +74,7 @@ class _MainLayoutState extends State<MainLayout> {
                                         selectSubject: selectSubject,
                                       );
                                     case 1:
-                                      return FocusMode(lesson: lesson!);
+                                      return FocusMode(lesson: lesson!,lessonContent: lessonContent,subject:subjectName);
                                       case 2:
                                         return LeaderBoardPage();
                                     default:

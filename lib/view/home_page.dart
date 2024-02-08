@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/layout/main_layout.dart';
+import 'package:spt/model/Subject.dart';
+import 'package:spt/services/focusService.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,6 +12,21 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _BiologyFocus = 0;
+
+
+  getBiologyFocus() {
+    FocusService.getStudentSubjectFocus(Subject.BIOLOGY);
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getBiologyFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
