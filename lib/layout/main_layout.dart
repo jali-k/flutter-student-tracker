@@ -14,7 +14,8 @@ import 'package:spt/view/view_paper.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
 class MainLayout extends StatefulWidget {
-  const MainLayout({super.key});
+  int mainIndex = 2;
+  MainLayout({super.key, this.mainIndex = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
@@ -54,7 +55,8 @@ class _MainLayoutState extends State<MainLayout> {
                 height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,
-                  initialData: 0,
+                  // initialData: widget.mainIndex,
+                  initialData: 2,
                   builder: (context, snapshot) {
                     if(snapshot.hasData){
                       int index = snapshot.data!;
@@ -88,7 +90,6 @@ class _MainLayoutState extends State<MainLayout> {
                           );
                         case 2:
                           return StudentMarksPage();
-                          // return StudentPaperPositionPage();
                         case 3:
                           return Text('Page 4');
                         default:
@@ -125,7 +126,7 @@ class _MainLayoutState extends State<MainLayout> {
                     child: ToggleSwitch(
                       minWidth: MediaQuery.of(context).size.width * 0.9 / 4,
                       minHeight: 50,
-                      initialLabelIndex: 0,
+                      initialLabelIndex: widget.mainIndex,
                       cornerRadius: 4.0,
                       inactiveBgColor: Colors.white,
                       inactiveFgColor: Colors.black,

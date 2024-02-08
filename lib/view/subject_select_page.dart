@@ -926,7 +926,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                                     widget.selectSubject(
                                                         1,
                                                         agricultureLessonsSnapshot
-                                                            .docs[i],studyContent,Subject.Agriculture);
+                                                            .docs[i],studyContent,Subject.AGRICULTURE);
                                                   },
                                                   icon: Icon(
                                                     Icons.done,

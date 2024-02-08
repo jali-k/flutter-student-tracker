@@ -15,9 +15,9 @@ class FocusService{
     return DateTime.now().millisecondsSinceEpoch;
   }
 
-  static CollectionReference getFocusReference(String subjectName, String lessonId,String focusID){
+  static DocumentReference getFocusReference(String subjectName, String lessonId,String focusID){
     String userID = _auth.currentUser!.uid;
-    return _firestore.collection('focusData').doc(subjectName).collection("lessons").doc(lessonId).collection(focusID);
+    return _firestore.collection('focusData').doc(focusID);
   }
 
   static focusOnLesson(QueryDocumentSnapshot lesson, String lessonContent, int duration,String subjectName) async {
@@ -37,7 +37,7 @@ class FocusService{
       'isCompleted': false,
     };
     // save on firestore subject -> subjectName -> lessons -> lessonId -> focus -> lessonContent ->userID with fields duration,startAt, endAt
-    getFocusReference(subjectName, lessonId,focusID).doc(userID).set(focusData);
+    getFocusReference(subjectName, lessonId,focusID).set(focusData);
     SharedPreferences prefs =await SharedPreferences.getInstance();
     focusData['startAt'] = focusData['startAt'].toIso8601String();
     prefs.setString('enabledFocus', true.toString());
@@ -63,7 +63,7 @@ class FocusService{
     duration = endAt.difference(startAt).inSeconds;
 
     // save on firestore subject -> subjectName -> lessons -> lessonId -> focus -> lessonContent ->userID with fields duration,startAt, endAt
-    getFocusReference(subjectName!, lessonId!,focusID!).doc(userID).update({
+    getFocusReference(subjectName!, lessonId!,focusID!).update({
       'duration': duration,
       'endAt': DateTime.now(),
       'isCompleted': true,
@@ -72,9 +72,13 @@ class FocusService{
   }
 
   static getStudentSubjectFocus(String subjectName) async {
+    int totalFocus = 0;
     String userID = _auth.currentUser!.uid;
-    QuerySnapshot focusData = await _firestore.collection('focusData').doc(subjectName).collection("lessons").get();
-    print(focusData.docs);
+    QuerySnapshot focusData = await _firestore.collection('focusData').where('subjectName',isEqualTo: subjectName).where('userID',isEqualTo: userID).get();
+    for (var doc in focusData.docs) {
+      totalFocus += doc['duration'] as int;
+    }
+    return totalFocus;
 
   }
 

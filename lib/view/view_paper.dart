@@ -2,7 +2,11 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_overlay_apps/flutter_overlay_apps.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:spt/services/mark_service.dart';
+import 'package:spt/view/student_paper_position_view.dart';
 
+import '../model/Paper.dart';
+import '../model/paper_attempt.dart';
 import '../util/overlayUtil.dart';
 
 class StudentMarksPage extends StatefulWidget {
@@ -16,7 +20,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
   final isSelected = [true, false, false, false, false];
   int selected = 0;
   final myID = 5;
-
+  Map<Paper,AttemptPaper> papers = {};
   void handleSelected(int i) {
     for (int j = 0; j < isSelected.length; j++) {
       if (j == i) {
@@ -52,55 +56,21 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
   showFloat() async {
     final bool status = await FlutterOverlayWindow.isPermissionGranted();
     showOverlay();
-    print('showFloat');
-     // await FlutterOverlayApps.showOverlay(height: 1100, width: 800, alignment: OverlayAlignment.center);
-     // await Future.delayed(const Duration(seconds: 2));
-     // FlutterOverlayApps.sendDataToAndFromOverlay(
-     //     "Hello from main app");
   }
 
-  // showBubble() async {
-  //
-  //
-  //   final hasStarted = await DashBubble.instance.startBubble(
-  //       bubbleOptions: BubbleOptions(
-  //         // notificationIcon: 'github_bubble',
-  //         bubbleIcon: 'github_bubble',
-  //         // closeIcon: 'github_bubble',
-  //         startLocationX: 0,
-  //         startLocationY: 100,
-  //         bubbleSize: 60,
-  //         opacity: 1,
-  //         enableClose: true,
-  //         closeBehavior: CloseBehavior.following,
-  //         distanceToClose: 100,
-  //         enableAnimateToEdge: true,
-  //         enableBottomShadow: true,
-  //         keepAliveWhenAppExit: false,
-  //       ),
-  //       onTap: () {
-  //         showFloat();
-  //       },
-  //     // show small box when tap bubble
-  //
-  //   );
-  // }
-
-
-  // Future<void> _requestOverlayPermission(BuildContext context) async {
-  //   await _runMethod(
-  //       context,
-  //           () async {
-  //         final isGranted = await DashBubble.instance.requestOverlayPermission();
-  //
-  //       },
-  //   );
-  // }
+  getPapers() async {
+    Map<Paper,AttemptPaper> p = await PaperMarksService.getStudentPapers();
+    setState(() {
+      papers = p;
+    });
+  }
 
         @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    getPapers();
+
 
     // _requestOverlayPermission(context);
     // showBubble();
@@ -217,7 +187,8 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                             child: SingleChildScrollView(
                               child: Column(
                                 children: [
-                                  Container(
+                                  for (var paper in papers.entries)
+                                    Container(
                                     height: 150,
                                     width: MediaQuery.of(context).size.width - 60,
                                     margin: EdgeInsets.only(bottom: 10),
@@ -264,7 +235,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
                                                         Text(
-                                                          'Paper Number',
+                                                          paper.key.paperName,
                                                           style: TextStyle(
                                                             fontSize: 20,
                                                             fontWeight:
@@ -276,7 +247,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                           crossAxisAlignment: CrossAxisAlignment.center,
                                                           children: [
                                                             Text(
-                                                              '80',
+                                                              paper.value.totalMarks.toString(),
                                                               style: TextStyle(
                                                                 fontSize: 40,
                                                                 fontWeight: FontWeight.bold,
@@ -328,7 +299,12 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                               height: 50,
                                                               width: 50,
                                                             ),
-                                                            Text("25"),
+                                                            Text(paper.value.position.toString(),
+                                                              style: TextStyle(
+                                                                fontSize: 24,
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
                                                           ],
                                                         ),
                                                       ],
@@ -353,7 +329,10 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                             ),
                                             child: ElevatedButton(
                                                 onPressed: () {
-                                                  showFloat();
+                                                  Navigator.push
+                                                    (context,
+                                                      MaterialPageRoute(builder: (context) => StudentPaperPositionPage(paper.key.paperId))
+                                                  );
                                                 },
                                                 child: Row(
                                                   children: [
@@ -378,483 +357,6 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                       ],
                                     ),
                                   ),
-                                  Container(
-                                    height: 150,
-                                    width: MediaQuery.of(context).size.width - 60,
-                                    margin: EdgeInsets.only(bottom: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        bottomLeft: Radius.circular(20),
-                                        topRight: Radius.circular(20),
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black54,
-                                          blurRadius: 2,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.all(20),
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              //Paper Number and arks
-                                              Column(
-                                                children: [
-                                                  Container(
-                                                    padding: EdgeInsets.all(10),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(10),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.white54,
-                                                          blurRadius: 5,
-                                                          offset: Offset(0, 5),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Column(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          'Paper Number',
-                                                          style: TextStyle(
-                                                            fontSize: 20,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                        Row(
-                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                                          children: [
-                                                            Text(
-                                                              '80',
-                                                              style: TextStyle(
-                                                                fontSize: 40,
-                                                                fontWeight: FontWeight.bold,
-                                                                color: Color(0xFFA30A0A),
-                                                              ),
-                                                            ),
-                                                            Text(
-                                                              '%',
-                                                              style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight.bold,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              // 25 and LeaderBoard Link
-                                              SizedBox(width: 10),
-                                              Column(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          BorderRadius.circular(10),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.white54,
-                                                          blurRadius: 5,
-                                                          offset: Offset(0, 5),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Column(
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Row(
-                                                          children: [
-                                                            Image.asset(
-                                                              'assets/icons/fire_overall.png',
-                                                              height: 50,
-                                                              width: 50,
-                                                            ),
-                                                            Text("25"),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: Container(
-                                            alignment: Alignment.bottomRight,
-                                            padding: EdgeInsets.only(top: 10,left:10,bottom: 0,right: 0),
-                                            decoration: BoxDecoration(
-                                              color: Color(0xFFF2F8F2),
-                                              borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(10),
-                                              ),
-                                            ),
-                                            child: ElevatedButton(
-                                                onPressed: () {},
-                                                child: Row(
-                                                  children: [
-                                                    Text('LeaderBoard'),
-                                                    SizedBox(width: 10),
-                                                    Icon(Icons.arrow_forward),
-                                                  ],
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  primary: Color(0xFF00C897),
-                                                  onPrimary: Colors.white,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.only(
-                                                      topLeft: Radius.circular(10),
-                                                    )
-                                                  ),
-                                                ),
-
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  // Container(
-                                  //   height: 150,
-                                  //   width: MediaQuery.of(context).size.width - 60,
-                                  //   margin: EdgeInsets.only(bottom: 10),
-                                  //   decoration: BoxDecoration(
-                                  //     color: Colors.white,
-                                  //     borderRadius: BorderRadius.only(
-                                  //       topLeft: Radius.circular(20),
-                                  //       bottomLeft: Radius.circular(20),
-                                  //       topRight: Radius.circular(20),
-                                  //     ),
-                                  //     boxShadow: [
-                                  //       BoxShadow(
-                                  //         color: Colors.black54,
-                                  //         blurRadius: 2,
-                                  //         offset: Offset(0, 2),
-                                  //       ),
-                                  //     ],
-                                  //   ),
-                                  //   child: Stack(
-                                  //     children: [
-                                  //       Container(
-                                  //         padding: EdgeInsets.all(20),
-                                  //         child: Row(
-                                  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //           children: [
-                                  //             //Paper Number and arks
-                                  //             Column(
-                                  //               children: [
-                                  //                 Container(
-                                  //                   padding: EdgeInsets.all(10),
-                                  //                   decoration: BoxDecoration(
-                                  //                     color: Colors.white,
-                                  //                     borderRadius:
-                                  //                         BorderRadius.circular(10),
-                                  //                     boxShadow: [
-                                  //                       BoxShadow(
-                                  //                         color: Colors.white54,
-                                  //                         blurRadius: 5,
-                                  //                         offset: Offset(0, 5),
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                   child: Column(
-                                  //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //                     children: [
-                                  //                       Text(
-                                  //                         'Paper Number',
-                                  //                         style: TextStyle(
-                                  //                           fontSize: 20,
-                                  //                           fontWeight:
-                                  //                               FontWeight.bold,
-                                  //                         ),
-                                  //                       ),
-                                  //                       Row(
-                                  //                         mainAxisAlignment: MainAxisAlignment.center,
-                                  //                         crossAxisAlignment: CrossAxisAlignment.center,
-                                  //                         children: [
-                                  //                           Text(
-                                  //                             '80',
-                                  //                             style: TextStyle(
-                                  //                               fontSize: 40,
-                                  //                               fontWeight: FontWeight.bold,
-                                  //                               color: Color(0xFFA30A0A),
-                                  //                             ),
-                                  //                           ),
-                                  //                           Text(
-                                  //                             '%',
-                                  //                             style: TextStyle(
-                                  //                               fontSize: 16,
-                                  //                               fontWeight:
-                                  //                                   FontWeight.bold,
-                                  //                             ),
-                                  //                           ),
-                                  //                         ],
-                                  //                       ),
-                                  //
-                                  //                     ],
-                                  //                   ),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //             // 25 and LeaderBoard Link
-                                  //             SizedBox(width: 10),
-                                  //             Column(
-                                  //               mainAxisAlignment: MainAxisAlignment.start,
-                                  //               crossAxisAlignment: CrossAxisAlignment.start,
-                                  //               children: [
-                                  //                 Container(
-                                  //                   decoration: BoxDecoration(
-                                  //                     color: Colors.white,
-                                  //                     borderRadius:
-                                  //                         BorderRadius.circular(10),
-                                  //                     boxShadow: [
-                                  //                       BoxShadow(
-                                  //                         color: Colors.white54,
-                                  //                         blurRadius: 5,
-                                  //                         offset: Offset(0, 5),
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                   child: Column(
-                                  //                     mainAxisAlignment: MainAxisAlignment.start,
-                                  //                     children: [
-                                  //                       Row(
-                                  //                         children: [
-                                  //                           Image.asset(
-                                  //                             'assets/icons/fire_overall.png',
-                                  //                             height: 50,
-                                  //                             width: 50,
-                                  //                           ),
-                                  //                           Text("25"),
-                                  //                         ],
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //           ],
-                                  //         ),
-                                  //       ),
-                                  //       Positioned(
-                                  //         bottom: 0,
-                                  //         right: 0,
-                                  //         child: Container(
-                                  //           alignment: Alignment.bottomRight,
-                                  //           padding: EdgeInsets.only(top: 10,left:10,bottom: 0,right: 0),
-                                  //           decoration: BoxDecoration(
-                                  //             color: Color(0xFFF2F8F2),
-                                  //             borderRadius: BorderRadius.only(
-                                  //               topLeft: Radius.circular(10),
-                                  //             ),
-                                  //           ),
-                                  //           child: ElevatedButton(
-                                  //               onPressed: () {},
-                                  //               child: Row(
-                                  //                 children: [
-                                  //                   Text('LeaderBoard'),
-                                  //                   SizedBox(width: 10),
-                                  //                   Icon(Icons.arrow_forward),
-                                  //                 ],
-                                  //               ),
-                                  //               style: ElevatedButton.styleFrom(
-                                  //                 primary: Color(0xFF00C897),
-                                  //                 onPrimary: Colors.white,
-                                  //                 shape: RoundedRectangleBorder(
-                                  //                   borderRadius: BorderRadius.only(
-                                  //                     topLeft: Radius.circular(10),
-                                  //                   )
-                                  //                 ),
-                                  //               ),
-                                  //
-                                  //           ),
-                                  //         ),
-                                  //       )
-                                  //     ],
-                                  //   ),
-                                  // ),
-                                  // Container(
-                                  //   height: 150,
-                                  //   width: MediaQuery.of(context).size.width - 60,
-                                  //   margin: EdgeInsets.only(bottom: 10),
-                                  //   decoration: BoxDecoration(
-                                  //     color: Colors.white,
-                                  //     borderRadius: BorderRadius.only(
-                                  //       topLeft: Radius.circular(20),
-                                  //       bottomLeft: Radius.circular(20),
-                                  //       topRight: Radius.circular(20),
-                                  //     ),
-                                  //     boxShadow: [
-                                  //       BoxShadow(
-                                  //         color: Colors.black54,
-                                  //         blurRadius: 2,
-                                  //         offset: Offset(0, 2),
-                                  //       ),
-                                  //     ],
-                                  //   ),
-                                  //   child: Stack(
-                                  //     children: [
-                                  //       Container(
-                                  //         padding: EdgeInsets.all(20),
-                                  //         child: Row(
-                                  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //           children: [
-                                  //             //Paper Number and arks
-                                  //             Column(
-                                  //               children: [
-                                  //                 Container(
-                                  //                   padding: EdgeInsets.all(10),
-                                  //                   decoration: BoxDecoration(
-                                  //                     color: Colors.white,
-                                  //                     borderRadius:
-                                  //                         BorderRadius.circular(10),
-                                  //                     boxShadow: [
-                                  //                       BoxShadow(
-                                  //                         color: Colors.white54,
-                                  //                         blurRadius: 5,
-                                  //                         offset: Offset(0, 5),
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                   child: Column(
-                                  //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //                     children: [
-                                  //                       Text(
-                                  //                         'Paper Number',
-                                  //                         style: TextStyle(
-                                  //                           fontSize: 20,
-                                  //                           fontWeight:
-                                  //                               FontWeight.bold,
-                                  //                         ),
-                                  //                       ),
-                                  //                       Row(
-                                  //                         mainAxisAlignment: MainAxisAlignment.center,
-                                  //                         crossAxisAlignment: CrossAxisAlignment.center,
-                                  //                         children: [
-                                  //                           Text(
-                                  //                             '80',
-                                  //                             style: TextStyle(
-                                  //                               fontSize: 40,
-                                  //                               fontWeight: FontWeight.bold,
-                                  //                               color: Color(0xFFA30A0A),
-                                  //                             ),
-                                  //                           ),
-                                  //                           Text(
-                                  //                             '%',
-                                  //                             style: TextStyle(
-                                  //                               fontSize: 16,
-                                  //                               fontWeight:
-                                  //                                   FontWeight.bold,
-                                  //                             ),
-                                  //                           ),
-                                  //                         ],
-                                  //                       ),
-                                  //
-                                  //                     ],
-                                  //                   ),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //             // 25 and LeaderBoard Link
-                                  //             SizedBox(width: 10),
-                                  //             Column(
-                                  //               mainAxisAlignment: MainAxisAlignment.start,
-                                  //               crossAxisAlignment: CrossAxisAlignment.start,
-                                  //               children: [
-                                  //                 Container(
-                                  //                   decoration: BoxDecoration(
-                                  //                     color: Colors.white,
-                                  //                     borderRadius:
-                                  //                         BorderRadius.circular(10),
-                                  //                     boxShadow: [
-                                  //                       BoxShadow(
-                                  //                         color: Colors.white54,
-                                  //                         blurRadius: 5,
-                                  //                         offset: Offset(0, 5),
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                   child: Column(
-                                  //                     mainAxisAlignment: MainAxisAlignment.start,
-                                  //                     children: [
-                                  //                       Row(
-                                  //                         children: [
-                                  //                           Image.asset(
-                                  //                             'assets/icons/fire_overall.png',
-                                  //                             height: 50,
-                                  //                             width: 50,
-                                  //                           ),
-                                  //                           Text("25"),
-                                  //                         ],
-                                  //                       ),
-                                  //                     ],
-                                  //                   ),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //           ],
-                                  //         ),
-                                  //       ),
-                                  //       Positioned(
-                                  //         bottom: 0,
-                                  //         right: 0,
-                                  //         child: Container(
-                                  //           alignment: Alignment.bottomRight,
-                                  //           padding: EdgeInsets.only(top: 10,left:10,bottom: 0,right: 0),
-                                  //           decoration: BoxDecoration(
-                                  //             color: Color(0xFFF2F8F2),
-                                  //             borderRadius: BorderRadius.only(
-                                  //               topLeft: Radius.circular(10),
-                                  //             ),
-                                  //           ),
-                                  //           child: ElevatedButton(
-                                  //               onPressed: () {},
-                                  //               child: Row(
-                                  //                 children: [
-                                  //                   Text('LeaderBoard'),
-                                  //                   SizedBox(width: 10),
-                                  //                   Icon(Icons.arrow_forward),
-                                  //                 ],
-                                  //               ),
-                                  //               style: ElevatedButton.styleFrom(
-                                  //                 primary: Color(0xFF00C897),
-                                  //                 onPrimary: Colors.white,
-                                  //                 shape: RoundedRectangleBorder(
-                                  //                   borderRadius: BorderRadius.only(
-                                  //                     topLeft: Radius.circular(10),
-                                  //                   )
-                                  //                 ),
-                                  //               ),
-                                  //
-                                  //           ),
-                                  //         ),
-                                  //       )
-                                  //     ],
-                                  //   ),
-                                  // ),
 
 
                                 ],

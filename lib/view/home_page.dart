@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
 import 'package:spt/services/focusService.dart';
+import 'package:spt/services/mark_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,11 +13,27 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _BiologyFocus = 0;
+  int _BiologyFocus=0;
+  int _ChemistryFocus=0;
+  int _PhysicsFocus=0;
+  int _AgricultureFocus=0;
+  int _overallFocus=0;
 
 
-  getBiologyFocus() {
-    FocusService.getStudentSubjectFocus(Subject.BIOLOGY);
+  getSubjectFocus() async {
+    int BiologyFocus, ChemistryFocus, PhysicsFocus, AgricultureFocus, overallFocus;
+    BiologyFocus = await FocusService.getStudentSubjectFocus(Subject.BIOLOGY);
+    ChemistryFocus = await FocusService.getStudentSubjectFocus(Subject.CHEMISTRY);
+    PhysicsFocus = await FocusService.getStudentSubjectFocus(Subject.PHYSICS);
+    AgricultureFocus = await FocusService.getStudentSubjectFocus(Subject.AGRICULTURE);
+    overallFocus = BiologyFocus + ChemistryFocus + PhysicsFocus + AgricultureFocus;
+    setState(() {
+      _BiologyFocus = BiologyFocus;
+      _ChemistryFocus = ChemistryFocus;
+      _PhysicsFocus = PhysicsFocus;
+      _AgricultureFocus = AgricultureFocus;
+      _overallFocus = overallFocus;
+    });
   }
 
 
@@ -24,7 +41,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getBiologyFocus();
+    getSubjectFocus();
+    PaperMarksService.getPaperMarksReference();
   }
 
   @override
@@ -134,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                                         child: Container(
                                           margin: const EdgeInsets.only(top: 10,right: 5),
                                           width: 150,
-                                          child: const Column(
+                                          child: Column(
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               Row(
@@ -146,7 +164,7 @@ class _HomePageState extends State<HomePage> {
                                                     size: 30,
                                                   ),
                                                   SizedBox(width: 5),
-                                                  Text("25",
+                                                  Text(_overallFocus.toString(),
                                                     style: TextStyle(
                                                       fontSize: 20,
                                                       fontWeight: FontWeight.bold,
@@ -165,7 +183,7 @@ class _HomePageState extends State<HomePage> {
                                                     size: 30,
                                                   ),
                                                   SizedBox(width: 5),
-                                                  Text("12",
+                                                  Text(_BiologyFocus.toString(),
                                                     style: TextStyle(
                                                       fontSize: 20,
                                                       fontWeight: FontWeight.bold,
@@ -184,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                                                     size: 30,
                                                   ),
                                                   SizedBox(width: 5),
-                                                  Text("25",
+                                                  Text(_ChemistryFocus.toString(),
                                                     style: TextStyle(
                                                       fontSize: 20,
                                                       fontWeight: FontWeight.bold,
@@ -203,7 +221,7 @@ class _HomePageState extends State<HomePage> {
                                                     size: 30,
                                                   ),
                                                   SizedBox(width: 5),
-                                                  Text("24",
+                                                  Text(_PhysicsFocus.toString(),
                                                     style: TextStyle(
                                                       fontSize: 20,
                                                       fontWeight: FontWeight.bold,
@@ -222,7 +240,7 @@ class _HomePageState extends State<HomePage> {
                                                     size: 30,
                                                   ),
                                                   SizedBox(width: 5),
-                                                  Text("00",
+                                                  Text(_AgricultureFocus.toString(),
                                                     style: TextStyle(
                                                       fontSize: 20,
                                                       fontWeight: FontWeight.bold,
@@ -279,7 +297,7 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  Navigator.pushNamed(context, '/login');
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1)));
                                                 },
 
                                               ),
