@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/layout/main_layout.dart';
 import 'package:spt/services/focusService.dart';
+import 'package:spt/util/SubjectColorUtil.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
@@ -11,8 +15,15 @@ class FocusMode extends StatefulWidget {
   final QueryDocumentSnapshot<Object?> lesson;
   final String lessonContent;
   final String subject;
-
-  const FocusMode({super.key, required this.lesson, required this.lessonContent, required this.subject});
+  final bool enableFocus;
+  final Function(Map<String, int> countDown) setCountDownTimer;
+  const FocusMode({
+    super.key,
+    required this.lesson,
+    required this.lessonContent,
+    required this.subject,
+    this.enableFocus =false, required this.setCountDownTimer
+  });
 
   @override
   State<FocusMode> createState() => _FocusModeState();
@@ -28,38 +39,197 @@ class _FocusModeState extends State<FocusMode> {
   };
   String ButtonText = 'Start';
   Timer? timer, timer2;
+  bool enabledFocus = false;
+  bool isPaused = false;
+  bool isStarted = false;
+  final List<int> _timeDuration = [25, 30, 35, 40, 45, 50, 55, 60];
+  List<ChartData> dailyChartData = [];
+  List<ChartData> weeklyChartData = [];
+  List<ChartData> monthlyChartData = [];
+  String chartPrefix = "";
+  List<ChartData> chartData = [];
+  int initialStatIndex = 1;
+  Map<String,int> totalDailyStat = {"hour":0,"minutes":0};
+  Map<String,int> totalWeeklyStat = {"hour":0,"minutes":0};
+  Map<String,int> totalMonthlyStat = {"hour":0,"minutes":0};
+  Map<String,int> selectedStat = {"hour":0,"minutes":0};
+  late Color primaryColor;
+  late Color borderColor;
 
-  showOverlay() async {
-    if (!await FlutterOverlayWindow.isPermissionGranted()) {
-      await FlutterOverlayWindow.requestPermission();
-    } else {
-      await FlutterOverlayWindow.showOverlay(
-          overlayTitle: "", height: 1100, width: 800, enableDrag: true);
-      await FlutterOverlayWindow.shareData(countDown);
-    }
-  }
+
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    primaryColor = SubjectColor.getPrimaryColor(widget.subject);
+    borderColor = SubjectColor.getBorderColor(widget.subject);
     lessonId = widget.lesson.id;
     lessonContent = widget.lessonContent;
+    checkEnabledFocus();
+    getRecentData();
+  }
+
+
+  changeStat (int index,StateSetter changeState){
+    Navigator.pop(context);
+    setState(() {
+      initialStatIndex = index;
+      switch (index) {
+        case 0:
+          chartPrefix = "Day";
+          chartData = dailyChartData;
+          selectedStat = totalDailyStat;
+          break;
+        case 1:
+          chartPrefix = "Week";
+          chartData = weeklyChartData;
+          selectedStat = totalWeeklyStat;
+          break;
+        case 2:
+          chartPrefix = "Month";
+          chartData = monthlyChartData;
+          selectedStat = totalMonthlyStat;
+          break;
+        default:
+      }
+    });
+    showStatistics(chartData);
+
+  }
+
+  getRecentData()async{
+    List<QueryDocumentSnapshot> snap = await FocusService.getFocusData();
+    List<ChartData> _dailyChartData = [];
+    List<ChartData> _weeklyChartData = [];
+    List<ChartData> _monthlyChartData = [];
+
+    Map<String,int> _averageDailyStat = {"hour":0,"minutes":0};
+    Map<String,int> _averageWeeklyStat = {"hour":0,"minutes":0};
+    Map<String,int> _averageMonthlyStat = {"hour":0,"minutes":0};
+
+    for (var i = 0; i < snap.length; i++) {
+      DateTime startAt = snap[i]['startAt'].toDate();
+      if( snap[i]['endAt'] == null){
+        continue;
+      }
+
+      DateTime endAt = snap[i]['endAt'].toDate();
+      int duration = snap[i]['duration'] as int;
+      if (snap[i]['subjectName'] == widget.subject) {
+          int day = startAt.day;
+          int dayIndex = _dailyChartData.indexWhere((element) => element.x == day.toString());
+          if (dayIndex != -1) {
+            _dailyChartData[dayIndex].y += duration.toDouble();
+          } else {
+            _dailyChartData.add(ChartData(day.toString(), duration.toDouble()));
+          }
+
+          int week = startAt.toUtc().difference(DateTime.utc(startAt.year, 1, 1)).inDays ~/ 7;
+          int weekIndex = _weeklyChartData.indexWhere((element) => element.x == week.toString());
+
+          if (weekIndex != -1) {
+            _weeklyChartData[weekIndex].y += duration.toDouble();
+          } else {
+            _weeklyChartData.add(ChartData(week.toString(), duration.toDouble()));
+          }
+
+
+          int month = startAt.month;
+          int monthIndex = _monthlyChartData.indexWhere((element) => element.x == month.toString());
+          if (monthIndex != -1) {
+            _monthlyChartData[monthIndex].y += duration.toDouble();
+          } else {
+            _monthlyChartData.add(
+                ChartData(month.toString(), duration.toDouble()));
+          }
+      }
+    }
+    print(_dailyChartData.map((e) => e.y).toList());
+    int dailyTotal = 0;
+    int weeklyTotal = 0;
+    int monthlyTotal = 0;
+    for (var i = 0; i < _dailyChartData.length; i++) {
+      dailyTotal += _dailyChartData[i].y.toInt();
+    }
+    for (var i = 0; i < _weeklyChartData.length; i++) {
+      weeklyTotal += _weeklyChartData[i].y.toInt();
+    }
+    for (var i = 0; i < _monthlyChartData.length; i++) {
+      monthlyTotal += _monthlyChartData[i].y.toInt();
+    }
+    _averageDailyStat = {"hour":(dailyTotal ~/ _dailyChartData.length)~/60,"minutes":(dailyTotal ~/ _dailyChartData.length)%60};
+    _averageWeeklyStat = {"hour":(weeklyTotal ~/ _weeklyChartData.length)~/60,"minutes":(weeklyTotal ~/ _weeklyChartData.length)%60};
+    _averageMonthlyStat = {"hour":(monthlyTotal ~/ _monthlyChartData.length)~/60,"minutes":(monthlyTotal ~/ _monthlyChartData.length)%60};
+
+    setState(() {
+      dailyChartData = _dailyChartData;
+      weeklyChartData = _weeklyChartData;
+      monthlyChartData = _monthlyChartData;
+      totalDailyStat = _averageDailyStat;
+      totalWeeklyStat = _averageWeeklyStat;
+      totalMonthlyStat = _averageMonthlyStat;
+    });
+
+  }
+
+  Future<void> checkEnabledFocus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey('enabledFocus') && prefs.getBool('enabledFocus')! && prefs.containsKey('countDown')) {
+      Map<String, dynamic> _countDown = jsonDecode(prefs.getString('countDown')!);
+      timer = Timer(Duration(minutes: _countDown['minutes']!,seconds: _countDown['seconds']!), () {
+        // Show the alert
+        endFocussingSession();
+      });
+      timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+        setState(() {
+          if (countDown['seconds'] == 0) {
+            int? minutes = countDown['minutes'];
+            countDown = {
+              'minutes': minutes! - 1,
+              'seconds': 59,
+            };
+          } else {
+            int? seconds = countDown['seconds'];
+            countDown = {
+              'minutes': countDown['minutes']!,
+              'seconds': seconds! - 1,
+            };
+          }
+          prefs.setString('countDown', jsonEncode(countDown));
+          if (countDown['minutes'] == 0 && countDown['seconds'] == 0) {
+            timer2?.cancel();
+          }
+        });
+      });
+
+      setState(() {
+        enabledFocus = prefs.getBool('enabledFocus')!;
+        countDown = _countDown.cast<String, int>();
+        ButtonText = enabledFocus ? 'Pause' : 'Start';
+        isStarted = enabledFocus;
+
+      });
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    showOverlay();
+    widget.setCountDownTimer(countDown);
+    timer?.cancel();
+    timer2?.cancel();
   }
 
-  startFocusingSession() {
+  startFocusingSession() async {
     // Start the timer
     if (ButtonText == 'Start') {
       setState(() {
         ButtonText = 'Stop';
+        isStarted = true;
       });
-      timer = Timer(Duration(seconds: 10), () {
+      timer = Timer(Duration(minutes: selectedTime), () {
         // Show the alert
         FocusService.endFocusOnLesson();
         showDialog(
@@ -95,8 +265,74 @@ class _FocusModeState extends State<FocusMode> {
       'minutes': selectedTime,
       'seconds': 0,
     };
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('countDown',jsonEncode(countDown));
 
     // Show the timer
+    timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (countDown['seconds'] == 0) {
+          int? minutes = countDown['minutes'];
+          countDown = {
+            'minutes': minutes! - 1,
+            'seconds': 59,
+          };
+        } else {
+          int? seconds = countDown['seconds'];
+          countDown = {
+            'minutes': countDown['minutes']!,
+            'seconds': seconds! - 1,
+          };
+        }
+        prefs.setString('countDown',jsonEncode(countDown));
+        if (countDown['minutes'] == 0 && countDown['seconds'] == 0) {
+          timer2?.cancel();
+        }
+      });
+    });
+
+    // Show the statistics
+  }
+
+  endFocussingSession(){
+    FocusService.endFocusOnLesson();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Time is up!'),
+          content: const Text('Time to take a break'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout()));
+    setState(() {
+      ButtonText = 'Start';
+    });
+  }
+
+  pauseFocussingSession(){
+    timer?.cancel();
+    timer2?.cancel();
+    setState(() {
+      ButtonText = 'Resume';
+      isPaused = true;
+    });
+  }
+
+  resumeFocussingSession(){
+    timer = Timer(Duration(minutes: countDown['minutes']!,seconds: countDown['seconds']!), () {
+      // Show the alert
+      endFocussingSession();
+    });
     timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (countDown['seconds'] == 0) {
@@ -117,8 +353,10 @@ class _FocusModeState extends State<FocusMode> {
         }
       });
     });
-
-    // Show the statistics
+    setState(() {
+      ButtonText = 'Pause';
+      isPaused = false;
+    });
   }
 
   @override
@@ -133,51 +371,49 @@ class _FocusModeState extends State<FocusMode> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Stay ',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Stay ',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  'Focused',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF00C897),
-                  ),
+              ),
+              Text(
+                'Focused',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF00C897),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Text(
-            '${lessonContent}',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(
+          // Text(
+          //   '${lessonContent}',
+          //   style: TextStyle(
+          //     fontSize: 24,
+          //     fontWeight: FontWeight.bold,
+          //   ),
+          // ),
+          const SizedBox(
             height: 20,
           ),
           // Time selection
+          if(!isStarted)
           DropdownButton(
             value: selectedTime,
-            items: const [
-              DropdownMenuItem(
-                child: Text('25 mins'),
-                value: 25,
-              ),
-              DropdownMenuItem(
-                child: Text('30 mins'),
-                value: 30,
-              ),
-            ],
+            disabledHint: const Text('Timer Started'),
+            items: _timeDuration
+                .map((e) => DropdownMenuItem(
+                      enabled: isStarted ? e == selectedTime : true,
+                      value: e,
+                      child: Text('$e mins'),
+                      alignment: Alignment.center,
+                    ))
+                .toList(),
             onChanged: (value) {
               setState(() {
                 selectedTime = value as int;
@@ -188,7 +424,7 @@ class _FocusModeState extends State<FocusMode> {
               });
             },
           ),
-          SizedBox(
+          const SizedBox(
             height: 20,
           ),
           // Show Clock here
@@ -197,7 +433,7 @@ class _FocusModeState extends State<FocusMode> {
             height: 200,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Color(0xFF00C897),
+              color: primaryColor,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -216,7 +452,7 @@ class _FocusModeState extends State<FocusMode> {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Color(0xFF6C9263),
+                  color: borderColor,
                   width: 10,
                 ),
               ),
@@ -237,7 +473,15 @@ class _FocusModeState extends State<FocusMode> {
           // Start button
           ElevatedButton(
             onPressed: () {
-              startFocusingSession();
+              if(isStarted){
+                if(isPaused){
+                  resumeFocussingSession();
+                }else{
+                  pauseFocussingSession();
+                }
+              }else{
+                startFocusingSession();
+              }
             },
             child: Text(
               ButtonText,
@@ -279,7 +523,13 @@ class _FocusModeState extends State<FocusMode> {
               Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        initialStatIndex = 0;
+                        selectedStat = totalDailyStat;
+                      });
+                      showStatistics(dailyChartData);
+                    },
                     child: const Text(
                       'Daily',
                       style: TextStyle(
@@ -287,7 +537,7 @@ class _FocusModeState extends State<FocusMode> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(110, 50),
+                      // fixedSize: const Size(110, 50),
                       foregroundColor: Colors.white,
                       backgroundColor: Color(0xFF424242),
                       padding: const EdgeInsets.symmetric(
@@ -298,7 +548,7 @@ class _FocusModeState extends State<FocusMode> {
                     ),
                   ),
                   Text(
-                    '3h 12mins',
+                    '${totalDailyStat["hour"]}h ${totalDailyStat["minutes"]}mins',
                     style: TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
                   ),
                 ],
@@ -306,7 +556,13 @@ class _FocusModeState extends State<FocusMode> {
               Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        initialStatIndex = 1;
+                        selectedStat = totalWeeklyStat;
+                      });
+                      showStatistics(weeklyChartData);
+                    },
                     child: const Text(
                       'Weekly',
                       style: TextStyle(
@@ -314,7 +570,7 @@ class _FocusModeState extends State<FocusMode> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(110, 50),
+                      // fixedSize: const Size(110, 50),
                       foregroundColor: Colors.white,
                       backgroundColor: Color(0xFF424242),
                       padding: const EdgeInsets.symmetric(
@@ -325,7 +581,7 @@ class _FocusModeState extends State<FocusMode> {
                     ),
                   ),
                   Text(
-                    '21h 12mins',
+                    '${totalWeeklyStat["hour"]}h ${totalWeeklyStat["minutes"]}mins',
                     style: TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
                   ),
                 ],
@@ -333,7 +589,13 @@ class _FocusModeState extends State<FocusMode> {
               Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        initialStatIndex = 2;
+                        selectedStat = totalMonthlyStat;
+                      });
+                      showStatistics(monthlyChartData);
+                    },
                     child: const Text(
                       'Monthly',
                       style: TextStyle(
@@ -341,7 +603,7 @@ class _FocusModeState extends State<FocusMode> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      fixedSize: const Size(110, 50),
+                      // fixedSize: const Size(110, 50),
                       foregroundColor: Colors.white,
                       backgroundColor: Color(0xFF424242),
                       padding: const EdgeInsets.symmetric(
@@ -352,7 +614,7 @@ class _FocusModeState extends State<FocusMode> {
                     ),
                   ),
                   Text(
-                    '90h 12mins',
+                    '${totalMonthlyStat["hour"]}h ${totalMonthlyStat["minutes"]}mins',
                     style: TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
                   ),
                 ],
@@ -368,7 +630,8 @@ class _FocusModeState extends State<FocusMode> {
             children: [
               TextButton(
                 onPressed: () {
-                  showStatistics();
+                  showStatistics(weeklyChartData);
+                  selectedStat = totalWeeklyStat;
                 },
                 child: Row(
                   children: const [
@@ -399,17 +662,8 @@ class _FocusModeState extends State<FocusMode> {
     );
   }
 
-  final List<ChartData> chartData = [
-    ChartData(1, 35),
-    ChartData(2, 23),
-    ChartData(3, 34),
-    ChartData(4, 25),
-    ChartData(5, 40),
-    ChartData(6, 30),
-    ChartData(7, 35),
-  ];
 
-  void showStatistics() {
+  void showStatistics(List<ChartData> cData) {
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
@@ -423,189 +677,203 @@ class _FocusModeState extends State<FocusMode> {
         ),
       ),
       builder: (context) {
-        return Container(
-          height: 650,
-          decoration: const BoxDecoration(
-            color: Color(0xFF424242),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    "STATISTICS",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Daily',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(110, 50),
-                          foregroundColor: Colors.black,
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '3h 12mins',
-                        style:
-                            TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Weekly',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(110, 50),
-                          foregroundColor: Colors.white,
-                          backgroundColor: Color(0xFF00C897),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '21h 12mins',
-                        style:
-                            TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Monthly',
-                          style: TextStyle(
-                            fontSize: 14,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: const Size(110, 50),
-                          foregroundColor: Colors.black,
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '90h 12mins',
-                        style:
-                            TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Container(
-                child: SfCartesianChart(
-                  primaryXAxis: CategoryAxis(
-                    majorGridLines: MajorGridLines(width: 0),
-                    majorTickLines: MajorTickLines(width: 0),
-                    axisLine: AxisLine(width: 1, color: Color(0XFFF2F8F2)),
-                  ),
-                  primaryYAxis: NumericAxis(
-                    majorGridLines: MajorGridLines(width: 0),
-                    majorTickLines: MajorTickLines(width: 0),
-                    axisLine: AxisLine(width: 1, color: Color(0XFFF2F8F2)),
-                  ),
-                  plotAreaBorderWidth: 0,
-                  title: ChartTitle(text: 'Weekly Statistics'),
-                  legend: Legend(isVisible: false),
-                  tooltipBehavior: TooltipBehavior(enable: true),
-                  series: <CartesianSeries>[
-                    ColumnSeries<ChartData, double>(
-                        dataSource: chartData,
-                        xValueMapper: (ChartData data, _) => data.x,
-                        yValueMapper: (ChartData data, _) => data.y,
-                        color: Color(0xFFACE194),
-                        borderRadius: BorderRadius.all(Radius.circular(3)))
-                  ],
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter changeState) {
+            return Container(
+              height: 650,
+              decoration: const BoxDecoration(
+                color: Color(0xFF424242),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(50),
+                  topRight: Radius.circular(50),
                 ),
               ),
-              SizedBox(
-                height: 20,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
+              child: Column(
+                children: [
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        "STATISTICS",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              changeStat(0,changeState);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              // fixedSize: const Size(110, 50),
+                              foregroundColor: initialStatIndex == 0 ? Colors.white : Colors.black,
+                              backgroundColor: initialStatIndex == 0 ? Color(0xFF00C897) : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Daily',
+                              style: TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${totalDailyStat["hour"]}h ${totalDailyStat["minutes"]}mins',
+                            style:
+                                TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              changeStat(1,changeState);
+                            },
+                            child: const Text(
+                              'Weekly',
+                              style: TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              // fixedSize: const Size(110, 50),
+                              foregroundColor: initialStatIndex == 1 ? Colors.white : Colors.black,
+                              backgroundColor: initialStatIndex == 1 ? Color(0xFF00C897) : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${totalWeeklyStat["hour"]}h ${totalWeeklyStat["minutes"]}mins',
+                            style:
+                                TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              changeStat(2,changeState);
+                            },
+                            child: const Text(
+                              'Monthly',
+                              style: TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              // fixedSize: const Size(110, 50),
+                              foregroundColor: initialStatIndex == 2 ? Colors.white : Colors.black,
+                              backgroundColor: initialStatIndex == 2 ? Color(0xFF00C897) : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${totalMonthlyStat["hour"]}h ${totalMonthlyStat["minutes"]}mins',
+                            style:
+                                TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    child: SfCartesianChart(
+                      primaryXAxis: const CategoryAxis(
+                        majorGridLines: MajorGridLines(width: 0),
+                        majorTickLines: MajorTickLines(width: 0),
+                        axisLine: AxisLine(width: 1, color: Color(0XFFF2F8F2)),
+                        labelRotation: -90,
+
+                      ),
+                      primaryYAxis: const NumericAxis(
+                        majorGridLines: MajorGridLines(width: 0),
+                        majorTickLines: MajorTickLines(width: 0),
+                        axisLine: AxisLine(width: 1, color: Color(0XFFF2F8F2)),
+                      ),
+                      plotAreaBorderWidth: 0,
+                      title: const ChartTitle(text: 'Weekly Statistics'),
+                      legend: const Legend(isVisible: false),
+                      tooltipBehavior: TooltipBehavior(enable: true),
+                      series: <CartesianSeries>[
+                        ColumnSeries<ChartData, String>(
+                            dataSource: cData,
+                            xValueMapper: (ChartData data, _) => "$chartPrefix ${data.x}",
+                            yValueMapper: (ChartData data, _) => data.y,
+                            color: Color(0xFFACE194),
+                            borderRadius: BorderRadius.all(Radius.circular(3)))
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '${selectedStat["hour"]}h ${selectedStat["minutes"]}mins',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Good Job! Keep it up',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0XFFC3E2C2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
               ),
-              Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '15h 12mins',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'Good Job! Keep it up',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0XFFC3E2C2),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
+            );
+          }
         );
       },
     );
   }
+
+
 }
 
 class ChartData {
   ChartData(this.x, this.y);
 
-  final double x;
-  final double y;
+  String x;
+  double y;
 }

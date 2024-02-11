@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
+import 'package:spt/view/leaderboard_page.dart';
 
 import 'focus_mode_page.dart';
 
 class SubjectSelectionPage extends StatefulWidget {
   final Function(int, QueryDocumentSnapshot,String,String) selectSubject;
-
-  const SubjectSelectionPage({super.key, required this.selectSubject});
+  final bool enableFocus;
+  const SubjectSelectionPage({super.key, required this.selectSubject, this.enableFocus = false});
 
   @override
   State<SubjectSelectionPage> createState() => _SubjectSelectionPageState();
@@ -48,6 +50,8 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
 
   late QuerySnapshot agricultureLessonsSnapshot;
 
+  bool enableFocus = false;
+
   String studyContent = '';
 
   setStudyContent(String content){
@@ -55,6 +59,8 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
       studyContent = content;
     });
   }
+
+
 
   @override
   void initState() {
@@ -189,92 +195,104 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             margin: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/icons/fire_overall.png',
-                  width: 54,
-                  height: 54,
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                //You are 25th
-                // on the leader board
-                Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'You are',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        ShaderMask(
-                            // black to F2513B
-                            blendMode: BlendMode.srcIn,
-                            shaderCallback: (Rect bounds) {
-                              return LinearGradient(
-                                colors: <Color>[
-                                  Color(0xFF000000),
-                                  Color(0xFFF2513B),
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ).createShader(bounds);
-                            },
-                            child: const Text(
-                              '25',
-                              style: TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )),
-                        Text(
-                          'th',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+            child: GestureDetector(
+              onTap: () {
+                if(!widget.enableFocus){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
                     ),
-                    Row(
-                      children: [
-                        const Text(
-                          'on the leader board',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  );
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/icons/fire_overall.png',
+                    width: 54,
+                    height: 54,
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  //You are 25th
+                  // on the leader board
+                  Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'You are',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFC88200),
-                            borderRadius: BorderRadius.circular(100),
+                          const SizedBox(width: 5),
+                          ShaderMask(
+                              // black to F2513B
+                              blendMode: BlendMode.srcIn,
+                              shaderCallback: (Rect bounds) {
+                                return LinearGradient(
+                                  colors: <Color>[
+                                    Color(0xFF000000),
+                                    Color(0xFFF2513B),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ).createShader(bounds);
+                              },
+                              child: const Text(
+                                '25',
+                                style: TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )),
+                          Text(
+                            'th',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: Colors.white,
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Text(
+                            'on the leader board',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFC88200),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -362,7 +380,6 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                       i++)
                                     ExpansionTile(
                                       title: Container(
-                                          height: 50,
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width *
@@ -946,6 +963,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                           ],
                         );
                       } else {
+                        print('No data');
                         return Container(
                           child: CircularProgressIndicator(),
                         );

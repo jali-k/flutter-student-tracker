@@ -30,7 +30,7 @@ class FocusService{
       'lessonID': lessonId, //lesson id
       'subjectName': subjectName, //subject name
       'userID': userID,
-      'duration': 0,
+      'duration': duration,
       'startAt': DateTime.now(),
       'endAt': null,
       'lessonContent': lessonContent,
@@ -40,7 +40,7 @@ class FocusService{
     getFocusReference(subjectName, lessonId,focusID).set(focusData);
     SharedPreferences prefs =await SharedPreferences.getInstance();
     focusData['startAt'] = focusData['startAt'].toIso8601String();
-    prefs.setString('enabledFocus', true.toString());
+    prefs.setBool('enabledFocus', true);
     prefs.setString('focusData', jsonEncode(focusData));
 
   }
@@ -53,7 +53,6 @@ class FocusService{
     int duration = 0;
     SharedPreferences prefs =await SharedPreferences.getInstance();
     Map<String, dynamic> focusData = jsonDecode(prefs.getString('focusData')!);
-    print(focusData);
     focusID = focusData['focusID'];
     lessonId = focusData['lessonID'];
     subjectName = focusData['subjectName'];
@@ -61,6 +60,9 @@ class FocusService{
     DateTime endAt = DateTime.now();
     //duration in minutes
     duration = endAt.difference(startAt).inSeconds;
+    prefs.setBool('enabledFocus',false);
+    prefs.remove('countDown');
+    prefs.remove('focusData');
 
     // save on firestore subject -> subjectName -> lessons -> lessonId -> focus -> lessonContent ->userID with fields duration,startAt, endAt
     getFocusReference(subjectName!, lessonId!,focusID!).update({
@@ -68,7 +70,7 @@ class FocusService{
       'endAt': DateTime.now(),
       'isCompleted': true,
     });
-    prefs.setString('enabledFocus', false.toString());
+    prefs.setBool('enabledFocus', false);
   }
 
   static getStudentSubjectFocus(String subjectName) async {
@@ -80,6 +82,11 @@ class FocusService{
     }
     return totalFocus;
 
+  }
+
+  static Future<List<QueryDocumentSnapshot>> getFocusData() async {
+    QuerySnapshot focusData = await _firestore.collection('focusData').where('userID',isEqualTo: _auth.currentUser!.uid).get();
+    return focusData.docs;
   }
 
 }

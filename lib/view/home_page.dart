@@ -486,7 +486,12 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  Navigator.pushNamed(context, '/login');
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) => MainLayout(
+                                                            mainIndex: 2,
+                                                          )));
                                                 },
 
                                               ),

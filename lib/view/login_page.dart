@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:spt/layout/main_layout.dart';
 import 'package:spt/services/auth_services.dart';
 
 class LoginPage extends StatefulWidget {
@@ -56,7 +57,10 @@ class _LoginPageState extends State<LoginPage> {
       // String password = "123456";
       User? user = await AuthService.signInWithEmailAndPassword(email, password);
       if(user != null) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MainLayout()),
+        );
         _loadingStream.add(false);
       }else{
         error = 'Could not sign in with those credentials';

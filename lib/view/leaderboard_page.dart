@@ -33,7 +33,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width *0.9,
-      height: MediaQuery.of(context).size.height *0.9,
+      height: (MediaQuery.of(context).size.height - 70) *0.9,
       alignment: Alignment.center,
       margin: const EdgeInsets.all(10),
       color: Color(0xFFFAFAFA),

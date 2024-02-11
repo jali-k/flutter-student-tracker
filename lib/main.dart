@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -23,7 +24,7 @@ void overlayMain() async {
   debugPrint("Starting Alerting Window Isolate!");
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MyOverlaContent()));
 
@@ -37,17 +38,18 @@ showOverlay() async {
   }
 }
 
+bool isUserLoggedIn(){
+  FirebaseAuth auth = FirebaseAuth.instance;
+  if(auth.currentUser != null){
+    return true;
+  }else{
+    return false;
+  }
+
+}
 
 
-// overlay entry point
-// @pragma("vm:entry-point")
-// void showOverlay() {
-//   runApp(MaterialApp(
-//       theme: new ThemeData(scaffoldBackgroundColor: const Color(0xFFEFEFEF)),
-//       debugShowCheckedModeBanner: false, home: Container(
-//       child: MyOverlaContent()))
-//   );
-// }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -63,12 +65,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      initialRoute: '/home',
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/home': (context) => MainLayout(),
-
-      },
+      home: isUserLoggedIn() ? MainLayout() : const LoginPage(),
     );
   }
 }
