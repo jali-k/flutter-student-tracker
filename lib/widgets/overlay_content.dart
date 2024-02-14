@@ -52,9 +52,10 @@ class _MyOverlaContentState extends State<MyOverlaContent> {
         setState(() {
           countDown = event.cast<String, int>();
         });
-        initTimer();
       }
     });
+    initTimer();
+
   }
 
 

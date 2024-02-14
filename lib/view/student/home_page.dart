@@ -48,16 +48,16 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height - 60,
+      height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
       child: Stack(
         children: [
           Positioned(
-            top: 0,
+            top: -40,
             left: 0,
             child: Image.asset(
               'assets/images/home_background.png',
-              fit: BoxFit.fitWidth,
+              fit: BoxFit.fill,
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.center,
@@ -65,13 +65,14 @@ class _HomePageState extends State<HomePage> {
           ),
           Positioned(
               bottom: 10,
-              height: 600,
+              height: MediaQuery.of(context).size.height * 0.8,
               child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   // Title : What’s catching your interest today?
                   children: [
                     Container(
+                      height: 80,
                       width: MediaQuery.of(context).size.width,
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     SizedBox(height: 10),
                     Container(
-                      height: 500,
+                      height: MediaQuery.of(context).size.height * 0.8 - 100,
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
@@ -266,12 +267,15 @@ class _HomePageState extends State<HomePage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Container(
-                                            width: 100,
-                                            height: 100,
+                                            width: 120,
+                                            height: 120,
                                             margin: const EdgeInsets.only(left: 40),
-                                            color: Colors.blueGrey,
+                                            child: Image.asset(
+                                              'assets/animation/study.gif',
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
-                                          SizedBox(height: 20),
+                                          SizedBox(height: 5),
                                           Container(
                                             alignment: Alignment.center,
                                             child: Text(
@@ -283,7 +287,7 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                             ),
                                           ),
-                                          SizedBox(height: 30),
+                                          SizedBox(height: 25),
                                           Container(
                                             alignment: Alignment.center,
                                             child: Container(
@@ -455,12 +459,15 @@ class _HomePageState extends State<HomePage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Container(
-                                            width: 100,
-                                            height: 100,
+                                            width: 120,
+                                            height: 120,
                                             margin: const EdgeInsets.only(left: 40),
-                                            color: Colors.blueGrey,
+                                            child: Image.asset(
+                                              'assets/animation/paper.gif',
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
-                                          SizedBox(height: 20),
+                                          SizedBox(height: 5),
                                           Container(
                                             alignment: Alignment.center,
                                             child: Text(
@@ -472,7 +479,7 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                             ),
                                           ),
-                                          SizedBox(height: 30),
+                                          SizedBox(height: 25),
                                           Container(
                                             alignment: Alignment.center,
                                             child: Container(
@@ -649,12 +656,15 @@ class _HomePageState extends State<HomePage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Container(
-                                            width: 100,
-                                            height: 100,
+                                            width: 120,
+                                            height: 120,
                                             margin: const EdgeInsets.only(left: 40),
-                                            color: Colors.blueGrey,
+                                            child: Image.asset(
+                                              'assets/animation/greet.gif',
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
-                                          SizedBox(height: 20),
+                                          SizedBox(height: 5),
                                           Container(
                                             alignment: Alignment.center,
                                             child: Text(
@@ -666,7 +676,7 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                             ),
                                           ),
-                                          SizedBox(height: 30),
+                                          SizedBox(height: 25),
                                           Container(
                                             alignment: Alignment.center,
                                             child: Container(

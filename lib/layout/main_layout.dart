@@ -111,13 +111,17 @@ class _MainLayoutState extends State<MainLayout> {
     } else {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.containsKey('countDown')) {
-        await FlutterOverlayWindow.showOverlay(
-            overlayTitle: "", height: 420, width: 400, enableDrag: true);
-        String? countDown = prefs.getString('countDown');
-        if (countDown != null) {
-          Map<String, dynamic> countDownMap = jsonDecode(countDown);
-          await FlutterOverlayWindow.shareData(countDownMap);
+
+        if(!await FlutterOverlayWindow.isActive()){
+          await FlutterOverlayWindow.showOverlay(
+              overlayTitle: "", height: 500, width: 400, enableDrag: true);
+          String? countDown = prefs.getString('countDown');
+          if (countDown != null) {
+            Map<String, dynamic> countDownMap = jsonDecode(countDown);
+            await FlutterOverlayWindow.shareData(countDownMap);
+          }
         }
+
       }
     }
   }
@@ -128,7 +132,9 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   _hideFocusModeTimer() async {
-    bool? r = await FlutterOverlayWindow.closeOverlay();
+    if(await FlutterOverlayWindow.isActive()){
+      await FlutterOverlayWindow.closeOverlay();
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
     setCountDownTimer(countDown.cast<String, int>());
@@ -139,9 +145,11 @@ class _MainLayoutState extends State<MainLayout> {
     super.initState();
     lifecycleListener = AppLifecycleListener(
       onShow: () async {
+        print('App is visible');
         await _hideFocusModeTimer();
       },
       onHide: () async {
+        print('App is hidden');
         await _showFocusModeTimer();
       },
     );

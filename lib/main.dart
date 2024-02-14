@@ -22,6 +22,7 @@ WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  // FirebaseAuth.instance.signOut();
   runApp(const MyApp());
 }
 
