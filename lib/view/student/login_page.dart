@@ -1,9 +1,19 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
+import 'package:spt/model/model.dart';
 import 'package:spt/services/auth_services.dart';
+import 'package:spt/view/student/sign_up_page.dart';
+
+import '../../model/Admin.dart';
+import '../../model/Student.dart';
+import '../../screens/bottomBar_screen/bottom_bar_screen.dart';
+import '../../screens/instructor_screen/existing_instructor_screen.dart';
+import '../../screens/instructor_screen/instructor_entry_screen.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -56,11 +66,75 @@ class _LoginPageState extends State<LoginPage> {
       String password = passwordController.text;
       // String password = "123456";
       User? user = await AuthService.signInWithEmailAndPassword(email, password);
+      bool isUserInstructor = false;
+      bool isUserStudent = false;
+      bool isUserAdmin = false;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
       if(user != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MainLayout()),
-        );
+        DocumentSnapshot instructorDoc = await FirebaseFirestore.instance.collection('instructor').doc(user.uid).get();
+        if(instructorDoc.exists) {
+          isUserInstructor = true;
+          Instructor? instructor = instructorDoc.exists ? Instructor(
+              instructorId: instructorDoc.get('instructorId'),
+              email: instructorDoc.get('email'),
+              docId: instructorDoc.get('instructorId'),
+
+          ) : null;
+          // save on shared preference
+          prefs.setString('uid', instructor!.instructorId);
+          prefs.setStringList('user', instructor.toList());
+          prefs.setString("role", "instructor");
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => InstructorEntryScreen()),
+          );
+        }else{
+          DocumentSnapshot studentDoc = await FirebaseFirestore.instance.collection('students').doc(user.uid).get();
+          if(studentDoc.exists) {
+            isUserStudent = true;
+            Student? student = await FirebaseFirestore.instance.collection('students').doc(user!.uid).get().then((value) => Student(
+                firstName: value.get('firstName'),
+                lastName: value.get('lastName'),
+                email: value.get('email'),
+                uid: value.get('uid'),
+                createdAt: value.get('createdAt'),
+                registrationNumber: value.get('registrationNumber') ?? "N/A",
+            ));
+            // save on shared preference
+
+            prefs.setString('uid', student!.uid);
+            prefs.setStringList('user', student.toList());
+            prefs.setString("role", "student");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MainLayout()),
+            );
+          }else{
+            DocumentSnapshot adminDoc = await FirebaseFirestore.instance.collection('admin').doc(user.uid).get();
+            if(adminDoc.exists) {
+              isUserAdmin = true;
+              Admin? admin = adminDoc.exists ? Admin(
+                  email: adminDoc.get('email'),
+                  password: adminDoc.get('password'),
+                  uid: adminDoc.get('uid')
+              ) : null;
+              // save on shared preference
+              prefs.setString('uid', admin!.uid);
+              prefs.setStringList('user', admin.toList());
+              prefs.setString("role", "admin");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) =>
+                    BottomBarScreen(
+                          isEntryScreen: false,
+                          isInstructorScreen: false)
+                ),
+              );
+            }
+          }
+        }
+
         _loadingStream.add(false);
       }else{
         error = 'Could not sign in with those credentials';
@@ -110,7 +184,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(50),
+                      topRight: Radius.circular(100),
                     ),
                   ),
                   child: Column(
@@ -155,6 +229,34 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
+                      // sign in with google
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.network(
+                                  'http://pngimg.com/uploads/google/google_PNG19635.png',
+                                  fit:BoxFit.cover
+                              ),
+                              const SizedBox(width: 10),
+                              const Text('Sign in with Google', style: TextStyle(fontSize: 18,color: Colors.black)),
+                            ],
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: const BorderSide(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.8,
                         height: 50,
@@ -180,7 +282,12 @@ class _LoginPageState extends State<LoginPage> {
                           const SizedBox(width: 10),
                           Text('|'),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SignUpPage()
+                              ));
+                            },
                             child: const Text('Create'),
                           ),
                         ],

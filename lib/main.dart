@@ -4,9 +4,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
-import 'package:spt/view/home_page.dart';
-import 'package:spt/view/login_page.dart';
+import 'package:spt/screens/bottomBar_screen/bottom_bar_screen.dart';
+import 'package:spt/screens/initial_screen/initial_screen.dart';
+import 'package:spt/screens/instructor_screen/existing_instructor_screen.dart';
+import 'package:spt/screens/instructor_screen/instructor_entry_screen.dart';
+import 'package:spt/services/auth_services.dart';
+import 'package:spt/view/student/home_page.dart';
+import 'package:spt/view/student/login_page.dart';
 import 'package:spt/widgets/overlay_content.dart';
 import 'firebase_options.dart';
 
@@ -48,6 +54,26 @@ bool isUserLoggedIn(){
 
 }
 
+Future<Widget> getLandingPage() async {
+  if(isUserLoggedIn()){
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String role = prefs.getString('role')!;
+    if(role == 'student'){
+      return MainLayout();
+    }else if(role == 'instructor'){
+      return InstructorEntryScreen();
+    } else if(role == 'admin') {
+      return BottomBarScreen(
+          isEntryScreen: false,
+          isInstructorScreen: false);
+    }
+    // Unkown role
+    return MainLayout();
+  }else{
+    return LoginPage();
+  }
+}
+
 
 
 
@@ -65,7 +91,28 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: isUserLoggedIn() ? MainLayout() : const LoginPage(),
+      home: FutureBuilder(
+        future: getLandingPage(),
+        builder: (context, snapshot) {
+          if(snapshot.connectionState == ConnectionState.waiting){
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }else{
+            if(snapshot.hasError){
+              return Scaffold(
+                body: Center(
+                  child: Text('Error: ${snapshot.error}'),
+                ),
+              );
+            }else{
+              return snapshot.data!;
+            }
+          }
+        },
+      ),
     );
   }
 }

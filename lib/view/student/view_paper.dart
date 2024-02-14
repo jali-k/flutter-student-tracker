@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 // import 'package:flutter_overlay_apps/flutter_overlay_apps.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:spt/services/mark_service.dart';
-import 'package:spt/view/student_paper_position_view.dart';
+import 'package:spt/view/student/student_paper_position_view.dart';
 
-import '../model/Paper.dart';
-import '../model/paper_attempt.dart';
-import '../util/overlayUtil.dart';
+import '../../model/Paper.dart';
+import '../../model/paper_attempt.dart';
+import '../../util/overlayUtil.dart';
 
 class StudentMarksPage extends StatefulWidget {
   const StudentMarksPage({super.key});
@@ -21,7 +21,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
   bool isLoadingPapers = true;
   int selected = 0;
   final myID = 5;
-  Map<Paper,AttemptPaper> papers = {};
+  Map<ExamPaper,AttemptPaper> papers = {};
   void handleSelected(int i) {
     for (int j = 0; j < isSelected.length; j++) {
       if (j == i) {
@@ -60,7 +60,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
   }
 
   getPapers() async {
-    Map<Paper,AttemptPaper> p = await PaperMarksService.getStudentPapers();
+    Map<ExamPaper,AttemptPaper> p = await PaperMarksService.getStudentPapers();
     setState(() {
       papers = p;
       isLoadingPapers = false;

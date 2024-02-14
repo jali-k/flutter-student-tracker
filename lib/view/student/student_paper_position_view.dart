@@ -4,10 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
-import '../layout/main_layout.dart';
-import '../model/Paper.dart';
-import '../model/leaderboard_entries.dart';
-import '../services/leaderboard_service.dart';
+import '../../layout/main_layout.dart';
+import '../../model/Paper.dart';
+import '../../model/leaderboard_entries.dart';
+import '../../services/leaderboard_service.dart';
 
 class StudentPaperPositionPage extends StatefulWidget {
   final String paperId;
@@ -24,7 +24,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
   int selected = 0;
   final myID = FirebaseAuth.instance.currentUser!.uid;
   Map<String, List<LeaderBoardEntries>> _leaderBoard = {};
-  List<Paper> _papers = [];
+  List<ExamPaper> _papers = [];
   bool _loading = true;
 
   final StreamController<String> _paperBloc = StreamController<String>();
@@ -47,7 +47,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
   void getPaperLeaderBoard() async {
     Map<String, List<LeaderBoardEntries>> leaderBoard =
         await LeaderBoardService.getLeaderBoard();
-    List<Paper> papers = await LeaderBoardService.getAttemptedPapers();
+    List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
     setState(() {
       _leaderBoard = leaderBoard;
       _papers = papers;
@@ -129,7 +129,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                 initialData: 0,
                                 builder: (context, snapshot) {
                                   int index = snapshot.data!;
-                                  Paper paper = _papers[index];
+                                  ExamPaper paper = _papers[index];
                                   return Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [

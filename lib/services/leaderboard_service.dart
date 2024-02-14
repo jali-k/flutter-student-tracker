@@ -12,14 +12,14 @@ class LeaderBoardService {
 
     QuerySnapshot papers = await _firestore.collection('papers').get();
     QuerySnapshot students = await _firestore.collection('students').get();
-    List<Paper> paperList = [];
+    List<ExamPaper> paperList = [];
 
     Map<String, List<LeaderBoardEntries>> groupedMarks = {};
     marks.docs.forEach((mark)  {
       String paperId = mark['paperId'];
       QueryDocumentSnapshot? paper = papers.docs.firstWhere(
         (element) => element['paperId'] == paperId);
-      Paper p = Paper.fromQuery(paper);
+      ExamPaper p = ExamPaper.fromQuery(paper);
       // get Student by Student ID If not found then return null
       bool isStudentExist = students.docs.any((element) => element['uid'] == mark['studentId']);
       String name = 'Unknown';
@@ -57,18 +57,18 @@ class LeaderBoardService {
   }
 
 
-  static Future<List<Paper>> getAttemptedPapers() async {
+  static Future<List<ExamPaper>> getAttemptedPapers() async {
     QuerySnapshot marks = await _firestore.collection('marks').get();
 
     QuerySnapshot papers = await _firestore.collection('papers').get();
-    List<Paper> paperList = [];
+    List<ExamPaper> paperList = [];
 
     Map<String, List<LeaderBoardEntries>> groupedMarks = {};
     marks.docs.forEach((mark) {
       String paperId = mark['paperId'];
       QueryDocumentSnapshot? paper = papers.docs.firstWhere(
               (element) => element['paperId'] == paperId);
-      Paper p = Paper.fromQuery(paper);
+      ExamPaper p = ExamPaper.fromQuery(paper);
       paperList.add(p);
     });
     return paperList;

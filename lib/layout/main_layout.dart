@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -11,20 +9,22 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/services/SubjectLessonService.dart';
 import 'package:spt/services/focusService.dart';
-import 'package:spt/view/focus_mode_page.dart';
-import 'package:spt/view/home_page.dart';
-import 'package:spt/view/leaderboard_page.dart';
-import 'package:spt/view/login_page.dart';
-import 'package:spt/view/student_paper_position_view.dart';
-import 'package:spt/view/subject_select_page.dart';
-import 'package:spt/view/view_paper.dart';
+import 'package:spt/view/student/focus_mode_page.dart';
+import 'package:spt/view/student/home_page.dart';
+import 'package:spt/view/student/leaderboard_page.dart';
+import 'package:spt/view/student/login_page.dart';
+import 'package:spt/view/student/student_paper_position_view.dart';
+import 'package:spt/view/student/subject_select_page.dart';
+import 'package:spt/view/student/view_paper.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+
+import '../view/student/show_profile.dart';
 
 class MainLayout extends StatefulWidget {
   int mainIndex = 0;
   int subIndex = 0;
-  MainLayout({super.key, this.mainIndex = 0,this.subIndex = 0});
 
+  MainLayout({super.key, this.mainIndex = 0, this.subIndex = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
@@ -33,14 +33,16 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   Timer? countTimer, focusTimer;
   StreamController<int> indexController = StreamController<int>.broadcast();
-  StreamController<int> subjectSelectionController = StreamController<int>.broadcast();
+  StreamController<int> subjectSelectionController =
+      StreamController<int>.broadcast();
   QueryDocumentSnapshot? lesson;
   String lessonContent = '';
   String subjectName = '';
   bool enabledFocus = false;
   late AppLifecycleListener lifecycleListener;
-  
-  selectSubject(int index,QueryDocumentSnapshot lesson,String lessonContent,String subjectName) {
+
+  selectSubject(int index, QueryDocumentSnapshot lesson, String lessonContent,
+      String subjectName) {
     setState(() {
       this.lesson = lesson;
       this.lessonContent = lessonContent;
@@ -53,13 +55,12 @@ class _MainLayoutState extends State<MainLayout> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('countDown', jsonEncode(countDown));
     countTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-
-      if(countDown['seconds']! > 0){
+      if (countDown['seconds']! > 0) {
         countDown['seconds'] = countDown['seconds']! - 1;
-      }else if(countDown['minutes']! > 0){
+      } else if (countDown['minutes']! > 0) {
         countDown['minutes'] = countDown['minutes']! - 1;
         countDown['seconds'] = 59;
-      }else{
+      } else {
         timer.cancel();
       }
       prefs.setString('countDown', jsonEncode(countDown));
@@ -69,10 +70,11 @@ class _MainLayoutState extends State<MainLayout> {
   Future<bool> checkAndSetFocusMode() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // prefs.clear();
-    if(prefs.containsKey('enabledFocus')){
+    if (prefs.containsKey('enabledFocus')) {
       bool enabledFocus = prefs.getBool('enabledFocus')!;
-      if(enabledFocus){
-        Map<String, dynamic> focusData = jsonDecode(prefs.getString('focusData')!);
+      if (enabledFocus) {
+        Map<String, dynamic> focusData =
+            jsonDecode(prefs.getString('focusData')!);
         String focusID = focusData['focusID'];
         String lessonId = focusData['lessonID'];
         String _lessonContent = focusData['lessonContent'];
@@ -81,7 +83,8 @@ class _MainLayoutState extends State<MainLayout> {
         DateTime endAt = DateTime.now();
         //duration in minutes
         int duration = endAt.difference(startAt).inSeconds;
-        QueryDocumentSnapshot _lesson = await SubjectLessonService.getLessonById(_subjectName,lessonId);
+        QueryDocumentSnapshot _lesson =
+            await SubjectLessonService.getLessonById(_subjectName, lessonId);
         subjectSelectionController.add(1);
         setState(() {
           lesson = _lesson;
@@ -107,21 +110,19 @@ class _MainLayoutState extends State<MainLayout> {
       await FlutterOverlayWindow.requestPermission();
     } else {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      if(prefs.containsKey('countDown')){
+      if (prefs.containsKey('countDown')) {
         await FlutterOverlayWindow.showOverlay(
             overlayTitle: "", height: 420, width: 400, enableDrag: true);
         String? countDown = prefs.getString('countDown');
-        if(countDown != null) {
-          Map<String,dynamic> countDownMap = jsonDecode(countDown);
+        if (countDown != null) {
+          Map<String, dynamic> countDownMap = jsonDecode(countDown);
           await FlutterOverlayWindow.shareData(countDownMap);
         }
-
       }
     }
   }
 
-
-  _showFocusModeTimer(){
+  _showFocusModeTimer() {
     countTimer?.cancel();
     showOverlay();
   }
@@ -129,8 +130,8 @@ class _MainLayoutState extends State<MainLayout> {
   _hideFocusModeTimer() async {
     bool? r = await FlutterOverlayWindow.closeOverlay();
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    Map<String,dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
-    setCountDownTimer(countDown.cast<String,int>());
+    Map<String, dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
+    setCountDownTimer(countDown.cast<String, int>());
   }
 
   @override
@@ -148,12 +149,10 @@ class _MainLayoutState extends State<MainLayout> {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
         Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => const LoginPage())
-        );
+            MaterialPageRoute(builder: (context) => const LoginPage()));
       }
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -164,15 +163,15 @@ class _MainLayoutState extends State<MainLayout> {
           children: [
             Positioned(
                 bottom: 70,
-                height: MediaQuery.of(context).size.height - 50,
+                height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,
                   initialData: widget.mainIndex,
                   // initialData: 2,
                   builder: (context, snapshot) {
-                    if(snapshot.hasData){
+                    if (snapshot.hasData) {
                       int index = snapshot.data!;
-                      switch(index){
+                      switch (index) {
                         case 0:
                           return const HomePage();
                         case 1:
@@ -180,69 +179,76 @@ class _MainLayoutState extends State<MainLayout> {
                               stream: subjectSelectionController.stream,
                               initialData: widget.subIndex,
                               builder: (context, snapshot) {
-                                if(snapshot.hasData){
+                                if (snapshot.hasData) {
                                   int index = snapshot.data!;
-                                  if(enabledFocus){
+                                  if (enabledFocus) {
                                     return FocusMode(
-                                        lesson: lesson!,
-                                        lessonContent: lessonContent,
-                                        subject:subjectName,
-                                        enableFocus:true,
-                                        setCountDownTimer: setCountDownTimer,
+                                      lesson: lesson!,
+                                      lessonContent: lessonContent,
+                                      subject: subjectName,
+                                      enableFocus: true,
+                                      setCountDownTimer: setCountDownTimer,
                                     );
                                   }
-                                  switch(index){
+                                  switch (index) {
                                     case 0:
                                       return FutureBuilder(
-                                        future: checkAndSetFocusMode(),
-                                        builder: (context,snapshot){
-
-                                          if(snapshot.hasData){
-                                            if(snapshot.data == true){
-                                              return Container();
-                                            }else{
-                                              return SubjectSelectionPage(
-                                                selectSubject: selectSubject,
-                                              );
+                                          future: checkAndSetFocusMode(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              if (snapshot.data == true) {
+                                                return Container();
+                                              } else {
+                                                return SubjectSelectionPage(
+                                                  selectSubject: selectSubject,
+                                                );
+                                              }
                                             }
-                                          }
-                                          return const Center(child: CircularProgressIndicator(),);
-                                        }
-                                      );
+                                            return const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            );
+                                          });
                                     case 1:
                                       return FocusMode(
-                                          lesson: lesson!,
-                                          lessonContent: lessonContent,
-                                          subject:subjectName,
-                                          setCountDownTimer: setCountDownTimer,
+                                        lesson: lesson!,
+                                        lessonContent: lessonContent,
+                                        subject: subjectName,
+                                        setCountDownTimer: setCountDownTimer,
                                       );
-                                      case 2:
-                                        return LeaderBoardPage();
+                                    case 2:
+                                      return LeaderBoardPage();
                                     default:
-                                      return const Center(child: CircularProgressIndicator(), );
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
                                   }
+                                } else {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
                                 }
-                                else{
-                                  return const Center(child: CircularProgressIndicator(), );
-                                }
-                              }
-                          );
+                              });
                         case 2:
                           return StudentMarksPage();
                         case 3:
                           FirebaseAuth auth = FirebaseAuth.instance;
                           auth.signOut();
                           return Text('Page 4');
+                        case 4:
+                          return ProfilePage();
                         default:
-                          return const Center(child: Text('Home Page'),);
+                          return const Center(
+                            child: Text('Home Page'),
+                          );
                       }
-                    }
-                    else{
-                      return const Center(child: CircularProgressIndicator(), );
+                    } else {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
                     }
                   },
-                )
-            ),
+                )),
             Positioned(
                 bottom: 0,
                 height: 70,
@@ -265,7 +271,7 @@ class _MainLayoutState extends State<MainLayout> {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: ToggleSwitch(
-                      minWidth: MediaQuery.of(context).size.width * 0.9 / 4,
+                      minWidth: MediaQuery.of(context).size.width * 0.9 / 5,
                       minHeight: 50,
                       initialLabelIndex: widget.mainIndex,
                       cornerRadius: 4.0,
@@ -280,14 +286,14 @@ class _MainLayoutState extends State<MainLayout> {
                         Icons.book,
                         Icons.star,
                         Icons.notifications,
+                        Icons.person,
                       ],
                       onToggle: (index) {
                         changeIndex(index!);
                       },
                     ),
                   ),
-                )
-            )
+                )),
           ],
         ),
       ),

@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
-import 'package:spt/view/leaderboard_page.dart';
+import 'package:spt/view/student/leaderboard_page.dart';
 
 import 'focus_mode_page.dart';
 

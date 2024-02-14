@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/globals.dart';
 import 'package:spt/model/Student.dart';
+import 'package:spt/model/StudentCSV.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -29,17 +33,7 @@ class AuthService {
       print('email: $email, password: $password');
       UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
       User? user = result.user;
-      Student? student = await _firestore.collection('students').doc(user!.uid).get().then((value) => Student(
-        firstName: value.get('firstName'),
-        lastName: value.get('lastName'),
-        email: value.get('email'),
-        uid: value.get('uid'),
-        createdAt: value.get('createdAt')
-      ));
-      // save on shared preference
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setString('uid', student!.uid);
-      prefs.setStringList('user', student.toList());
+
       return user;
     } catch (e) {
       print(e.toString());
@@ -51,4 +45,39 @@ class AuthService {
     User? user = _auth.currentUser;
     return Future.value(user);
   }
+
+  static void signOut() async{
+    _auth.signOut();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+  }
+
+  static void changePassword({required String oldPassword, required String newPassword, required BuildContext context}) {
+    User? user = _auth.currentUser;
+    AuthCredential credential = EmailAuthProvider.credential(email: user!.email!, password: oldPassword);
+    user.reauthenticateWithCredential(credential).then((value) {
+      user.updatePassword(newPassword).then((_) {
+        Globals.showSnackBar(context: context, message: "Password changed successfully",isSuccess: true);
+      }).catchError((error) {
+        Globals.showSnackBar(context: context, message: "Password can't be changed" + error.toString(),isSuccess: false);
+      });
+    }).catchError((error) {
+      Globals.showSnackBar(context: context, message: "Password can't be changed" + error.toString(),isSuccess: false);
+    });
+  }
+
+  static void createStudents(List<StudentCSV> students) {
+    for (var student in students) {
+      _auth.createUserWithEmailAndPassword(email: student.StudentEmail, password: student.StudentRegistrationNumber).then((value) {
+        _firestore.collection('students').doc(value.user!.uid).set({
+          'uid': value.user!.uid,
+          'email': value.user!.email,
+          'instructorId': student.InstructorId,
+          'registrationNumber': student.StudentRegistrationNumber,
+        });
+      });
+    }
+  }
+
+
 }

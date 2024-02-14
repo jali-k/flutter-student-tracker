@@ -2,7 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Paper{
+class ExamPaper{
   int id;
   String paperId;
   String paperName;
@@ -10,10 +10,10 @@ class Paper{
   bool isMcq;
   bool isStructured;
 
-  Paper({required this.id, required this.paperId, required this.paperName, required this.isEssay, required this.isMcq, required this.isStructured});
+  ExamPaper({required this.id, required this.paperId, required this.paperName, required this.isEssay, required this.isMcq, required this.isStructured});
 
-  factory Paper.fromJson(Map<String, dynamic> json) {
-    return Paper(
+  factory ExamPaper.fromJson(Map<String, dynamic> json) {
+    return ExamPaper(
       id: json['id'],
       paperId: json['paperId'],
       paperName: json['paperName'],
@@ -23,8 +23,8 @@ class Paper{
     );
   }
 
-  factory Paper.fromQuery(QueryDocumentSnapshot snapshot) {
-    return Paper(
+  factory ExamPaper.fromQuery(QueryDocumentSnapshot snapshot) {
+    return ExamPaper(
       id: snapshot['id'],
       paperId: snapshot['paperId'],
       paperName: snapshot['paperName'],

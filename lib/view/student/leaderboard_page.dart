@@ -13,7 +13,9 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
 
   final isSelected = [true, false, false, false, false];
   int selected = 0;
-  final myID = 5;
+  final myID = 3524;
+  //scroll key
+  final ScrollController _scrollController = ScrollController();
 
   void handleSelected(int i) {
     for (int j = 0; j < isSelected.length; j++) {
@@ -28,17 +30,25 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
     });
   }
 
+  void navigateToPosition(int position) {
+    _scrollController.animateTo(
+      position * 70.0,
+      duration: const Duration(seconds: 1),
+      curve: Curves.easeIn,
+    );
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width *0.9,
-      height: (MediaQuery.of(context).size.height - 70) *0.9,
-      alignment: Alignment.center,
-      margin: const EdgeInsets.all(10),
-      color: Color(0xFFFAFAFA),
+      height: MediaQuery.of(context).size.height - 70,
+      alignment: Alignment.topCenter,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
@@ -176,100 +186,97 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
         ),
           SizedBox(height: 20,),
           Container(
+            padding: const EdgeInsets.all(10),
+            height: MediaQuery.of(context).size.height - 300,
             // Leaderboard
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                if(index == myID)
-                  {
-                    return Container(
-                      margin: const EdgeInsets.all(10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: CircleAvatar(
-                              minRadius: 30,
-                              backgroundColor: Color(0xFF00C897),
-                              child: Text('${index *1000 +1}', style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),),
-                            ),
+            child: ListView.builder(
+              controller: _scrollController,
+              itemBuilder: (context, index) {
+              if(index == myID)
+                {
+                  navigateToPosition(index);
+                  return Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Color(0xFF00C897),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.all(2),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Text('${index}', style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),),
                           ),
-                          Expanded(child: SizedBox(), flex: 1,),
-                          Expanded(
-                            flex: 6,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Color(0xFF00C897),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              padding: const EdgeInsets.all(10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Student ${index+1}', style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),),
-                                  Expanded(
-                                      flex: 1,
-                                      child: SizedBox(width: 10,)),
-                                  Text('100', style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red,
-                                  ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                return Container(
-                  margin: const EdgeInsets.all(10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Text('${index * 1000 +1}', style: TextStyle(
-                            fontSize: 14,
+                        ),
+                        Expanded(child: SizedBox(), flex: 1,),
+                        Expanded(
+                          flex: 3,
+                          child: Text('Student ${index+1}', style: TextStyle(
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),),
                         ),
-                      ),
-                      Expanded(child: SizedBox(), flex: 1,),
-                      Expanded(
-                        flex: 3,
-                        child: Text('Student ${index+1}', style: TextStyle(
-                          fontSize: 18,
+                        Expanded(child: SizedBox(), flex: 1,),
+                        Expanded(
+                          flex: 2,
+                          child: Text('100', style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              return Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.all(2),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Text('${index}', style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),),
                       ),
-                      Expanded(child: SizedBox(), flex: 1,),
-                      Expanded(
-                        flex: 2,
-                        child: Text('100', style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),),
-                      ),
-                    ],
-                  ),
-                );
-              },
-                itemCount: 10,
-                shrinkWrap: true,
-              )
+                    ),
+                    Expanded(child: SizedBox(), flex: 1,),
+                    Expanded(
+                      flex: 3,
+                      child: Text('Student ${index+1}', style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),),
+                    ),
+                    Expanded(child: SizedBox(), flex: 1,),
+                    Expanded(
+                      flex: 2,
+                      child: Text('100', style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),textAlign: TextAlign.right,),
+                    ),
+                  ],
+                ),
+              );
+            },
+              itemCount: 5000,
+              shrinkWrap: true,
             ),
           ),
           SizedBox(height: 20,),
