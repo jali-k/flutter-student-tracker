@@ -397,8 +397,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final input = File(file.path!).openRead();
       var fields = await input
           .transform(utf8.decoder)
-          .transform(new CsvToListConverter())
+          .transform(CsvToListConverter())
           .toList();
+      print(fields);
 
       List<StudentCSV> students = [];
       fields = fields.sublist(1);
@@ -424,12 +425,14 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      print(fields);
       for (var field in fields) {
         StudentCSV student = StudentCSV(
+            studentName: field[0].toString(),
             InstructorId: field[0].toString(),
             StudentEmail: field[2].toString(),
-            StudentRegistrationNumber: field[1].toString());
+            StudentRegistrationNumber: field[1].toString(),
+            InstructingGroup: field[3].toString()
+        );
         students.add(student);
       }
 

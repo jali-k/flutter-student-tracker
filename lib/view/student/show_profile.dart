@@ -253,6 +253,31 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child: const Text('Change Password'),
                               ),
                             ),
+                            const Gap(20),
+                            Center(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  // Change Password
+                                  AuthService.signOut();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: AppColors.red,
+                                ),
+                                child: Container(
+                                  width: 300,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(Icons.logout),
+                                      Gap(10),
+                                      Text('Logout'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           ],
                         ),
                       ),
