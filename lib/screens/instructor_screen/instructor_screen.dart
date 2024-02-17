@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:spt/services/api_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 
@@ -39,14 +41,14 @@ class _InstructorScreenState extends State<InstructorScreen> {
       isLoading = true;
     });
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('instructor')
-        .orderBy('id', descending: true)
+        .collection('instructors')
+        .orderBy('email', descending: true)
         .get();
     setState(() {
       data.addAll(querySnapshot.docs);
       data.forEach((email) {
         instructor.add(Instructor(
-            instructorId: email['instructorId'],
+            instructorId: email['uid'],
             email: email['email'],
             docId: email.id));
       });
@@ -54,28 +56,51 @@ class _InstructorScreenState extends State<InstructorScreen> {
     });
   }
 
+  createInstructor (String instructorEmail, String password) async {
+    Dio dio = Dio();
+    try{
+      final response = await dio.post(
+        '${APIProvider.BASE_URL}/instructor',
+        data: {
+          'email': instructorEmail,
+          'password': password,
+        },
+      );
+      return response.data['uid'];
+    }catch(e){
+      print('Error creating instructor: $e');
+    }
+
+  }
+
+  deleteInstructor(String instructorId, int index) async {
+    try {
+      Dio dio = Dio();
+      final loading = LoadingPopup(context);
+      loading.show();
+      await dio.delete('${APIProvider.BASE_URL}/instructor/$instructorId');
+      loading.dismiss();
+      instructor.removeAt(index);
+      Globals.showSnackBar(context: context, message: 'Success', isSuccess: true);
+    } catch (e) {
+      print('Error deleting instructor: $e');
+    }
+  }
+
   Future<void> addData(
       {required String instructorEmail, required String password}) async {
     try {
       final loading = LoadingPopup(context);
       loading.show();
-      String instructorId = const Uuid().v1();
-      DocumentReference documentReference = await FirebaseFirestore.instance
-          .collection('instructor') // Reference to the collection
-          .add({
-        'id': instructor.length,
-        'instructorId': instructorId,
-        'email': instructorEmail,
-        'password': password
-      });
+      String uid = await createInstructor(instructorEmail, password);
       loading.dismiss();
       setState(() {
         instructor.insert(
             0,
             Instructor(
-                instructorId: instructorId,
+                instructorId: uid,
                 email: instructorEmail,
-                docId: documentReference.id));
+                docId: uid));
         entryController.clear();
         passwordController.clear();
       });
@@ -100,24 +125,24 @@ class _InstructorScreenState extends State<InstructorScreen> {
     }
   }
 
-  void deleteInstructor(String instructorId, int index) async {
-    try {
-      DocumentReference documentReference =
-          FirebaseFirestore.instance.collection('instructor').doc(instructorId);
-      final loading = LoadingPopup(context);
-      loading.show();
-      await documentReference.delete();
-      loading.dismiss();
-      instructor.removeAt(index);
-
-      // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context, message: 'Success', isSuccess: true);
-    } catch (e) {
-      // ignore: avoid_print
-      print('Error deleting instructor: $e');
-    }
-  }
+  // void deleteInstructor(String instructorId, int index) async {
+  //   try {
+  //     DocumentReference documentReference =
+  //         FirebaseFirestore.instance.collection('instructor').doc(instructorId);
+  //     final loading = LoadingPopup(context);
+  //     loading.show();
+  //
+  //     loading.dismiss();
+  //     instructor.removeAt(index);
+  //
+  //     // ignore: use_build_context_synchronously
+  //     Globals.showSnackBar(
+  //         context: context, message: 'Success', isSuccess: true);
+  //   } catch (e) {
+  //     // ignore: avoid_print
+  //     print('Error deleting instructor: $e');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

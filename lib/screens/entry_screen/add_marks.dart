@@ -101,83 +101,95 @@ class _AddMarksState extends State<AddMarks> {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    //check if the paper has marks
+    bool hasMarks = false;
+    QuerySnapshot q = await FirebaseFirestore.instance
         .collection('marks')
         .where('paperId', isEqualTo: widget.paper.paperId)
-        .orderBy('studentId', descending: false)
         .get();
-    setState(() {
-      isLoading = false;
-    });
-    setState(() {
-      marks.addAll(querySnapshot.docs);
-      if (marks.isNotEmpty) {
-        marks.forEach((element) {
-          Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
-          int? mcq = data['mcqMarks'];
-          int? structure = data['structuredMarks'];
-          int? essay = data['essayMarks'];
-          int studentId = data['studentId'];
-          int totalMarks = data['totalMarks'];
-          studentIds.add(studentId);
-          rows.add(
-            TableRow(
-              children: [
-                TableCell(
-                    child: Container(
-                        height: 40,
-                        color: AppColors.ligthWhite,
-                        child: Center(
-                            child: Text(
-                          studentId.toString(),
-                          style: const TextStyle(color: AppColors.black),
-                        )))),
-                TableCell(
-                    child: Container(
-                        height: 40,
-                        color: widget.paper.isMcq
-                            ? AppColors.ligthWhite
-                            : AppColors.grey,
-                        child: Center(
-                            child: Text(mcq != null ? mcq.toString() : '',
-                                style:
-                                    const TextStyle(color: AppColors.black))))),
-                TableCell(
-                    child: Container(
-                        height: 40,
-                        color: widget.paper.isStructure
-                            ? AppColors.ligthWhite
-                            : AppColors.grey,
-                        child: Center(
-                            child: Text(
-                                structure != null ? structure.toString() : '',
-                                style:
-                                    const TextStyle(color: AppColors.black))))),
-                TableCell(
-                    child: Container(
-                        height: 40,
-                        color: widget.paper.isEssay
-                            ? AppColors.ligthWhite
-                            : AppColors.grey,
-                        child: Center(
-                            child: Text(essay != null ? essay.toString() : '',
-                                style:
-                                    const TextStyle(color: AppColors.black))))),
-                TableCell(
-                    child: Container(
-                        height: 40,
-                        color: AppColors.ligthWhite,
-                        child: Center(
-                            child: Text(
-                          totalMarks.toString(),
-                          style: const TextStyle(color: AppColors.black),
-                        )))),
-              ],
-            ),
-          );
-        });
-      }
-    });
+    if (q.docs.isNotEmpty) {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('marks')
+          .where('paperId', isEqualTo: widget.paper.paperId)
+          .orderBy('studentId', descending: false)
+          .get();
+      setState(() {
+        isLoading = false;
+      });
+      setState(() {
+        marks.addAll(querySnapshot.docs);
+        if (marks.isNotEmpty) {
+          marks.forEach((element) {
+            Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
+            int? mcq = data['mcqMarks'];
+            int? structure = data['structuredMarks'];
+            int? essay = data['essayMarks'];
+            int studentId = data['studentId'];
+            int totalMarks = data['totalMarks'];
+            studentIds.add(studentId);
+            rows.add(
+              TableRow(
+                children: [
+                  TableCell(
+                      child: Container(
+                          height: 40,
+                          color: AppColors.ligthWhite,
+                          child: Center(
+                              child: Text(
+                                studentId.toString(),
+                                style: const TextStyle(color: AppColors.black),
+                              )))),
+                  TableCell(
+                      child: Container(
+                          height: 40,
+                          color: widget.paper.isMcq
+                              ? AppColors.ligthWhite
+                              : AppColors.grey,
+                          child: Center(
+                              child: Text(mcq != null ? mcq.toString() : '',
+                                  style:
+                                  const TextStyle(color: AppColors.black))))),
+                  TableCell(
+                      child: Container(
+                          height: 40,
+                          color: widget.paper.isStructure
+                              ? AppColors.ligthWhite
+                              : AppColors.grey,
+                          child: Center(
+                              child: Text(
+                                  structure != null ? structure.toString() : '',
+                                  style:
+                                  const TextStyle(color: AppColors.black))))),
+                  TableCell(
+                      child: Container(
+                          height: 40,
+                          color: widget.paper.isEssay
+                              ? AppColors.ligthWhite
+                              : AppColors.grey,
+                          child: Center(
+                              child: Text(essay != null ? essay.toString() : '',
+                                  style:
+                                  const TextStyle(color: AppColors.black))))),
+                  TableCell(
+                      child: Container(
+                          height: 40,
+                          color: AppColors.ligthWhite,
+                          child: Center(
+                              child: Text(
+                                totalMarks.toString(),
+                                style: const TextStyle(color: AppColors.black),
+                              )))),
+                ],
+              ),
+            );
+          });
+        }
+      });
+    }else{
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> addMarks({

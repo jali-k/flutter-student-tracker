@@ -72,13 +72,13 @@ class _LoginPageState extends State<LoginPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
       if(user != null) {
-        DocumentSnapshot instructorDoc = await FirebaseFirestore.instance.collection('instructor').doc(user.uid).get();
+        DocumentSnapshot instructorDoc = await FirebaseFirestore.instance.collection('instructors').doc(user.uid).get();
         if(instructorDoc.exists) {
           isUserInstructor = true;
           Instructor? instructor = instructorDoc.exists ? Instructor(
-              instructorId: instructorDoc.get('instructorId'),
+              instructorId: instructorDoc.get('uid'),
               email: instructorDoc.get('email'),
-              docId: instructorDoc.get('instructorId'),
+              docId: instructorDoc.get('uid'),
 
           ) : null;
           // save on shared preference
@@ -94,12 +94,11 @@ class _LoginPageState extends State<LoginPage> {
           if(studentDoc.exists) {
             isUserStudent = true;
             Student? student = await FirebaseFirestore.instance.collection('students').doc(user!.uid).get().then((value) => Student(
-                firstName: value.get('firstName'),
-                lastName: value.get('lastName'),
+                firstName: value.get('name').toString().split(" ").length > 0 ? value.get('name').toString().split(" ")[0] : value.get('name'),
+                lastName: value.get('name').toString().split(" ").length > 1 ? value.get('name').toString().split(" ")[1] : "",
                 email: value.get('email'),
                 uid: value.get('uid'),
-                createdAt: value.get('createdAt'),
-                registrationNumber: value.get('registrationNumber') ?? "N/A",
+                registrationNumber: value.get('registrationNumber').toString() ?? "N/A",
             ));
             // save on shared preference
 

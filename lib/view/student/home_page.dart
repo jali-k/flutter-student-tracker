@@ -2,8 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
+import 'package:spt/model/paper_attempt.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/services/mark_service.dart';
+
+import '../../model/Paper.dart';
+import '../../model/model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   int _PhysicsFocus=0;
   int _AgricultureFocus=0;
   int _overallFocus=0;
+  List<AttemptPaper> paperMarks = [];
 
 
   getSubjectFocus() async {
@@ -27,6 +32,7 @@ class _HomePageState extends State<HomePage> {
     PhysicsFocus = await FocusService.getStudentSubjectFocus(Subject.PHYSICS);
     AgricultureFocus = await FocusService.getStudentSubjectFocus(Subject.AGRICULTURE);
     overallFocus = BiologyFocus + ChemistryFocus + PhysicsFocus + AgricultureFocus;
+    if (!mounted) return;
     setState(() {
       _BiologyFocus = BiologyFocus;
       _ChemistryFocus = ChemistryFocus;
@@ -36,13 +42,31 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  getMarks() async{
+    List<QueryDocumentSnapshot> _paperMarks = await PaperMarksService.getPaperMarksReference();
+    List<AttemptPaper> _marks = [];
+    for (DocumentSnapshot m in _paperMarks) {
+      AttemptPaper atmp = AttemptPaper.fromMap(m);
+      QuerySnapshot _papers = await PaperMarksService.getPaperByID(atmp.paperId!);
+      atmp.paperId = _papers.docs[0]['paperName'];
+
+      _marks.add(atmp);
+
+    }
+
+    if (!mounted) return;
+    setState(() {
+      paperMarks = _marks.length > 5 ? _marks.sublist(0, 5) : _marks;
+    });
+  }
+
 
   @override
   void initState() {
     // TODO: implement initState
+    getMarks();
     super.initState();
     getSubjectFocus();
-    PaperMarksService.getPaperMarksReference();
   }
 
   @override
@@ -153,105 +177,109 @@ class _HomePageState extends State<HomePage> {
                                         child: Container(
                                           margin: const EdgeInsets.only(top: 10,right: 5),
                                           width: 150,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFECA11B),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(_overallFocus.toString(),
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+                                          child: SingleChildScrollView(
+                                            scrollDirection: Axis.horizontal,
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.local_fire_department_rounded,
+                                                      color: Color(0xFFECA11B),
+                                                      size: 30,
                                                     ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Overall")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFF1BEC3E),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(_BiologyFocus.toString(),
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+                                                    SizedBox(width: 5),
+                                                    Text(_overallFocus.toString(),
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Biology")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFF1BECCD),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(_ChemistryFocus.toString(),
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+                                                    SizedBox(width: 10),
+                                                    Text("Overall")
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.local_fire_department_rounded,
+                                                      color: Color(0xFF1BEC3E),
+                                                      size: 30,
                                                     ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Chemistry")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFDEEC1B),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(_PhysicsFocus.toString(),
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+                                                    SizedBox(width: 5),
+                                                    Text(_BiologyFocus.toString(),
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Physics")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFD71BEC),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text(_AgricultureFocus.toString(),
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
+                                                    SizedBox(width: 10),
+                                                    Text("Biology")
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.local_fire_department_rounded,
+                                                      color: Color(0xFF1BECCD),
+                                                      size: 30,
                                                     ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Agriculture")
-                                                ],
-                                              ),
-                                            ],
+                                                    SizedBox(width: 5),
+                                                    Text(_ChemistryFocus.toString(),
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 10),
+                                                    Text("Chemistry")
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.local_fire_department_rounded,
+                                                      color: Color(0xFFDEEC1B),
+                                                      size: 30,
+                                                    ),
+                                                    SizedBox(width: 5),
+                                                    Text(_PhysicsFocus.toString(),
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 10),
+                                                    Text("Physics")
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.local_fire_department_rounded,
+                                                      color: Color(0xFFD71BEC),
+                                                      size: 30,
+                                                    ),
+                                                    SizedBox(width: 5),
+                                                    Text(_AgricultureFocus.toString(),
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 10),
+                                                    Text("Agriculture")
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         )
 
@@ -345,105 +373,40 @@ class _HomePageState extends State<HomePage> {
                                         child: Container(
                                           margin: const EdgeInsets.only(top: 10,right: 5),
                                           width: 150,
-                                          child: const Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFECA11B),
-                                                    size: 30,
+                                          child: ListView.builder(
+                                            itemCount: paperMarks.length,
+                                            itemBuilder: (context, index) {
+                                              return Container(
+                                                margin: const EdgeInsets.only(top: 5),
+                                                child: SingleChildScrollView(
+                                                  scrollDirection: Axis.horizontal,
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.start,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.local_fire_department_rounded,
+                                                        color: Color(0xFFECA11B),
+                                                        size: 30,
+                                                      ),
+                                                      SizedBox(width: 5),
+                                                      Text(paperMarks[index].totalMarks.toString(),
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 10),
+                                                      Text(paperMarks[index].paperId!,
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      )
+                                                    ],
                                                   ),
-                                                  SizedBox(width: 5),
-                                                  Text("25",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Overall")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFF1BEC3E),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("12",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Biology")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFF1BECCD),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("25",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Chemistry")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFDEEC1B),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("24",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Physics")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFD71BEC),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("00",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Agriculture")
-                                                ],
-                                              ),
-                                            ],
+                                                ),
+                                              );
+                                            },
                                           ),
                                         )
 
@@ -690,7 +653,12 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  Navigator.pushNamed(context, '/login');
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) => MainLayout(
+                                                            mainIndex: 5,
+                                                          )));
                                                 },
 
                                               ),

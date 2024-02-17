@@ -73,6 +73,19 @@ class FocusService{
     prefs.setBool('enabledFocus', false);
   }
 
+  static stopFocusOnLesson() async {
+    SharedPreferences prefs =await SharedPreferences.getInstance();
+    prefs.setBool('enabledFocus',false);
+    prefs.remove('countDown');
+    Map<String, dynamic> focusData = jsonDecode(prefs.getString('focusData')!);
+    String? focusID = focusData['focusID'];
+    //remove focus data
+    prefs.remove('focusData');
+    // remove focus data from firestore
+    getFocusReference(focusData['subjectName'], focusData['lessonID'],focusID!).delete();
+
+  }
+
   static getStudentSubjectFocus(String subjectName) async {
     int totalFocus = 0;
     String userID = _auth.currentUser!.uid;

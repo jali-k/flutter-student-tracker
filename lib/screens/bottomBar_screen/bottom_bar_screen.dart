@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:spt/services/auth_services.dart';
+import 'package:spt/view/student/login_page.dart';
 
 import '../entry_screen/entry_screen.dart';
 import '../home_screen/home_screen.dart';
@@ -82,6 +84,25 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       body: Container(
           color: AppColors.ligthWhite,
           child: bottomNavBarItems[_selectedBottomNavBarItemIndex]),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Add your onPressed code here!
+          AuthService.signOut();
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const LoginPage()));
+        },
+        backgroundColor: AppColors.green,
+        child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.green,
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: const Icon(Icons.login_outlined)),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
     );
   }
 }

@@ -11,8 +11,12 @@ class PaperMarksService {
 
   static getPaperMarksReference() async {
     String userID = _auth.currentUser!.uid;
-    QuerySnapshot marks =await  _firestore.collection('marks').where('studentId',isEqualTo: userID).get();
-    print(marks.docs.length);
+    //get student registration number
+    DocumentSnapshot student = await _firestore.collection('students').doc(userID).get();
+
+    int registrationNumber = student['registrationNumber'];
+    QuerySnapshot marks =await  _firestore.collection('marks').where('studentId',isEqualTo: registrationNumber).get();
+    return marks.docs;
   }
 
   static Future<int> getLeaderboardPosition(String paperId,String studentId) async {
@@ -50,5 +54,11 @@ class PaperMarksService {
       }
     }
     return papers;
+  }
+
+  static Future<QuerySnapshot> getPaperByID(String id) async {
+    print("Paper ID: $id");
+
+    return await _firestore.collection('papers').where('paperId',isEqualTo: id).get();
   }
 }

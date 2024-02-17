@@ -22,6 +22,9 @@ WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+if (!await FlutterOverlayWindow.isPermissionGranted()) {
+  await FlutterOverlayWindow.requestPermission();
+}
   // FirebaseAuth.instance.signOut();
   runApp(const MyApp());
 }
@@ -58,18 +61,21 @@ bool isUserLoggedIn(){
 Future<Widget> getLandingPage() async {
   if(isUserLoggedIn()){
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String role = prefs.getString('role')!;
-    if(role == 'student'){
+    if (prefs.containsKey('role')) {
+      String role = prefs.getString('role')!;
+      if(role == 'student'){
+        return MainLayout();
+      }else if(role == 'instructor'){
+        return InstructorEntryScreen();
+      } else if(role == 'admin') {
+        return BottomBarScreen(
+            isEntryScreen: false,
+            isInstructorScreen: false);
+      }
+      // Unkown role
       return MainLayout();
-    }else if(role == 'instructor'){
-      return InstructorEntryScreen();
-    } else if(role == 'admin') {
-      return BottomBarScreen(
-          isEntryScreen: false,
-          isInstructorScreen: false);
     }
-    // Unkown role
-    return MainLayout();
+    return LoginPage();
   }else{
     return LoginPage();
   }

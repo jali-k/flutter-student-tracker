@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 // import 'package:dash_bubble/dash_bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +13,7 @@ import 'package:spt/services/focusService.dart';
 import 'package:spt/view/student/focus_mode_page.dart';
 import 'package:spt/view/student/home_page.dart';
 import 'package:spt/view/student/leaderboard_page.dart';
+import 'package:spt/view/student/lecture_page.dart';
 import 'package:spt/view/student/login_page.dart';
 import 'package:spt/view/student/student_paper_position_view.dart';
 import 'package:spt/view/student/subject_select_page.dart';
@@ -106,13 +108,11 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   showOverlay() async {
-    if (!await FlutterOverlayWindow.isPermissionGranted()) {
-      await FlutterOverlayWindow.requestPermission();
-    } else {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      if (prefs.containsKey('countDown')) {
-
+      prefs.setBool('enableFloat', true);
+      if (prefs.containsKey('countDown') && prefs.containsKey('enableFloat') && prefs.getBool('enableFloat')!) {
         if(!await FlutterOverlayWindow.isActive()){
+          prefs.setBool('enableFloat', false);
           await FlutterOverlayWindow.showOverlay(
               overlayTitle: "", height: 500, width: 400, enableDrag: true);
           String? countDown = prefs.getString('countDown');
@@ -123,7 +123,6 @@ class _MainLayoutState extends State<MainLayout> {
         }
 
       }
-    }
   }
 
   _showFocusModeTimer() {
@@ -132,11 +131,11 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   _hideFocusModeTimer() async {
-    if(await FlutterOverlayWindow.isActive()){
       await FlutterOverlayWindow.closeOverlay();
-    }
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
+    prefs.setBool('enableFloat', true);
     setCountDownTimer(countDown.cast<String, int>());
   }
 
@@ -151,6 +150,11 @@ class _MainLayoutState extends State<MainLayout> {
       onHide: () async {
         print('App is hidden');
         await _showFocusModeTimer();
+      },
+      onExitRequested: () async {
+        print('App exit requested');
+        clearFocusMode();
+        return AppExitResponse.exit;
       },
     );
 
@@ -245,6 +249,8 @@ class _MainLayoutState extends State<MainLayout> {
                           return Text('Page 4');
                         case 4:
                           return ProfilePage();
+                          case 5:
+                            return LecturesPage();
                         default:
                           return const Center(
                             child: Text('Home Page'),
@@ -306,5 +312,16 @@ class _MainLayoutState extends State<MainLayout> {
         ),
       ),
     );
+  }
+
+  void clearFocusMode() {
+    countTimer?.cancel();
+    focusTimer?.cancel();
+    FlutterOverlayWindow.closeOverlay();
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove('countDown');
+      prefs.remove('enabledFocus');
+      prefs.remove('focusData');
+    });
   }
 }

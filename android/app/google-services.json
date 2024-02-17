@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "1090381273033",
-    "project_id": "educator-app-308f6",
-    "storage_bucket": "educator-app-308f6.appspot.com"
+    "project_number": "399348135128",
+    "project_id": "student-progress-app-854fa",
+    "storage_bucket": "student-progress-app-854fa.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1090381273033:android:f4002d51f93f4d916d3a18",
-        "android_client_info": {
-          "package_name": "com.example.educator_app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAYxG9O0IixPAp0Ypda-YxHVnJVmaHWU0U"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1090381273033:android:dde94b5b330ff9626d3a18",
+        "mobilesdk_app_id": "1:399348135128:android:049ae50601c9b5e81613ad",
         "android_client_info": {
           "package_name": "com.spt.spt"
         }
@@ -34,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAYxG9O0IixPAp0Ypda-YxHVnJVmaHWU0U"
+          "current_key": "AIzaSyDKsMCsKiab_5HoMsnZrOKpDsIWTu50Lko"
         }
       ],
       "services": {

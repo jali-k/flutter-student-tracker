@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/globals.dart';
-import 'package:spt/model/Student.dart';
+import 'dart:math' as math;
 import 'package:spt/model/StudentCSV.dart';
+import 'package:spt/services/api_provider.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -66,16 +71,21 @@ class AuthService {
     });
   }
 
-  static void createStudents(List<StudentCSV> students) {
-    for (var student in students) {
-      _auth.createUserWithEmailAndPassword(email: student.StudentEmail, password: student.StudentRegistrationNumber).then((value) {
-        _firestore.collection('students').doc(value.user!.uid).set({
-          'uid': value.user!.uid,
-          'email': value.user!.email,
-          'instructorId': student.InstructorId,
-          'registrationNumber': student.StudentRegistrationNumber,
-        });
-      });
+  static Future<void> createStudents(List<List> fields,BuildContext context) async {
+    final Dio dio = Dio();
+    Response res = await dio.post('${APIProvider.BASE_URL}/csv', data: {
+      'fields': jsonEncode(fields),
+    });
+    if(res.data == []) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Students created successfully'),
+        backgroundColor: Colors.green,
+      ));
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error creating students'),
+        backgroundColor: Colors.red,
+      ));
     }
   }
 

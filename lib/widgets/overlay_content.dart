@@ -17,25 +17,25 @@ class MyOverlaContent extends StatefulWidget {
 class _MyOverlaContentState extends State<MyOverlaContent> {
   String _dataFromApp = "Hey send data";
   Map<String, int>? countDown = {"minutes": 25, "seconds": 0};
-  late final StreamController overlayStream;
   Timer? timer;
 
 
   initTimer() async {
     SharedPreferences prefs =await SharedPreferences.getInstance();
-    Map<String, dynamic> countDownData = jsonDecode(prefs.getString('countDown')!);
+    Map<String, dynamic> countDownData = jsonDecode(
+        prefs.getString('countDown')!);
     countDown = countDownData.cast<String, int>();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if(countDown!["seconds"]! > 0){
+      if (countDown!["seconds"]! > 0) {
         setState(() {
           countDown!["seconds"] = countDown!["seconds"]! - 1;
         });
-      }else if(countDown!["minutes"]! > 0){
+      } else if (countDown!["minutes"]! > 0) {
         setState(() {
           countDown!["minutes"] = countDown!["minutes"]! - 1;
           countDown!["seconds"] = 59;
         });
-      }else{
+      } else {
         timer.cancel();
       }
     });
@@ -47,7 +47,6 @@ class _MyOverlaContentState extends State<MyOverlaContent> {
     // TODO: implement initState
     super.initState();
     FlutterOverlayWindow.overlayListener.listen((event) {
-      print("Overlay Listener: $event");
       if(event is Map){
         setState(() {
           countDown = event.cast<String, int>();
@@ -61,7 +60,6 @@ class _MyOverlaContentState extends State<MyOverlaContent> {
 
   @override
   void dispose() {
-    overlayStream.close();
     super.dispose();
   }
 

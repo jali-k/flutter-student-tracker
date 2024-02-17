@@ -207,7 +207,7 @@ class _FocusModeState extends State<FocusMode> {
       setState(() {
         enabledFocus = prefs.getBool('enabledFocus')!;
         countDown = _countDown.cast<String, int>();
-        ButtonText = enabledFocus ? 'Pause' : 'Start';
+        ButtonText = enabledFocus ? 'Stop' : 'Start';
         isStarted = enabledFocus;
 
       });
@@ -319,45 +319,17 @@ class _FocusModeState extends State<FocusMode> {
     });
   }
 
-  pauseFocussingSession(){
+  stopFocussingSession()async{
     timer?.cancel();
     timer2?.cancel();
-    setState(() {
-      ButtonText = 'Resume';
-      isPaused = true;
-    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Focusing session stopped'),
+      duration: Duration(seconds: 2),
+    ));
+    await FocusService.stopFocusOnLesson();
+    Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1,)));
   }
 
-  resumeFocussingSession(){
-    timer = Timer(Duration(minutes: countDown['minutes']!,seconds: countDown['seconds']!), () {
-      // Show the alert
-      endFocussingSession();
-    });
-    timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (countDown['seconds'] == 0) {
-          int? minutes = countDown['minutes'];
-          countDown = {
-            'minutes': minutes! - 1,
-            'seconds': 59,
-          };
-        } else {
-          int? seconds = countDown['seconds'];
-          countDown = {
-            'minutes': countDown['minutes']!,
-            'seconds': seconds! - 1,
-          };
-        }
-        if (countDown['minutes'] == 0 && countDown['seconds'] == 0) {
-          timer2?.cancel();
-        }
-      });
-    });
-    setState(() {
-      ButtonText = 'Pause';
-      isPaused = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -474,11 +446,7 @@ class _FocusModeState extends State<FocusMode> {
           ElevatedButton(
             onPressed: () {
               if(isStarted){
-                if(isPaused){
-                  resumeFocussingSession();
-                }else{
-                  pauseFocussingSession();
-                }
+                  stopFocussingSession();
               }else{
                 startFocusingSession();
               }

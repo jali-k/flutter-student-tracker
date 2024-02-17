@@ -4,6 +4,7 @@ class StudentCSV{
   String InstructorId;
   String StudentEmail;
   String InstructingGroup;
+  String InstructorEmail;
   String StudentRegistrationNumber;
 
   StudentCSV({
@@ -11,7 +12,8 @@ class StudentCSV{
     required this.StudentEmail,
     required this.StudentRegistrationNumber,
     required this.studentName,
-    required this.InstructingGroup
+    required this.InstructingGroup,
+    required this.InstructorEmail
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +21,9 @@ class StudentCSV{
       'InstructorId': InstructorId,
       'StudentEmail': StudentEmail,
       'StudentRegistrationNumber': StudentRegistrationNumber,
+      'studentName': studentName,
+      'InstructingGroup': InstructingGroup,
+      'InstructorEmail': InstructorEmail
     };
   }
 
@@ -33,7 +38,8 @@ class StudentCSV{
       StudentEmail: map['StudentEmail'],
       StudentRegistrationNumber: map['StudentRegistrationNumber'],
       studentName: map['studentName'],
-      InstructingGroup: map['InstructingGroup']
+      InstructingGroup: map['InstructingGroup'],
+      InstructorEmail: map['InstructorEmail']
     );
   }
 
@@ -43,7 +49,8 @@ class StudentCSV{
       StudentEmail: data['StudentEmail'],
       StudentRegistrationNumber: data['StudentRegistrationNumber'],
       studentName: data['studentName'],
-      InstructingGroup: data['InstructingGroup']
+      InstructingGroup: data['InstructingGroup'],
+      InstructorEmail: data['InstructorEmail']
     );
   }
 

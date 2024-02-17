@@ -6,6 +6,7 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:spt/model/Instructor.dart';
 import 'package:spt/services/auth_services.dart';
 
 import '../../model/StudentCSV.dart';
@@ -402,17 +403,20 @@ class _HomeScreenState extends State<HomeScreen> {
       print(fields);
 
       List<StudentCSV> students = [];
+      List<String> instructors = [];
       fields = fields.sublist(1);
       String error = '';
       bool isValidated = true;
       for (var field in fields) {
-        if (field.length != 3) {
+        if (field.length != 5) {
           error = 'Invalid CSV format';
           isValidated = false;
           break;
         }
         if(field[0].toString().isEmpty || field[1].toString().isEmpty || field[2].toString().isEmpty){
           error = 'Invalid CSV format';
+          print(field[0].toString());
+
           isValidated = false;
           break;
         }
@@ -425,18 +429,9 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      for (var field in fields) {
-        StudentCSV student = StudentCSV(
-            studentName: field[0].toString(),
-            InstructorId: field[0].toString(),
-            StudentEmail: field[2].toString(),
-            StudentRegistrationNumber: field[1].toString(),
-            InstructingGroup: field[3].toString()
-        );
-        students.add(student);
-      }
 
-      AuthService.createStudents(students);
+
+      AuthService.createStudents(fields, context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Students added successfully'),
         duration: const Duration(seconds: 3),

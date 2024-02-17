@@ -6,7 +6,6 @@ class Student{
   String lastName;
   String email;
   String uid;
-  Timestamp createdAt;
   String? registrationNumber;
 
   Student({
@@ -14,13 +13,12 @@ class Student{
     required this.lastName,
     required this.email,
     required this.uid,
-    required this.createdAt,
     this.registrationNumber
   });
 
   // convert a Student into a List
   List<String> toList() {
-    return [firstName, lastName, email, uid, DateTime.fromMicrosecondsSinceEpoch(createdAt.microsecondsSinceEpoch).toString(),registrationNumber ?? ""]; // convert createdAt to a string (ISO8601 format
+    return [firstName, lastName, email, uid,registrationNumber ?? ""]; // convert createdAt to a string (ISO8601 format
   }
 
 
@@ -31,8 +29,7 @@ class Student{
       lastName: list[1],
       email: list[2],
       uid: list[3],
-      createdAt: Timestamp.fromDate(DateTime.parse(list[4])),
-      registrationNumber: list[5]
+      registrationNumber: list[4]
     );
   }
 
@@ -43,7 +40,6 @@ class Student{
       'lastName': lastName,
       'email': email,
       'uid': uid,
-      'createdAt': createdAt,
       'registrationNumber': registrationNumber ?? ''
     };
   }
@@ -55,7 +51,6 @@ class Student{
       lastName: map['lastName'],
       email: map['email'],
       uid: map['uid'],
-      createdAt: map['createdAt'],
       registrationNumber: map['registrationNumber'] ?? ''
     );
   }

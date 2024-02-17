@@ -268,7 +268,6 @@ Future<void> _saveUserDataToFirestore(User user) async {
       firstName: firstNameController.text,
       lastName: lastNameController.text,
       uid: user.uid,
-      createdAt: Timestamp.now(),
       registrationNumber: "N/A"
     );
   await FirebaseFirestore.instance.collection('students').doc(user.uid).set(student.toMap());
