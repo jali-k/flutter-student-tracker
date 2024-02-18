@@ -12,7 +12,6 @@ import 'package:spt/view/student/sign_up_page.dart';
 import '../../model/Admin.dart';
 import '../../model/Student.dart';
 import '../../screens/bottomBar_screen/bottom_bar_screen.dart';
-import '../../screens/instructor_screen/existing_instructor_screen.dart';
 import '../../screens/instructor_screen/instructor_entry_screen.dart';
 
 class LoginPage extends StatefulWidget {
@@ -127,7 +126,8 @@ class _LoginPageState extends State<LoginPage> {
                 MaterialPageRoute(builder: (context) =>
                     BottomBarScreen(
                           isEntryScreen: false,
-                          isInstructorScreen: false)
+                          isInstructorScreen: false,
+                    isAddFolderScreen: false,)
                 ),
               );
             }
@@ -150,6 +150,91 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
 
+  }
+
+  _signInWithGoogle() async {
+    UserCredential? userCredential = await AuthService.signInWithGoogle();
+    User? user = userCredential!.user;
+    print(user!.uid);
+    if(user != null) {
+      String? error;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool isUserInstructor = false;
+      bool isUserStudent = false;
+      bool isUserAdmin = false;
+      DocumentSnapshot instructorDoc = await FirebaseFirestore.instance.collection('instructors').doc(user.uid).get();
+      if(instructorDoc.exists) {
+        isUserInstructor = true;
+        Instructor? instructor = instructorDoc.exists ? Instructor(
+          instructorId: instructorDoc.get('uid'),
+          email: instructorDoc.get('email'),
+          docId: instructorDoc.get('uid'),
+        ) : null;
+        // save on shared preference
+        prefs.setString('uid', instructor!.instructorId);
+        prefs.setStringList('user', instructor.toList());
+        prefs.setString("role", "instructor");
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => InstructorEntryScreen()),
+        );
+      }else{
+        DocumentSnapshot studentDoc = await FirebaseFirestore.instance.collection('students').doc(user.uid).get();
+        if(studentDoc.exists) {
+          isUserStudent = true;
+          Student? student = await FirebaseFirestore.instance.collection('students').doc(user!.uid).get().then((value) => Student(
+            firstName: value.get('name').toString().split(" ").length > 0 ? value.get('name').toString().split(" ")[0] : value.get('name'),
+            lastName: value.get('name').toString().split(" ").length > 1 ? value.get('name').toString().split(" ")[1] : "",
+            email: value.get('email'),
+            uid: value.get('uid'),
+            registrationNumber: value.get('registrationNumber').toString() ?? "N/A",
+          ));
+          // save on shared preference
+
+          prefs.setString('uid', student!.uid);
+          prefs.setStringList('user', student.toList());
+          prefs.setString("role", "student");
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => MainLayout()),
+          );
+        }else{
+          DocumentSnapshot adminDoc = await FirebaseFirestore.instance.collection('admin').doc(user.uid).get();
+          if(adminDoc.exists) {
+            isUserAdmin = true;
+            Admin? admin = adminDoc.exists ? Admin(
+                email: adminDoc.get('email'),
+                password: adminDoc.get('password'),
+                uid: adminDoc.get('uid')
+            ) : null;
+            // save on shared preference
+            prefs.setString('uid', admin!.uid);
+            prefs.setStringList('user', admin.toList());
+            prefs.setString("role", "admin");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) =>
+                  BottomBarScreen(
+                      isEntryScreen: false,
+                      isInstructorScreen: false,
+                  isAddFolderScreen: false,)
+              ),
+            );
+          }
+          else{
+            //means user is not in any of the roles so make as unknown user and redirect to MainLayout
+            prefs.setString("role", "unknown");
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MainLayout()),
+            );
+
+          }
+        }
+      }
+
+      _loadingStream.add(false);
+        }
   }
 
   @override
@@ -233,7 +318,9 @@ class _LoginPageState extends State<LoginPage> {
                         width: MediaQuery.of(context).size.width * 0.8,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            _signInWithGoogle();
+                          },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -273,24 +360,24 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Don\'t have an account?'),
-                          const SizedBox(width: 10),
-                          Text('|'),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const SignUpPage()
-                              ));
-                            },
-                            child: const Text('Create'),
-                          ),
-                        ],
-                      ),
+                      // const SizedBox(height: 20),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: [
+                      //     const Text('Don\'t have an account?'),
+                      //     const SizedBox(width: 10),
+                      //     Text('|'),
+                      //     TextButton(
+                      //       onPressed: () {
+                      //         Navigator.push(
+                      //           context,
+                      //           MaterialPageRoute(builder: (context) => const SignUpPage()
+                      //         ));
+                      //       },
+                      //       child: const Text('Create'),
+                      //     ),
+                      //   ],
+                      // ),
                     ],
                   ),
                 )

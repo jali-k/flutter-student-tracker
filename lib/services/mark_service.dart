@@ -35,7 +35,9 @@ class PaperMarksService {
 
   static Future<Map<ExamPaper,AttemptPaper>> getStudentPapers() async {
     String userID = _auth.currentUser!.uid;
-    QuerySnapshot studentMarks = await _firestore.collection('marks').where('studentId',isEqualTo: userID).get();
+    QuerySnapshot student = await _firestore.collection('students').where('uid',isEqualTo: userID).get();
+    int registrationNumber = student.docs[0]['registrationNumber'];
+    QuerySnapshot studentMarks = await _firestore.collection('marks').where('studentId',isEqualTo: registrationNumber).get();
     Map<ExamPaper,AttemptPaper> papers = {};
     for (var mark in studentMarks.docs) {
       String paperId = mark['paperId'];

@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
 import 'package:spt/model/paper_attempt.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/services/mark_service.dart';
+import 'package:spt/view/student/login_page.dart';
 
 import '../../model/Paper.dart';
 import '../../model/model.dart';
@@ -23,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   int _AgricultureFocus=0;
   int _overallFocus=0;
   List<AttemptPaper> paperMarks = [];
+  bool unknown = true;
 
 
   getSubjectFocus() async {
@@ -60,10 +63,24 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  getUserState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? role = prefs.getString('role');
+    if (role == null) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) =>  LoginPage()));
+    }else if(role == 'unknown'){
+      unknown = true;
+    }else{
+      unknown = false;
+    }
+  }
+
 
   @override
   void initState() {
     // TODO: implement initState
+    getUserState();
     getMarks();
     super.initState();
     getSubjectFocus();
@@ -329,6 +346,13 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
+                                                  if(unknown){
+                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                      content: Text('You are not registered as a student in Class'),
+                                                      backgroundColor: Colors.red,
+                                                    ));
+                                                  }
+
                                                   Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1)));
                                                 },
 
@@ -456,6 +480,13 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
+                                                  if(unknown){
+                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                      content: Text('You are not registered as a student in Class'),
+                                                      backgroundColor: Colors.red,
+                                                    ));
+                                                    return;
+                                                  }
                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
@@ -505,104 +536,28 @@ class _HomePageState extends State<HomePage> {
                                         child: Container(
                                           margin: const EdgeInsets.only(top: 10,right: 5),
                                           width: 150,
-                                          child: const Column(
+                                          child: const Row(
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFECA11B),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("25",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Overall")
-                                                ],
+                                              Icon(
+                                                Icons.local_fire_department_rounded,
+                                                color: Color(0xFFECA11B),
+                                                size: 30,
                                               ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFF1BEC3E),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("12",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Biology")
-                                                ],
+                                              SizedBox(width: 5),
+                                              Text('Find',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFF1BECCD),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("25",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Chemistry")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFDEEC1B),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("24",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Physics")
-                                                ],
-                                              ),
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.local_fire_department_rounded,
-                                                    color: Color(0xFFD71BEC),
-                                                    size: 30,
-                                                  ),
-                                                  SizedBox(width: 5),
-                                                  Text("00",
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10),
-                                                  Text("Agriculture")
-                                                ],
-                                              ),
+                                              SizedBox(width: 10),
+                                              Text('Tutors',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
                                             ],
                                           ),
                                         )
@@ -653,6 +608,13 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
+                                                  if(unknown){
+                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                      content: Text('You are not registered as a student in Class'),
+                                                      backgroundColor: Colors.red,
+                                                    ));
+                                                    return;
+                                                  }
                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(

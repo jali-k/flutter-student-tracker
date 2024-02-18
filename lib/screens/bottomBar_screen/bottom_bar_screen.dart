@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:spt/services/auth_services.dart';
 import 'package:spt/view/student/login_page.dart';
 
+import '../add_folder_screen/folder_list_screen.dart';
 import '../entry_screen/entry_screen.dart';
 import '../home_screen/home_screen.dart';
 import '../instructor_screen/instructor_screen.dart';
@@ -11,10 +12,12 @@ import '../res/app_colors.dart';
 class BottomBarScreen extends StatefulWidget {
   final bool isEntryScreen;
   final bool isInstructorScreen;
+  final bool isAddFolderScreen;
   const BottomBarScreen(
       {super.key,
-      required this.isEntryScreen,
-      required this.isInstructorScreen});
+        required this.isEntryScreen,
+        required this.isInstructorScreen,
+        required this.isAddFolderScreen});
 
   @override
   State<BottomBarScreen> createState() => _BottomBarScreenState();
@@ -31,11 +34,17 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
     widget.isEntryScreen
         ? _selectedBottomNavBarItemIndex = 1
         : widget.isInstructorScreen
-            ? _selectedBottomNavBarItemIndex = 2
-            : _selectedBottomNavBarItemIndex = 0;
+        ? _selectedBottomNavBarItemIndex = 2
+        : widget.isAddFolderScreen
+        ? _selectedBottomNavBarItemIndex = 3
+        : _selectedBottomNavBarItemIndex = 0;
 
-    bottomNavBarItems.addAll(
-        [const HomeScreen(), const EntryScreen(), const InstructorScreen()]);
+    bottomNavBarItems.addAll([
+      const HomeScreen(),
+      const EntryScreen(),
+      const InstructorScreen(),
+      const FolderListScreen()
+    ]);
 
     super.initState();
   }
@@ -72,6 +81,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
                 BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
                 BottomNavigationBarItem(icon: Icon(Icons.file_copy), label: ''),
                 BottomNavigationBarItem(icon: Icon(Icons.people), label: ''),
+                BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
               ],
               currentIndex: _selectedBottomNavBarItemIndex,
               selectedItemColor: AppColors.green,
@@ -84,25 +94,16 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       body: Container(
           color: AppColors.ligthWhite,
           child: bottomNavBarItems[_selectedBottomNavBarItemIndex]),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add your onPressed code here!
           AuthService.signOut();
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const LoginPage()));
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const LoginPage()));
         },
+        child: const Icon(Icons.logout),
         backgroundColor: AppColors.green,
-        child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.green,
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: const Icon(Icons.login_outlined)),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
+      )
     );
   }
 }

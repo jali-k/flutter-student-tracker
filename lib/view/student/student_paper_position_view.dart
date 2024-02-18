@@ -215,7 +215,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                               height: 520,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 5),
-                              alignment: Alignment.center,
+                              alignment: Alignment.topCenter,
                               // Leaderboard
                               decoration: const BoxDecoration(
                                 border: Border.symmetric(
@@ -288,9 +288,9 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                                         Text(
                                                           '${entries[index].name}',
                                                           style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            fontSize: 14,
+                                                            overflow: TextOverflow
+                                                                .ellipsis,
                                                           ),
                                                         ),
                                                         Expanded(
@@ -301,7 +301,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                                         Text(
                                                           '${entries[index].marks}',
                                                           style: TextStyle(
-                                                            fontSize: 18,
+                                                            fontSize: 14,
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                             color: Colors.black,

@@ -15,6 +15,7 @@ import 'package:spt/view/student/home_page.dart';
 import 'package:spt/view/student/leaderboard_page.dart';
 import 'package:spt/view/student/lecture_page.dart';
 import 'package:spt/view/student/login_page.dart';
+import 'package:spt/view/student/notification_page.dart';
 import 'package:spt/view/student/student_paper_position_view.dart';
 import 'package:spt/view/student/subject_select_page.dart';
 import 'package:spt/view/student/view_paper.dart';
@@ -42,6 +43,7 @@ class _MainLayoutState extends State<MainLayout> {
   String subjectName = '';
   bool enabledFocus = false;
   late AppLifecycleListener lifecycleListener;
+  bool unknown = true;
 
   selectSubject(int index, QueryDocumentSnapshot lesson, String lessonContent,
       String subjectName) {
@@ -104,25 +106,70 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   changeIndex(int index) {
+    if(unknown && index ==4){
+      //Logout
+      FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+      //logged out successfully scaffold
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Logged out successfully'),
+      ));
+      return;
+    }
+    if(unknown && index != 0){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('You are not allowed to access this page'),
+      ));
+      setState(() {
+        widget.mainIndex = 0;
+      });
+      return;
+    }
+    if(unknown && index != 1){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('You are not allowed to access this page'),
+      ));
+      setState(() {
+        widget.mainIndex = 0;
+      });
+      return;
+    }
+
     indexController.sink.add(index);
+
   }
 
   showOverlay() async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setBool('enableFloat', true);
-      if (prefs.containsKey('countDown') && prefs.containsKey('enableFloat') && prefs.getBool('enableFloat')!) {
-        if(!await FlutterOverlayWindow.isActive()){
-          prefs.setBool('enableFloat', false);
-          await FlutterOverlayWindow.showOverlay(
-              overlayTitle: "", height: 500, width: 400, enableDrag: true);
-          String? countDown = prefs.getString('countDown');
-          if (countDown != null) {
-            Map<String, dynamic> countDownMap = jsonDecode(countDown);
-            await FlutterOverlayWindow.shareData(countDownMap);
-          }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('enableFloat', true);
+    if (prefs.containsKey('countDown') &&
+        prefs.containsKey('enableFloat') &&
+        prefs.getBool('enableFloat')!) {
+      if (!await FlutterOverlayWindow.isActive()) {
+        prefs.setBool('enableFloat', false);
+        await FlutterOverlayWindow.showOverlay(
+            overlayTitle: "", height: 500, width: 400, enableDrag: true);
+        String? countDown = prefs.getString('countDown');
+        if (countDown != null) {
+          Map<String, dynamic> countDownMap = jsonDecode(countDown);
+          await FlutterOverlayWindow.shareData(countDownMap);
         }
-
       }
+    }
+  }
+
+  getUserState() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? role = prefs.getString('role');
+    if (role == null) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) =>  LoginPage()));
+    }else if(role == 'unknown'){
+      unknown = true;
+    }else{
+      unknown = false;
+    }
   }
 
   _showFocusModeTimer() {
@@ -131,7 +178,7 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   _hideFocusModeTimer() async {
-      await FlutterOverlayWindow.closeOverlay();
+    await FlutterOverlayWindow.closeOverlay();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
@@ -142,6 +189,7 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
+    getUserState();
     lifecycleListener = AppLifecycleListener(
       onShow: () async {
         print('App is visible');
@@ -244,13 +292,11 @@ class _MainLayoutState extends State<MainLayout> {
                         case 2:
                           return StudentMarksPage();
                         case 3:
-                          FirebaseAuth auth = FirebaseAuth.instance;
-                          auth.signOut();
-                          return Text('Page 4');
+                          return NotificationPage();
                         case 4:
                           return ProfilePage();
-                          case 5:
-                            return LecturesPage();
+                        case 5:
+                          return LecturesPage();
                         default:
                           return const Center(
                             child: Text('Home Page'),
@@ -300,7 +346,7 @@ class _MainLayoutState extends State<MainLayout> {
                         Icons.book,
                         Icons.star,
                         Icons.notifications,
-                        Icons.person,
+                        unknown ? Icons.logout : Icons.person,
                       ],
                       onToggle: (index) {
                         changeIndex(index!);

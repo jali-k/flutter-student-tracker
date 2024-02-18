@@ -53,7 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => const BottomBarScreen(
                                 isEntryScreen: true,
-                                isInstructorScreen: false)));
+                                isInstructorScreen: false,
+                            isAddFolderScreen: false,)));
                       },
                       child: Stack(
                         children: [
@@ -158,7 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => const BottomBarScreen(
                                 isEntryScreen: false,
-                                isInstructorScreen: true)));
+                                isInstructorScreen: true,
+                            isAddFolderScreen: false,)));
                       },
                       child: Stack(
                         children: [
@@ -260,41 +262,185 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const Gap(40),
-                GestureDetector(
-                  onTap: () {
-                    uploadFile();
-                  },
-                  child: Stack(
-                    children: [
-                      Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const BottomBarScreen(
+                              isEntryScreen: false,
+                              isInstructorScreen: false,
+                              isAddFolderScreen: true,
+                            )));
+                      },
+                      child: Stack(
                         children: [
-                          const Gap(15),
-                          Container(
-                            height: 170,
-                            width: 130,
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                top: BorderSide(
-                                    color: AppColors.red, width: 2.0),
-                                bottom: BorderSide(
-                                    color: AppColors.blue, width: 1.0),
-                                left: BorderSide(
-                                    color: AppColors.green, width: 1.0),
-                                right: BorderSide(
-                                    color: AppColors.purple, width: 1.0),
+                          Column(
+                            children: [
+                              const Gap(15),
+                              Container(
+                                height: 170,
+                                width: 130,
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                        color: AppColors.red, width: 1.0),
+                                    bottom: BorderSide(
+                                        color: AppColors.blue, width: 1.0),
+                                    left: BorderSide(
+                                        color: AppColors.green, width: 1.0),
+                                    right: BorderSide(
+                                        color: AppColors.purple,
+                                        width: 1.0),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            top: 75,
+                            left: 45,
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                        Colors.black.withOpacity(0.25),
+                                        offset: const Offset(
+                                          0.0,
+                                          5.0,
+                                        ),
+                                        blurRadius: 10.0,
+                                        spreadRadius: 2.0,
+                                      ), //BoxShadow
+                                      const BoxShadow(
+                                        color: Colors.white,
+                                        offset: Offset(0.0, 0.0),
+                                        blurRadius: 0.0,
+                                        spreadRadius: 0.0,
+                                      ), //BoxShadow
+                                    ],
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: AppColors.ligthWhite),
+                                child: const CircleAvatar(
+                                    backgroundColor: AppColors.ligthWhite,
+                                    child: Icon(Icons.add)),
                               ),
                             ),
                           ),
+                          Positioned(
+                            left: 17,
+                            top: 0,
+                            child: Container(
+                              // height: 35,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.25),
+                                    offset: const Offset(
+                                      0.0,
+                                      5.0,
+                                    ),
+                                    blurRadius: 10.0,
+                                    spreadRadius: 2.0,
+                                  ), //BoxShadow
+                                  const BoxShadow(
+                                    color: Colors.white,
+                                    offset: Offset(0.0, 0.0),
+                                    blurRadius: 0.0,
+                                    spreadRadius: 0.0,
+                                  ), //BoxShadow
+                                ],
+                                color: AppColors.ligthWhite,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Center(
+                                  child: FittedBox(
+                                    child: Text(
+                                      'Add a folder',
+                                      style: TextStyle(
+                                          fontSize: 12, color: AppColors.black),
+                                    ),
+                                  )),
+                            ),
+                          )
                         ],
                       ),
-                      Positioned(
-                        top: 75,
-                        left: 45,
-                        child: SizedBox(
-                          height: 40,
-                          width: 40,
-                          child: Container(
-                            decoration: BoxDecoration(
+                    ),
+                    const Gap(40),
+                    GestureDetector(
+                      onTap: () {
+                        uploadFile();
+                      },
+                      child: Stack(
+                        children: [
+                          Column(
+                            children: [
+                              const Gap(15),
+                              Container(
+                                height: 170,
+                                width: 130,
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                        color: AppColors.red, width: 2.0),
+                                    bottom: BorderSide(
+                                        color: AppColors.blue, width: 1.0),
+                                    left: BorderSide(
+                                        color: AppColors.green, width: 1.0),
+                                    right: BorderSide(
+                                        color: AppColors.purple, width: 1.0),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Positioned(
+                            top: 75,
+                            left: 45,
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.25),
+                                        offset: const Offset(
+                                          0.0,
+                                          5.0,
+                                        ),
+                                        blurRadius: 10.0,
+                                        spreadRadius: 2.0,
+                                      ), //BoxShadow
+                                      BoxShadow(
+                                        color: Colors.white,
+                                        offset: const Offset(0.0, 0.0),
+                                        blurRadius: 0.0,
+                                        spreadRadius: 0.0,
+                                      ), //BoxShadow
+                                    ],
+                                    borderRadius: BorderRadius.circular(20),
+                                    color: AppColors.ligthWhite),
+                                child: CircleAvatar(
+                                    backgroundColor: AppColors.ligthWhite,
+                                    child: Icon(Icons.upload)),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 1,
+                            top: 0,
+                            child: Container(
+                              height: 35,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.25),
@@ -312,54 +458,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                     spreadRadius: 0.0,
                                   ), //BoxShadow
                                 ],
+                                color: AppColors.ligthWhite,
                                 borderRadius: BorderRadius.circular(20),
-                                color: AppColors.ligthWhite),
-                            child: CircleAvatar(
-                                backgroundColor: AppColors.ligthWhite,
-                                child: Icon(Icons.upload)),
-                          ),
-                        ),
+                              ),
+                              child: const Center(
+                                  child: FittedBox(
+                                    child: Text(
+                                      'Upload Student CSV',
+                                      style: TextStyle(
+                                          fontSize: 12, color: AppColors.black),
+                                    ),
+                                  )),
+                            ),
+                          )
+                        ],
                       ),
-                      Positioned(
-                        left: 1,
-                        top: 0,
-                        child: Container(
-                          height: 35,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
-                                offset: const Offset(
-                                  0.0,
-                                  5.0,
-                                ),
-                                blurRadius: 10.0,
-                                spreadRadius: 2.0,
-                              ), //BoxShadow
-                              BoxShadow(
-                                color: Colors.white,
-                                offset: const Offset(0.0, 0.0),
-                                blurRadius: 0.0,
-                                spreadRadius: 0.0,
-                              ), //BoxShadow
-                            ],
-                            color: AppColors.ligthWhite,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Center(
-                              child: FittedBox(
-                                child: Text(
-                                  'Upload Student CSV',
-                                  style: TextStyle(
-                                      fontSize: 12, color: AppColors.black),
-                                ),
-                              )),
-                        ),
-                      )
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+
                 // Stack(
                 //   children: [
                 //     Container(

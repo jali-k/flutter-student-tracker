@@ -1,6 +1,11 @@
 
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:spt/model/Subject.dart';
+import 'package:spt/services/focusService.dart';
+
+import '../../model/leaderboard_entries.dart';
 
 class LeaderBoardPage extends StatefulWidget {
   const LeaderBoardPage({super.key});
@@ -13,9 +18,16 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
 
   final isSelected = [true, false, false, false, false];
   int selected = 0;
-  final myID = 3524;
+  late String myID;
+  bool isloding = true;
   //scroll key
   final ScrollController _scrollController = ScrollController();
+  List<LeaderBoardEntries> leaderBoardEntries = [];
+  List<LeaderBoardEntries> overallEntries = [];
+  List<LeaderBoardEntries> biologyEntries = [];
+  List<LeaderBoardEntries> chemistryEntries = [];
+  List<LeaderBoardEntries> physicsEntries = [];
+  List<LeaderBoardEntries> agricultureEntries = [];
 
   void handleSelected(int i) {
     for (int j = 0; j < isSelected.length; j++) {
@@ -27,6 +39,19 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
     }
     setState(() {
       selected = i;
+      if (i == 0) {
+        leaderBoardEntries = overallEntries;
+      } else if (i == 1) {
+        leaderBoardEntries = biologyEntries;
+      } else if (i == 2) {
+        leaderBoardEntries = chemistryEntries;
+      } else if (i == 3) {
+        leaderBoardEntries = physicsEntries;
+      } else if (i == 4) {
+        leaderBoardEntries = agricultureEntries;
+      }else{
+        leaderBoardEntries = overallEntries;
+      }
     });
   }
 
@@ -36,6 +61,15 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
       duration: const Duration(seconds: 1),
       curve: Curves.easeIn,
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getStudentLeaderBoard();
+    myID = FirebaseAuth.instance.currentUser!.uid;
+
   }
 
 
@@ -189,10 +223,10 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
             padding: const EdgeInsets.all(10),
             height: MediaQuery.of(context).size.height - 300,
             // Leaderboard
-            child: ListView.builder(
+            child: leaderBoardEntries.length > 0 ? ListView.builder(
               controller: _scrollController,
               itemBuilder: (context, index) {
-              if(index == myID)
+              if(leaderBoardEntries[index].uid == myID)
                 {
                   navigateToPosition(index);
                   return Container(
@@ -211,26 +245,24 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                           flex: 1,
                           child: Container(
                             alignment: Alignment.center,
-                            child: Text('${index}', style: TextStyle(
+                            child: Text(leaderBoardEntries[index].position.toString(), style: TextStyle(
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
                             ),),
                           ),
                         ),
                         Expanded(child: SizedBox(), flex: 1,),
                         Expanded(
                           flex: 3,
-                          child: Text('Student ${index+1}', style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                          child: Text(leaderBoardEntries[index].name, style: TextStyle(
+                            fontSize: 14,
+                            overflow: TextOverflow.ellipsis,
                           ),),
                         ),
                         Expanded(child: SizedBox(), flex: 1,),
                         Expanded(
                           flex: 2,
-                          child: Text('100', style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                          child: Text(leaderBoardEntries[index].marks.toString(), style: TextStyle(
+                            fontSize: 14,
                           ),
                             textAlign: TextAlign.right,
                           ),
@@ -249,25 +281,28 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                       flex: 1,
                       child: Container(
                         alignment: Alignment.center,
-                        child: Text('${index}', style: TextStyle(
+                        child: Text('${leaderBoardEntries[index].position}', style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
                         ),),
                       ),
                     ),
                     Expanded(child: SizedBox(), flex: 1,),
                     Expanded(
-                      flex: 3,
-                      child: Text('Student ${index+1}', style: TextStyle(
-                        fontSize: 18,
+                      flex: 4,
+                      child: Text(
+                        leaderBoardEntries[index].name,
+                        style: TextStyle(
+                        fontSize: 14,
+                        overflow: TextOverflow.ellipsis,
                         fontWeight: FontWeight.bold,
                       ),),
                     ),
                     Expanded(child: SizedBox(), flex: 1,),
                     Expanded(
                       flex: 2,
-                      child: Text('100', style: TextStyle(
-                        fontSize: 18,
+                      child: Text(leaderBoardEntries[index].marks.toString(), style: TextStyle(
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),textAlign: TextAlign.right,),
                     ),
@@ -275,9 +310,11 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                 ),
               );
             },
-              itemCount: 5000,
+              itemCount: leaderBoardEntries.length,
               shrinkWrap: true,
-            ),
+            ) : Center(
+              child: isloding ? CircularProgressIndicator() : Text('No Data Found'),
+          ),
           ),
           SizedBox(height: 20,),
 
@@ -285,6 +322,23 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
         ],
       ),
     );
+  }
+
+  Future<void> getStudentLeaderBoard() async {
+    List<LeaderBoardEntries> overallEntries =await FocusService.getOverallLeaderBoardEntries();
+    List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
+    List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
+    List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
+    List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
+    setState(() {
+      leaderBoardEntries = overallEntries;
+      this.overallEntries = overallEntries;
+      this.biologyEntries = biologyEntries;
+      this.chemistryEntries = chemistryEntries;
+      this.physicsEntries = physicsEntries;
+      this.agricultureEntries = agricultureEntries;
+      isloding = false;
+    });
   }
 
 }

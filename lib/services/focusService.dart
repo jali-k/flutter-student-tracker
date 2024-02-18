@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/leaderboard_entries.dart';
 
 class FocusService{
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -101,5 +102,71 @@ class FocusService{
     QuerySnapshot focusData = await _firestore.collection('focusData').where('userID',isEqualTo: _auth.currentUser!.uid).get();
     return focusData.docs;
   }
+
+  static Future<List<LeaderBoardEntries>> getOverallLeaderBoardEntries() async {
+    List<LeaderBoardEntries> leaderBoardEntries = [];
+    QuerySnapshot focusData = await _firestore.collection('focusData').get();
+    for (var doc in focusData.docs) {
+      QuerySnapshot student =await _firestore.collection('students').where('uid',isEqualTo: doc['userID']).get();
+      // if leaderBoardEntries contains student uid
+      if (leaderBoardEntries.any((element) => element.uid == doc['userID'])) {
+        //update marks
+        int index = leaderBoardEntries.indexWhere((element) => element.uid == doc['userID']);
+        leaderBoardEntries[index].marks += doc['duration'] as int;
+      } else {
+        //add new entry
+        LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
+          uid: doc['userID'],
+          marks: doc['duration'] as int,
+          position: 0,
+          name: student.docs[0]['name'],
+        );
+        leaderBoardEntries.add(leaderBoardEntry);
+      }
+    }
+    print(leaderBoardEntries.length);
+    leaderBoardEntries.sort((a, b) => a.marks.compareTo(b.marks));
+    //reverse the list
+    leaderBoardEntries = leaderBoardEntries.reversed.toList();
+    //mark position
+    for (int i = 0; i < leaderBoardEntries.length; i++) {
+      leaderBoardEntries[i].position = i+1;
+    }
+    return leaderBoardEntries;
+  }
+
+static Future<List<LeaderBoardEntries>> getSubjectLeaderBoardEntries(String subject) async {
+    List<LeaderBoardEntries> leaderBoardEntries = [];
+    QuerySnapshot focusData = await _firestore.collection('focusData').where('subjectName',isEqualTo: subject).get();
+    for (var doc in focusData.docs) {
+      QuerySnapshot student =await _firestore.collection('students').where('uid',isEqualTo: doc['userID']).get();
+      // if leaderBoardEntries contains student uid
+      if (leaderBoardEntries.any((element) => element.uid == doc['userID'])) {
+        //update marks
+        int index = leaderBoardEntries.indexWhere((element) => element.uid == doc['userID']);
+        leaderBoardEntries[index].marks += doc['duration'] as int;
+      } else {
+        //add new entry
+        LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
+          uid: doc['userID'],
+          marks: doc['duration'] as int,
+          position: 0,
+          name: student.docs[0]['name'],
+        );
+        leaderBoardEntries.add(leaderBoardEntry);
+      }
+    }
+    print(leaderBoardEntries.length);
+    leaderBoardEntries.sort((a, b) => a.marks.compareTo(b.marks));
+    //reverse the list
+    leaderBoardEntries = leaderBoardEntries.reversed.toList();
+    //mark position
+    for (int i = 0; i < leaderBoardEntries.length; i++) {
+      leaderBoardEntries[i].position = i+1;
+    }
+    return leaderBoardEntries;
+  }
+
+
 
 }

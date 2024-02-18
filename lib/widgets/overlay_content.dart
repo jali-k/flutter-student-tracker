@@ -22,23 +22,26 @@ class _MyOverlaContentState extends State<MyOverlaContent> {
 
   initTimer() async {
     SharedPreferences prefs =await SharedPreferences.getInstance();
-    Map<String, dynamic> countDownData = jsonDecode(
-        prefs.getString('countDown')!);
-    countDown = countDownData.cast<String, int>();
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (countDown!["seconds"]! > 0) {
-        setState(() {
-          countDown!["seconds"] = countDown!["seconds"]! - 1;
-        });
-      } else if (countDown!["minutes"]! > 0) {
-        setState(() {
-          countDown!["minutes"] = countDown!["minutes"]! - 1;
-          countDown!["seconds"] = 59;
-        });
-      } else {
-        timer.cancel();
-      }
-    });
+
+    if (prefs.containsKey('countDown')) {
+      Map<String, dynamic> countDownData = jsonDecode(
+          prefs.getString('countDown')!);
+      countDown = countDownData.cast<String, int>();
+      timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (countDown!["seconds"]! > 0) {
+          setState(() {
+            countDown!["seconds"] = countDown!["seconds"]! - 1;
+          });
+        } else if (countDown!["minutes"]! > 0) {
+          setState(() {
+            countDown!["minutes"] = countDown!["minutes"]! - 1;
+            countDown!["seconds"] = 59;
+          });
+        } else {
+          timer.cancel();
+        }
+      });
+    }
   }
 
 

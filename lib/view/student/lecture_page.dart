@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
-import 'package:video_player/video_player.dart';
+import 'package:spt/model/folder.dart';
+import 'package:spt/services/lecture_service.dart';
+import 'package:spt/view/student/video_page.dart';
 
 class LecturesPage extends StatefulWidget {
   const LecturesPage({super.key});
@@ -11,155 +12,150 @@ class LecturesPage extends StatefulWidget {
 
 class _LecturesPageState extends State<LecturesPage> {
 
-  String _videoUrl = 'https://firebasestorage.googleapis.com/v0/b/student-progress-app-854fa.appspot.com/o/1.mp4';
-  late VideoPlayerController _controller;
+  List<Folder> folders = [];
+
+  getLectures() async {
+    List<Folder> _folders =await LectureService.getLectures();
+    setState(() {
+      folders = _folders;
+    });
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-    String token = "https://firebasestorage.googleapis.com/v0/b/student-progress-app-854fa.appspot.com/o/1.mp4?alt=media&token=24b18f3c-c033-48d5-9efc-d0a89aa19955";
-    Uri uri = Uri.parse(token);
-    _controller = VideoPlayerController.networkUrl(uri)
-      ..initialize().then((_) {
-        setState(() {});
-      });
+    getLectures();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: _controller.value.isInitialized
-          ? AspectRatio(
-        aspectRatio: _controller.value.aspectRatio,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: <Widget>[
-            VideoPlayer(_controller),
-            ClosedCaption(text: _controller.value.caption.text),
-            _ControlsOverlay(controller: _controller),
-            VideoProgressIndicator(_controller, allowScrubbing: true),
-          ],
-        ),
-      )
-          : Container(),
-    );
-  }
-}
-
-class _ControlsOverlay extends StatelessWidget {
-  const _ControlsOverlay({required this.controller});
-
-  static const List<Duration> _exampleCaptionOffsets = <Duration>[
-    Duration(seconds: -10),
-    Duration(seconds: -3),
-    Duration(seconds: -1, milliseconds: -500),
-    Duration(milliseconds: -250),
-    Duration.zero,
-    Duration(milliseconds: 250),
-    Duration(seconds: 1, milliseconds: 500),
-    Duration(seconds: 3),
-    Duration(seconds: 10),
-  ];
-  static const List<double> _examplePlaybackRates = <double>[
-    0.25,
-    0.5,
-    1.0,
-    1.5,
-    2.0,
-    3.0,
-    5.0,
-    10.0,
-  ];
-
-  final VideoPlayerController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 50),
-          reverseDuration: const Duration(milliseconds: 200),
-          child: controller.value.isPlaying
-              ? const SizedBox.shrink()
-              : const ColoredBox(
-            color: Colors.black26,
-            child: Center(
-              child: Icon(
-                Icons.play_arrow,
-                color: Colors.white,
-                size: 100.0,
-                semanticLabel: 'Play',
-              ),
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      child: Stack(
+        children: [
+          Positioned(
+            top: -40,
+            left: 0,
+            child: Image.asset(
+              'assets/images/home_background.png',
+              fit: BoxFit.fill,
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              alignment: Alignment.center,
             ),
           ),
-        ),
-        GestureDetector(
-          onTap: () {
-            controller.value.isPlaying ? controller.pause() : controller.play();
-          },
-        ),
-        Align(
-          alignment: Alignment.topLeft,
-          child: PopupMenuButton<Duration>(
-            initialValue: controller.value.captionOffset,
-            tooltip: 'Caption Offset',
-            onSelected: (Duration delay) {
-              controller.setCaptionOffset(delay);
-            },
-            itemBuilder: (BuildContext context) {
-              return <PopupMenuItem<Duration>>[
-                for (final Duration offsetDuration in _exampleCaptionOffsets)
-                  PopupMenuItem<Duration>(
-                    value: offsetDuration,
-                    child: Text('${offsetDuration.inMilliseconds}ms'),
-                  )
-              ];
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                // Using less vertical padding as the text is also longer
-                // horizontally, so it feels like it would need more spacing
-                // horizontally (matching the aspect ratio of the video).
-                vertical: 12,
-                horizontal: 16,
-              ),
-              child: Text('${controller.value.captionOffset.inMilliseconds}ms'),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.topRight,
-          child: PopupMenuButton<double>(
-            initialValue: controller.value.playbackSpeed,
-            tooltip: 'Playback speed',
-            onSelected: (double speed) {
-              controller.setPlaybackSpeed(speed);
-            },
-            itemBuilder: (BuildContext context) {
-              return <PopupMenuItem<double>>[
-                for (final double speed in _examplePlaybackRates)
-                  PopupMenuItem<double>(
-                    value: speed,
-                    child: Text('${speed}x'),
-                  )
-              ];
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                // Using less vertical padding as the text is also longer
-                // horizontally, so it feels like it would need more spacing
-                // horizontally (matching the aspect ratio of the video).
-                vertical: 12,
-                horizontal: 16,
-              ),
-              child: Text('${controller.value.playbackSpeed}x'),
-            ),
-          ),
-        ),
-      ],
+          Positioned(
+              bottom: 10,
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  // Title : What’s catching your interest today?
+                  children: [
+                    Container(
+                      height: 80,
+                      width: MediaQuery.of(context).size.width,
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Lectures',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  color: Color(0xFF00C897),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.all(10),
+                      margin: EdgeInsets.all(10),
+                      child: ListView.builder(
+                        itemCount: folders.length,
+                        itemBuilder: (context, index) {
+                          // ExpansionTile
+                          return ExpansionTile(
+                            title: Row(
+                              children: [
+                                Text(folders[index].folderName),
+                                SizedBox(width: 10),
+                                if(!folders[index].isUserInFolder())
+                                  Icon(Icons.lock, color: Colors.red,),
+                              ],
+                            ),
+                            // disable expansion tile if user is not in the folder
+                            onExpansionChanged: (value) {
+                              if(!folders[index].isUserInFolder()){
+                                // close the expansion tile
+                                if(value){
+                                  setState(() {
+                                    folders[index].isUserInFolder();
+                                  });
+                                }
+                                //remove other snackbar
+                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                // show snackbar
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('You are not allowed to access this folder'),
+                                  ),
+                                );
+                              }
+                            },
+                            children: [
+                              ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: folders[index].videoList.length,
+                                itemBuilder: (context, i) {
+                                  return ListTile(
+                                    title: Text(folders[index].videoList[i].title),
+                                    onTap: () {
+                                      // Navigate to video page
+                                    },
+                                    //play video button at the end of the list
+                                    trailing: IconButton(
+                                      icon: Icon(Icons.play_arrow),
+                                      onPressed: () {
+                                        // Navigate to video page
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VideoPage(
+                                              videoId: folders[index].videoList[i].videoId,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              )
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ])),
+
+        ],
+      ),
     );
   }
 }

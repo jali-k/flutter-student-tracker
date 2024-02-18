@@ -43,7 +43,7 @@ class _InitialScreenState extends State<InitialScreen> {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => const BottomBarScreen(
                                 isEntryScreen: false,
-                                isInstructorScreen: false)));
+                                isInstructorScreen: false, isAddFolderScreen: false,)));
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),

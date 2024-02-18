@@ -21,11 +21,11 @@ class LeaderBoardService {
         (element) => element['paperId'] == paperId);
       ExamPaper p = ExamPaper.fromQuery(paper);
       // get Student by Student ID If not found then return null
-      bool isStudentExist = students.docs.any((element) => element['uid'] == mark['studentId']);
+      bool isStudentExist = students.docs.any((element) => element['registrationNumber'] == mark['studentId']);
       String name = 'Unknown';
       if(isStudentExist){
-        QueryDocumentSnapshot student = students.docs.firstWhere((element) => element['uid'] == mark['studentId']);
-        name = student['firstName'];
+        QueryDocumentSnapshot student = students.docs.firstWhere((element) => element['registrationNumber'] == mark['studentId']);
+        name = student['name'];
       }
       // String name = student.exists ? student['firstName'] : 'Unknown';
 
@@ -39,7 +39,7 @@ class LeaderBoardService {
           name: name,
           marks: mark['totalMarks'],
           position: 0,
-          uid: mark['studentId'].toString(),
+          uid: students.docs.firstWhere((element) => element['registrationNumber'] == mark['studentId']).id,
         ),
       );
         });

@@ -66,11 +66,13 @@ Future<Widget> getLandingPage() async {
       if(role == 'student'){
         return MainLayout();
       }else if(role == 'instructor'){
-        return InstructorEntryScreen();
+        return const InstructorEntryScreen();
       } else if(role == 'admin') {
-        return BottomBarScreen(
+        return const BottomBarScreen(
             isEntryScreen: false,
-            isInstructorScreen: false);
+            isInstructorScreen: false,
+          isAddFolderScreen: false,
+        );
       }
       // Unkown role
       return MainLayout();
