@@ -11,13 +11,14 @@ class LecturesPage extends StatefulWidget {
 }
 
 class _LecturesPageState extends State<LecturesPage> {
-
+  bool isLoaded = false;
   List<Folder> folders = [];
 
   getLectures() async {
     List<Folder> _folders =await LectureService.getLectures();
     setState(() {
       folders = _folders;
+      isLoaded = true;
     });
   }
 
@@ -87,17 +88,20 @@ class _LecturesPageState extends State<LecturesPage> {
                       width: MediaQuery.of(context).size.width,
                       padding: EdgeInsets.all(10),
                       margin: EdgeInsets.all(10),
-                      child: ListView.builder(
+                      child: !isLoaded
+                          ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          :
+                      ListView.builder(
                         itemCount: folders.length,
                         itemBuilder: (context, index) {
                           // ExpansionTile
-                          return ExpansionTile(
+                          if(folders[index].isUserInFolder()) {
+                            return ExpansionTile(
                             title: Row(
                               children: [
                                 Text(folders[index].folderName),
-                                SizedBox(width: 10),
-                                if(!folders[index].isUserInFolder())
-                                  Icon(Icons.lock, color: Colors.red,),
                               ],
                             ),
                             // disable expansion tile if user is not in the folder
@@ -146,9 +150,33 @@ class _LecturesPageState extends State<LecturesPage> {
                                     ),
                                   );
                                 },
-                              )
+                              ),
+                              if(folders[index].videoList.length == 0)
+                                Text('No videos found'),
                             ],
                           );
+                          } else {
+                            return ExpansionTile(
+                              trailing: const Icon(Icons.lock, color: Colors.red,),
+                              title: Row(
+                                children: [
+                                  Text(folders[index].folderName),
+                                ],
+                              ),
+                              // disable expansion tile if user is not in the folder
+                              onExpansionChanged: (value) {
+                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                                // show snackbar
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('You are not allowed to access this folder'),
+                                  ),
+                                );
+                              },
+                              children: [
+                              ],
+                            );
+                          }
                         },
                       ),
                     ),

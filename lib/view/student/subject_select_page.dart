@@ -393,8 +393,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                           ),
-                                          child: Text(biologyLessonsSnapshot
-                                              .docs[i]['name'])),
+                                          child: Text("${i+1}. ${biologyLessonsSnapshot.docs[i]['name']}")),
                                       trailing: const Icon(Icons.add),
                                       backgroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
@@ -555,8 +554,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                           ),
-                                          child: Text(chemistryLessonsSnapshot
-                                              .docs[i]['name'])),
+                                          child: Text("${i+1}. ${chemistryLessonsSnapshot.docs[i]['name']}")),
                                       trailing: const Icon(Icons.add),
                                       backgroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
@@ -717,8 +715,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                           ),
-                                          child: Text(physicsLessonsSnapshot
-                                              .docs[i]['name'])),
+                                          child: Text("${i+1}. ${physicsLessonsSnapshot.docs[i]['name']}")),
                                       trailing: const Icon(Icons.add),
                                       backgroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
@@ -881,8 +878,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                             borderRadius:
                                                 BorderRadius.circular(10),
                                           ),
-                                          child: Text(agricultureLessonsSnapshot
-                                              .docs[i]['name'])),
+                                          child: Text("${i+1}. ${agricultureLessonsSnapshot.docs[i]['name']}")),
                                       trailing: const Icon(Icons.add),
                                       backgroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(

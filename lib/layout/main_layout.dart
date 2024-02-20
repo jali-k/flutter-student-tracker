@@ -166,9 +166,13 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
       Navigator.push(
           context, MaterialPageRoute(builder: (context) =>  LoginPage()));
     }else if(role == 'unknown'){
-      unknown = true;
+      setState(() {
+        unknown = true;
+      });
     }else{
-      unknown = false;
+      setState(() {
+        unknown = false;
+      });
     }
   }
 

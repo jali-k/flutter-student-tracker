@@ -54,7 +54,6 @@ class _VideoPageState extends State<VideoPage> {
               : Container(),
         ),
         bottomNavigationBar: BottomAppBar(
-          color: Colors.black,
           child: Column(
             children: [
               //show progress bar
@@ -112,6 +111,19 @@ class _VideoPageState extends State<VideoPage> {
                         },
                       ),
                     ],
+                  ),
+                  //show duration of the video
+                  StreamBuilder(
+                    stream: Stream.periodic(const Duration(milliseconds: 100)),
+                    builder: (context, snapshot) {
+                      return Text('${_controller.value.position.inMinutes}:${_controller.value.position.inSeconds.remainder(60)}/${_controller.value.duration.inMinutes}:${_controller.value.duration.inSeconds.remainder(60)}');
+                    }
+                  ),
+                  //Full screen button
+                  IconButton(
+                    icon: Icon(Icons.fullscreen),
+                    onPressed: () {
+                      }
                   ),
 
                 ],
