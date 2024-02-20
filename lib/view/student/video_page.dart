@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:spt/services/lecture_service.dart';
 import 'package:video_player/video_player.dart';
 

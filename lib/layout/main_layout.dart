@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 // import 'package:dash_bubble/dash_bubble.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -20,10 +21,14 @@ import 'package:spt/view/student/student_paper_position_view.dart';
 import 'package:spt/view/student/subject_select_page.dart';
 import 'package:spt/view/student/view_paper.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+//import math
+import 'dart:math' as math;
 
+import '../util/notification_controller.dart';
 import '../view/student/show_profile.dart';
 
 class MainLayout extends StatefulWidget {
+
   int mainIndex = 0;
   int subIndex = 0;
 
@@ -33,8 +38,8 @@ class MainLayout extends StatefulWidget {
   State<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
-  Timer? countTimer, focusTimer;
+class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
+  Timer? countTimer, focusTimer,reminderTimer;
   StreamController<int> indexController = StreamController<int>.broadcast();
   StreamController<int> subjectSelectionController =
       StreamController<int>.broadcast();
@@ -44,6 +49,7 @@ class _MainLayoutState extends State<MainLayout> {
   bool enabledFocus = false;
   late AppLifecycleListener lifecycleListener;
   bool unknown = true;
+  bool timerShow = false;
 
   selectSubject(int index, QueryDocumentSnapshot lesson, String lessonContent,
       String subjectName) {
@@ -142,19 +148,13 @@ class _MainLayoutState extends State<MainLayout> {
 
   showOverlay() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool('enableFloat', true);
-    if (prefs.containsKey('countDown') &&
-        prefs.containsKey('enableFloat') &&
-        prefs.getBool('enableFloat')!) {
-      if (!await FlutterOverlayWindow.isActive()) {
-        prefs.setBool('enableFloat', false);
-        await FlutterOverlayWindow.showOverlay(
-            overlayTitle: "", height: 500, width: 400, enableDrag: true);
-        String? countDown = prefs.getString('countDown');
-        if (countDown != null) {
-          Map<String, dynamic> countDownMap = jsonDecode(countDown);
-          await FlutterOverlayWindow.shareData(countDownMap);
-        }
+    if (prefs.containsKey('countDown')) {
+      await FlutterOverlayWindow.showOverlay(
+          overlayTitle: "", height: 600, width: 400, enableDrag: true);
+      String? countDown = prefs.getString('countDown');
+      if (countDown != null) {
+        Map<String, dynamic> countDownMap = jsonDecode(countDown);
+        await FlutterOverlayWindow.shareData(countDownMap);
       }
     }
   }
@@ -172,6 +172,45 @@ class _MainLayoutState extends State<MainLayout> {
     }
   }
 
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+    print("State: $state");
+    if(state == AppLifecycleState.detached || state == AppLifecycleState.inactive){
+      return;
+    }
+    final bool isBackground = state == AppLifecycleState.paused;
+    if (isBackground) {
+      SharedPreferences prefs =await  SharedPreferences.getInstance();
+      if (prefs.containsKey('countDown')) {
+        AwesomeNotifications().createNotification(
+            content: NotificationContent(
+              id: 10,
+              channelKey: 'basic_channel',
+              actionType: ActionType.KeepOnTop,
+              title: 'Focus Mode',
+              body: 'You have a focus mode running',
+            )
+        );
+        reminderTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+          AwesomeNotifications().createNotification(
+              content: NotificationContent(
+                id: math.Random().nextInt(1000),
+                channelKey: 'basic_channel',
+                actionType: ActionType.KeepOnTop,
+                title: 'Focus Mode',
+                body: 'You have a focus mode running',
+              )
+          );
+        });
+
+      }
+    }else{
+      AwesomeNotifications().cancelAll();
+      reminderTimer?.cancel();
+    }
+  }
+
   _showFocusModeTimer() {
     countTimer?.cancel();
     showOverlay();
@@ -179,33 +218,24 @@ class _MainLayoutState extends State<MainLayout> {
 
   _hideFocusModeTimer() async {
     await FlutterOverlayWindow.closeOverlay();
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     Map<String, dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
-    prefs.setBool('enableFloat', true);
     setCountDownTimer(countDown.cast<String, int>());
   }
 
   @override
   void initState() {
     super.initState();
-    getUserState();
-    lifecycleListener = AppLifecycleListener(
-      onShow: () async {
-        print('App is visible');
-        await _hideFocusModeTimer();
-      },
-      onHide: () async {
-        print('App is hidden');
-        await _showFocusModeTimer();
-      },
-      onExitRequested: () async {
-        print('App exit requested');
-        clearFocusMode();
-        return AppExitResponse.exit;
-      },
+    WidgetsBinding.instance.addObserver(this);
+    AwesomeNotifications().setListeners(
+        onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
+        onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
+        onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
+        onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
     );
 
+
+    getUserState();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
         Navigator.pushReplacement(context,
@@ -213,6 +243,16 @@ class _MainLayoutState extends State<MainLayout> {
       }
     });
   }
+
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+  }
+
+
 
   @override
   Widget build(BuildContext context) {

@@ -84,8 +84,8 @@ class AuthService {
       ));
     }else{
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error creating students'),
-        backgroundColor: Colors.red,
+        content: Text('Students created successfully'),
+        backgroundColor: Colors.green,
       ));
     }
   }

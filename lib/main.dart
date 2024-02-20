@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -7,13 +8,8 @@ import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/screens/bottomBar_screen/bottom_bar_screen.dart';
-import 'package:spt/screens/initial_screen/initial_screen.dart';
-import 'package:spt/screens/instructor_screen/existing_instructor_screen.dart';
 import 'package:spt/screens/instructor_screen/instructor_entry_screen.dart';
-import 'package:spt/services/auth_services.dart';
-import 'package:spt/view/student/home_page.dart';
 import 'package:spt/view/student/login_page.dart';
-import 'package:spt/widgets/overlay_content.dart';
 import 'firebase_options.dart';
 
 
@@ -22,23 +18,34 @@ WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-if (!await FlutterOverlayWindow.isPermissionGranted()) {
-  await FlutterOverlayWindow.requestPermission();
-}
+  await AwesomeNotifications().initialize(
+    null,
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic notifications',
+        channelDescription: 'Notification channel for basic tests',
+        defaultColor: Color(0xFF9D50DD),
+        ledColor: Colors.white,
+      )
+    ],
+    channelGroups: [
+      NotificationChannelGroup(
+        channelGroupKey: 'grouped',
+        channelGroupName: 'Grouped notifications',
+      )
+    ],
+  );
+
+  bool permissionGranted = await AwesomeNotifications().isNotificationAllowed();
+  if (!permissionGranted) {
+    await AwesomeNotifications().requestPermissionToSendNotifications();
+  }
+
   // FirebaseAuth.instance.signOut();
   runApp(const MyApp());
 }
 
-@pragma("vm:entry-point")
-void overlayMain() async {
-  debugPrint("Starting Alerting Window Isolate!");
-  WidgetsFlutterBinding.ensureInitialized();
-
-  runApp(const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: MyOverlaContent()));
-
-}
 
 showOverlay() async {
   if(!await FlutterOverlayWindow.isPermissionGranted()){
@@ -87,6 +94,7 @@ Future<Widget> getLandingPage() async {
 
 
 class MyApp extends StatelessWidget {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   const MyApp({super.key});
 
   // This widget is the root of your application.
@@ -94,7 +102,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
+      navigatorKey: MyApp.navigatorKey,
       title: 'Studo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
