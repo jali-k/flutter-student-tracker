@@ -74,19 +74,46 @@ class AuthService {
 
   static Future<void> createStudents(List<List> fields,BuildContext context) async {
     final Dio dio = Dio();
+
     Response res = await dio.post('${APIProvider.BASE_URL}/csv', data: {
       'fields': jsonEncode(fields),
     });
+    if(!context.mounted) return;
     if(res.data == []) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Students created successfully'),
         backgroundColor: Colors.green,
       ));
     }else{
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Students created successfully'),
-        backgroundColor: Colors.green,
-      ));
+      List<String> errors = res.data.cast<String>();
+      showDialog(context: context, builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create Users Error'),
+          content: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.9,
+            width: MediaQuery.of(context).size.width * 1,
+            child: ListView.builder(
+              itemCount: errors.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Column(
+                  children: [
+                    Text(errors[index]),
+                    const Divider(),
+                  ],
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      });
     }
   }
 

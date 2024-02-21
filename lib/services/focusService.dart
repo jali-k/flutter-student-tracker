@@ -51,7 +51,7 @@ class FocusService{
     String? lessonId;
     String? subjectName;
     String? focusID;
-    int duration = 0;
+
     SharedPreferences prefs =await SharedPreferences.getInstance();
     Map<String, dynamic> focusData = jsonDecode(prefs.getString('focusData')!);
     focusID = focusData['focusID'];
@@ -60,14 +60,12 @@ class FocusService{
     DateTime startAt = DateTime.parse(focusData['startAt']);
     DateTime endAt = DateTime.now();
     //duration in minutes
-    duration = endAt.difference(startAt).inSeconds;
     prefs.setBool('enabledFocus',false);
     prefs.remove('countDown');
     prefs.remove('focusData');
 
     // save on firestore subject -> subjectName -> lessons -> lessonId -> focus -> lessonContent ->userID with fields duration,startAt, endAt
     getFocusReference(subjectName!, lessonId!,focusID!).update({
-      'duration': duration,
       'endAt': DateTime.now(),
       'isCompleted': true,
     });
@@ -92,7 +90,10 @@ class FocusService{
     String userID = _auth.currentUser!.uid;
     QuerySnapshot focusData = await _firestore.collection('focusData').where('subjectName',isEqualTo: subjectName).where('userID',isEqualTo: userID).get();
     for (var doc in focusData.docs) {
-      totalFocus += doc['duration'] as int;
+      bool isCompleted = doc['isCompleted'] as bool;
+      if(isCompleted){
+        totalFocus += doc['duration'] as int;
+      }
     }
     return totalFocus;
 

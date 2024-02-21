@@ -1,10 +1,12 @@
 import 'dart:ui';
+import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/screens/bottomBar_screen/bottom_bar_screen.dart';
@@ -44,6 +46,11 @@ WidgetsFlutterBinding.ensureInitialized();
 
   // FirebaseAuth.instance.signOut();
   runApp(const MyApp());
+  WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+    if(Platform.isAndroid){
+      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+    }
+  });
 }
 
 

@@ -21,6 +21,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +30,27 @@ class _HomeScreenState extends State<HomeScreen> {
         //   title: Text("Papers and Instructors"),
         // ),
         backgroundColor: AppColors.backGround,
-        body: Container(
+        body:
+            isLoading
+                ? Center(
+                    child: Container(
+                      height: 100,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        color: AppColors.ligthWhite,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          Gap(20),
+                          Text('This may take a while...')
+                        ],
+                      )
+                    ),
+                  )
+                :
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: SingleChildScrollView(
             child: Column(
@@ -504,11 +526,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-        ));
+        )
+    );
   }
 
   Future<void> uploadFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
+    setState(() {
+      isLoading = true;
+    });
     if (result != null) {
       PlatformFile file = result.files.first;
 
@@ -517,7 +543,6 @@ class _HomeScreenState extends State<HomeScreen> {
           .transform(utf8.decoder)
           .transform(CsvToListConverter())
           .toList();
-      print(fields);
 
       List<StudentCSV> students = [];
       List<String> instructors = [];
@@ -532,8 +557,6 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         if(field[0].toString().isEmpty || field[1].toString().isEmpty || field[2].toString().isEmpty){
           error = 'Invalid CSV format';
-          print(field[0].toString());
-
           isValidated = false;
           break;
         }
@@ -543,16 +566,18 @@ class _HomeScreenState extends State<HomeScreen> {
           content: Text(error),
           duration: const Duration(seconds: 3),
         ));
+        setState(() {
+          isLoading = false;
+        });
         return;
       }
 
 
 
-      AuthService.createStudents(fields, context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Students added successfully'),
-        duration: const Duration(seconds: 3),
-      ));
+      await AuthService.createStudents(fields, context);
+      setState(() {
+        isLoading = false;
+      });
 
     }
   }

@@ -177,7 +177,41 @@ class _FocusModeState extends State<FocusMode> {
   Future<void> checkEnabledFocus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.containsKey('enabledFocus') && prefs.getBool('enabledFocus')! && prefs.containsKey('countDown')) {
-      Map<String, dynamic> _countDown = jsonDecode(prefs.getString('countDown')!);
+
+      Map<String, dynamic> focusData = jsonDecode(prefs.getString('focusData')!);
+      DateTime startAt = DateTime.parse(focusData['startAt']);
+      DateTime currentTime = DateTime.now();
+      int setDuration = focusData['duration'];
+      Duration duration = currentTime.difference(startAt);
+      if(duration.inMinutes >= setDuration){
+        FocusService.endFocusOnLesson();
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Time is up!'),
+              content: const Text('Time to take a break'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        setState(() {
+          ButtonText = 'Start';
+        });
+        return;
+      }
+      
+      Map<String, dynamic> _countDown = {
+        'minutes': setDuration - duration.inMinutes,
+        'seconds': duration.inSeconds % 60,
+      };
       timer = Timer(Duration(minutes: _countDown['minutes']!,seconds: _countDown['seconds']!), () {
         // Show the alert
         endFocussingSession();
