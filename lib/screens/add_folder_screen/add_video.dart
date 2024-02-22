@@ -8,6 +8,7 @@ import '../../globals.dart';
 import '../../model/model.dart';
 import '../res/app_colors.dart';
 
+
 class AddVideo extends StatefulWidget {
   final void Function(Video video) callBackVideo;
   final bool isUpdate;
@@ -41,7 +42,7 @@ class _AddVideoState extends State<AddVideo> {
   void initState() {
     super.initState();
     setState(() {
-      lessons.addAll(['ජීව විද්‍යාව හැඳින්වීම', 'ජීවයේ රසායනික හා සෛලීය පදනම', 'ජීවීන්ගේ පරිණාමය හා විවිධත්වය', 'ශාක ආකාරය සහ ක්‍රියාකාරිත්වය', 'සත්ත්ව ආකාරය සහ ක්‍රියාකාරීත්වය 01', 'සත්ත්ව ආකාරය සහ ක්‍රියාකාරීත්වය 02', 'ප්‍රවේණිය', 'අණුක ජීව විද්‍යාව', 'පාරිසරික ජීව විද්‍යාව', 'ක්ෂුද්‍ර ජීව විද්‍යාව', 'ව්‍යවහාරික ජීව විද්‍යාව']);
+      lessons.addAll(['Introduction to Biology', 'Chemical and cellular basis of life', 'Evolution and diversity of organisms', 'Evolution and diversity of organisms', 'Part 1-Animal form and function', 'Part 2-Animal form and function', 'Genetics, Molecular Biology and Recombinant DNA Technology', 'Environmental Biology', 'Microbiology', 'Applied Biology']);
 
       selectedLesson = lessons.first;
       _selectedDate = DateTime.now();
@@ -72,7 +73,7 @@ class _AddVideoState extends State<AddVideo> {
         _selectedDate = picked;
       });
       dateController.text =
-          '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}';
+      '${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}';
     }
   }
 
@@ -144,26 +145,26 @@ class _AddVideoState extends State<AddVideo> {
                       Center(
                           child: videoFile.isEmpty
                               ? IconButton(
-                                  color: AppColors.blue,
-                                  iconSize: 40,
-                                  onPressed: () async {
-                                    final picker = ImagePicker();
-                                    final pickedFile = await picker.pickVideo(
-                                        source: ImageSource.gallery);
+                              color: AppColors.blue,
+                              iconSize: 40,
+                              onPressed: () async {
+                                final picker = ImagePicker();
+                                final pickedFile = await picker.pickVideo(
+                                    source: ImageSource.gallery);
 
-                                    if (pickedFile != null) {
-                                      setState(() {
-                                        videoFile.add(File(pickedFile.path));
-                                        videoFileName.add(pickedFile.name);
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(Icons.cloud_upload))
+                                if (pickedFile != null) {
+                                  setState(() {
+                                    videoFile.add(File(pickedFile.path));
+                                    videoFileName.add(pickedFile.name);
+                                  });
+                                }
+                              },
+                              icon: const Icon(Icons.cloud_upload))
                               : const Icon(
-                                  Icons.done_all,
-                                  size: 40,
-                                  color: AppColors.green,
-                                )),
+                            Icons.done_all,
+                            size: 40,
+                            color: AppColors.green,
+                          )),
                     ],
                   ),
                 ),
@@ -225,30 +226,30 @@ class _AddVideoState extends State<AddVideo> {
                       Center(
                           child: videoThumbnail.isEmpty
                               ? IconButton(
-                                  color: AppColors.blue,
-                                  splashColor: AppColors.grey,
-                                  focusColor: AppColors.grey,
-                                  hoverColor: AppColors.grey,
-                                  iconSize: 40,
-                                  onPressed: () async {
-                                    final picker = ImagePicker();
-                                    final pickedFile = await picker.pickImage(
-                                        source: ImageSource.gallery);
+                              color: AppColors.blue,
+                              splashColor: AppColors.grey,
+                              focusColor: AppColors.grey,
+                              hoverColor: AppColors.grey,
+                              iconSize: 40,
+                              onPressed: () async {
+                                final picker = ImagePicker();
+                                final pickedFile = await picker.pickImage(
+                                    source: ImageSource.gallery);
 
-                                    if (pickedFile != null) {
-                                      setState(() {
-                                        videoThumbnail
-                                            .add(File(pickedFile.path));
-                                        thumbNailName.add(pickedFile.name);
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(Icons.cloud_upload))
+                                if (pickedFile != null) {
+                                  setState(() {
+                                    videoThumbnail
+                                        .add(File(pickedFile.path));
+                                    thumbNailName.add(pickedFile.name);
+                                  });
+                                }
+                              },
+                              icon: const Icon(Icons.cloud_upload))
                               : const Icon(
-                                  Icons.done_all,
-                                  size: 40,
-                                  color: AppColors.green,
-                                )),
+                            Icons.done_all,
+                            size: 40,
+                            color: AppColors.green,
+                          )),
                     ],
                   ),
                 ),
@@ -365,9 +366,9 @@ class _AddVideoState extends State<AddVideo> {
                       decoration: BoxDecoration(
                           color: AppColors.ligthWhite,
                           border:
-                              Border.all(color: AppColors.black, width: 1.5),
+                          Border.all(color: AppColors.black, width: 1.5),
                           borderRadius:
-                              const BorderRadius.all(Radius.circular(30))),
+                          const BorderRadius.all(Radius.circular(30))),
                       child: DropdownButton<String>(
                         padding: const EdgeInsets.only(left: 15),
                         underline: null,
@@ -461,11 +462,11 @@ class _AddVideoState extends State<AddVideo> {
                       },
                       child: const Center(
                           child: Text(
-                        'Save',
-                        style: TextStyle(
-                          color: AppColors.ligthWhite,
-                        ),
-                      )),
+                            'Save',
+                            style: TextStyle(
+                              color: AppColors.ligthWhite,
+                            ),
+                          )),
                     ),
                   ),
                 ),

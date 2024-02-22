@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Paper {
   String paperId = '';
+  String paperDocId = '';
   String paperName = '';
   bool isMcq = false;
   bool isStructure = false;
@@ -11,22 +12,20 @@ class Paper {
 
   Paper(
       {required this.paperId,
-      required this.paperName,
-      required this.isMcq,
-      required this.isStructure,
-      required this.isEssay});
+        required this.paperDocId,
+        required this.paperName,
+        required this.isMcq,
+        required this.isStructure,
+        required this.isEssay});
 }
 
 class Instructor {
   String instructorId = '';
   String email = '';
-   String docId = '';
+  String docId = '';
 
-  Instructor({
-    required this.instructorId,
-    required this.email,
-    required this.docId
-  });
+  Instructor(
+      {required this.instructorId, required this.email, required this.docId});
 
   List<String> toList() {
     return [instructorId, email, docId];

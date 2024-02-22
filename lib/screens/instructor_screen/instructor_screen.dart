@@ -12,6 +12,7 @@ import '../../popups/confirmation_popup.dart';
 import '../../popups/loading_popup.dart';
 import '../res/app_colors.dart';
 
+
 class InstructorScreen extends StatefulWidget {
   const InstructorScreen({super.key});
 
@@ -41,14 +42,14 @@ class _InstructorScreenState extends State<InstructorScreen> {
       isLoading = true;
     });
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('instructors')
-        .orderBy('email', descending: true)
+        .collection('instructor')
+        .orderBy('id', descending: true)
         .get();
     setState(() {
       data.addAll(querySnapshot.docs);
       data.forEach((email) {
         instructor.add(Instructor(
-            instructorId: email['uid'],
+            instructorId: email['instructorId'],
             email: email['email'],
             docId: email.id));
       });
@@ -56,51 +57,28 @@ class _InstructorScreenState extends State<InstructorScreen> {
     });
   }
 
-  createInstructor (String instructorEmail, String password) async {
-    Dio dio = Dio();
-    try{
-      final response = await dio.post(
-        '${APIProvider.BASE_URL}/instructor',
-        data: {
-          'email': instructorEmail,
-          'password': password,
-        },
-      );
-      return response.data['uid'];
-    }catch(e){
-      print('Error creating instructor: $e');
-    }
-
-  }
-
-  deleteInstructor(String instructorId, int index) async {
-    try {
-      Dio dio = Dio();
-      final loading = LoadingPopup(context);
-      loading.show();
-      await dio.delete('${APIProvider.BASE_URL}/instructor/$instructorId');
-      loading.dismiss();
-      instructor.removeAt(index);
-      Globals.showSnackBar(context: context, message: 'Success', isSuccess: true);
-    } catch (e) {
-      print('Error deleting instructor: $e');
-    }
-  }
-
   Future<void> addData(
       {required String instructorEmail, required String password}) async {
     try {
       final loading = LoadingPopup(context);
       loading.show();
-      String uid = await createInstructor(instructorEmail, password);
+      String instructorId = const Uuid().v1();
+      DocumentReference documentReference = await FirebaseFirestore.instance
+          .collection('instructor') // Reference to the collection
+          .add({
+        'id': instructor.length,
+        'instructorId': instructorId,
+        'email': instructorEmail,
+        'password': password
+      });
       loading.dismiss();
       setState(() {
         instructor.insert(
             0,
             Instructor(
-                instructorId: uid,
+                instructorId: instructorId,
                 email: instructorEmail,
-                docId: uid));
+                docId: documentReference.id));
         entryController.clear();
         passwordController.clear();
       });
@@ -125,24 +103,27 @@ class _InstructorScreenState extends State<InstructorScreen> {
     }
   }
 
-  // void deleteInstructor(String instructorId, int index) async {
-  //   try {
-  //     DocumentReference documentReference =
-  //         FirebaseFirestore.instance.collection('instructor').doc(instructorId);
-  //     final loading = LoadingPopup(context);
-  //     loading.show();
-  //
-  //     loading.dismiss();
-  //     instructor.removeAt(index);
-  //
-  //     // ignore: use_build_context_synchronously
-  //     Globals.showSnackBar(
-  //         context: context, message: 'Success', isSuccess: true);
-  //   } catch (e) {
-  //     // ignore: avoid_print
-  //     print('Error deleting instructor: $e');
-  //   }
-  // }
+  void deleteInstructor(String instructorId, int index) async {
+    try {
+      DocumentReference documentReference =
+      FirebaseFirestore.instance.collection('instructor').doc(instructorId);
+      final loading = LoadingPopup(context);
+      loading.show();
+      await documentReference.delete();
+      loading.dismiss();
+      setState(() {
+        instructor.removeAt(index);
+      });
+
+
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context, message: 'Success', isSuccess: true);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error deleting instructor: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,19 +184,19 @@ class _InstructorScreenState extends State<InstructorScreen> {
             Center(
               child: RichText(
                   text: const TextSpan(children: [
-                TextSpan(
-                  text: 'Add a ',
-                  style: TextStyle(color: AppColors.black, fontSize: 20),
-                ),
-                TextSpan(
-                  text: 'new',
-                  style: TextStyle(color: AppColors.green, fontSize: 20),
-                ),
-                TextSpan(
-                  text: ' Instructor',
-                  style: TextStyle(color: AppColors.black, fontSize: 20),
-                ),
-              ])),
+                    TextSpan(
+                      text: 'Add a ',
+                      style: TextStyle(color: AppColors.black, fontSize: 20),
+                    ),
+                    TextSpan(
+                      text: 'new',
+                      style: TextStyle(color: AppColors.green, fontSize: 20),
+                    ),
+                    TextSpan(
+                      text: ' Instructor',
+                      style: TextStyle(color: AppColors.black, fontSize: 20),
+                    ),
+                  ])),
             ),
             const Gap(30),
             Form(
@@ -307,11 +288,11 @@ class _InstructorScreenState extends State<InstructorScreen> {
                         },
                         child: const Center(
                             child: Text(
-                          'Send',
-                          style: TextStyle(
-                            color: AppColors.ligthWhite,
-                          ),
-                        )),
+                              'Send',
+                              style: TextStyle(
+                                color: AppColors.ligthWhite,
+                              ),
+                            )),
                       ),
                     ),
                   ),
@@ -323,15 +304,15 @@ class _InstructorScreenState extends State<InstructorScreen> {
               padding: const EdgeInsets.only(left: 20),
               child: RichText(
                   text: const TextSpan(children: [
-                TextSpan(
-                  text: 'Available ',
-                  style: TextStyle(color: AppColors.black),
-                ),
-                TextSpan(
-                  text: ' Instructors',
-                  style: TextStyle(color: AppColors.green),
-                ),
-              ])),
+                    TextSpan(
+                      text: 'Available ',
+                      style: TextStyle(color: AppColors.black),
+                    ),
+                    TextSpan(
+                      text: ' Instructors',
+                      style: TextStyle(color: AppColors.green),
+                    ),
+                  ])),
             ),
             const Gap(10),
             Expanded(
@@ -340,72 +321,72 @@ class _InstructorScreenState extends State<InstructorScreen> {
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : instructor.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No instructors',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.black),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: instructor.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    // height: 60,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                        color: AppColors.ligthWhite,
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                instructor[index].email,
-                                                style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: AppColors.black),
-                                              ),
-                                              const Text(
-                                                'email',
-                                                style: TextStyle(
-                                                    color: AppColors.black),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        IconButton(
-                                            onPressed: () {
-                                              ConfirmationPopup(context).show(
-                                                  message:
-                                                      'Are you sure you want to delete the email?',
-                                                  callbackOnYesPressed: () {
-                                                    deleteInstructor(
-                                                        instructor[index].docId,
-                                                        index);
-                                                  });
-                                            },
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: AppColors.red,
-                                            ))
-                                      ],
-                                    ),
+                    ? const Center(
+                  child: Text(
+                    'No instructors',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black),
+                  ),
+                )
+                    : ListView.builder(
+                    itemCount: instructor.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            // height: 60,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                                color: AppColors.ligthWhite,
+                                borderRadius:
+                                BorderRadius.circular(10)),
+                            child: Row(
+                              mainAxisAlignment:
+                              MainAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        instructor[index].email,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.black),
+                                      ),
+                                      const Text(
+                                        'email',
+                                        style: TextStyle(
+                                            color: AppColors.black),
+                                      )
+                                    ],
                                   ),
-                                  const Gap(10),
-                                ],
-                              );
-                            }),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      ConfirmationPopup(context).show(
+                                          message:
+                                          'Are you sure you want to delete the email?',
+                                          callbackOnYesPressed: () {
+                                            deleteInstructor(
+                                                instructor[index].docId,
+                                                index);
+                                          });
+                                    },
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: AppColors.red,
+                                    ))
+                              ],
+                            ),
+                          ),
+                          const Gap(10),
+                        ],
+                      );
+                    }),
               ),
             )
           ],

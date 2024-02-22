@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/model.dart';
 import 'package:spt/services/auth_services.dart';
-import 'package:spt/view/student/sign_up_page.dart';
 
 import '../../model/Admin.dart';
 import '../../model/Student.dart';
@@ -38,6 +38,13 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    if(kDebugMode){
+      // emailController.text = "dilushalakmal69@gmail.com";
+      // passwordController.text = "pass_dilushalakmal69";
+      emailController.text = "upekshalakshani100@gmail.com";
+      passwordController.text = "pwd_100179";
+    }
+
     // _checkLogin();
     _loadingStream.add(true);
     Future.delayed(Duration(seconds: 2), () {
@@ -242,7 +249,7 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Container(
           height: MediaQuery.of(context).size.height,
-          color: Color(0xFF00C897),
+          color: const Color(0xFF00C897),
           child: Stack(
             alignment: Alignment.topCenter,
             fit: StackFit.loose,
@@ -313,7 +320,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
                       // sign in with google
-                      SizedBox(
+                      if(!kIsWeb)
+                        SizedBox(
                         width: MediaQuery.of(context).size.width * 0.8,
                         height: 50,
                         child: ElevatedButton(
@@ -341,7 +349,8 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      if(!kIsWeb)
+                        const SizedBox(height: 20),
                       SizedBox(
                         width: MediaQuery.of(context).size.width * 0.8,
                         height: 50,

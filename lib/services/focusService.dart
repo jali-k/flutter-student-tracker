@@ -168,6 +168,12 @@ static Future<List<LeaderBoardEntries>> getSubjectLeaderBoardEntries(String subj
     return leaderBoardEntries;
   }
 
+  static Future<int> getOverallLeaderBoardPosition() async{
+    List<LeaderBoardEntries> leaderBoardEntries = await getOverallLeaderBoardEntries();
+    int position = leaderBoardEntries.indexWhere((element) => element.uid == _auth.currentUser!.uid);
+    return (position+1);
+  }
+
 
 
 }

@@ -8,9 +8,9 @@ import '../../model/model.dart';
 import '../../popups/loading_popup.dart';
 import '../res/app_colors.dart';
 
-
 class AddMarks extends StatefulWidget {
   final Paper paper;
+
   const AddMarks({super.key, required this.paper});
 
   @override
@@ -23,6 +23,12 @@ class _AddMarksState extends State<AddMarks> {
   final structureController = TextEditingController();
   final essayController = TextEditingController();
   final totalMarksController = TextEditingController();
+
+  //Edit marks dialog controller
+  final editMcqController = TextEditingController();
+  final editStructureController = TextEditingController();
+  final editEssayController = TextEditingController();
+  final editTotalMarksController = TextEditingController();
   List<TableRow> rows = [];
   List<DocumentSnapshot> marks = [];
   int addCount = 0;
@@ -97,6 +103,378 @@ class _AddMarksState extends State<AddMarks> {
     fetchPaperMarks();
   }
 
+  showMarksEditDialog(
+      {required int studentId,
+      required int? mcq,
+      required int? structure,
+      required int? essay,
+      required int totalMarks}) {
+    print('studentId: $studentId mcq: $mcq structure: $structure essay: $essay totalMarks: $totalMarks');
+    editMcqController.text = mcq != null ? mcq.toString() : '';
+    editStructureController.text = structure != null ? structure.toString() : '';
+    editEssayController.text = essay != null ? essay.toString() : '';
+    editTotalMarksController.text = totalMarks.toString();
+    showDialog(
+      anchorPoint: const Offset(0.0, 0.0),
+      useRootNavigator: true,
+      context: context,
+      traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          alignment: Alignment.center,
+          title: const Text('Edit Marks'),
+          content: Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            width: MediaQuery.of(context).size.width * 0.9,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  ListView(
+                    shrinkWrap: true,
+                    children: [
+                      TextFormField(
+                        initialValue: studentId.toString(),
+                        decoration: const InputDecoration(
+                          hintText: 'Student id',
+                        ),
+                        enabled: false,
+                      ),
+                      TextFormField(
+                        controller: editMcqController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          alignLabelWithHint: true,
+                          floatingLabelAlignment: FloatingLabelAlignment.start,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          floatingLabelStyle: TextStyle(
+                            color: AppColors.black,
+                          ),
+                          label: Text(
+                            'MCQ Marks',
+                            style: TextStyle(
+                              color: AppColors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      TextFormField(
+                        controller: editStructureController,
+                        decoration: const InputDecoration(
+                          alignLabelWithHint: true,
+                          floatingLabelAlignment: FloatingLabelAlignment.start,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          floatingLabelStyle: TextStyle(
+                            color: AppColors.black,
+                          ),
+                          label: Text(
+                            'Structured Marks',
+                            style: TextStyle(
+                              color: AppColors.black,
+                            ),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      TextFormField(
+                        controller: editEssayController,
+                        decoration: const InputDecoration(
+                          alignLabelWithHint: true,
+                          floatingLabelAlignment: FloatingLabelAlignment.start,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          floatingLabelStyle: TextStyle(
+                            color: AppColors.black,
+                          ),
+                          label: Text(
+                            'Essay Marks',
+                            style: TextStyle(
+                              color: AppColors.black,
+                            ),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      TextFormField(
+                        controller: editTotalMarksController,
+                        decoration: const InputDecoration(
+                          hintText: 'Total marks',
+                          alignLabelWithHint: true,
+                          floatingLabelAlignment: FloatingLabelAlignment.start,
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          floatingLabelStyle: TextStyle(
+                            color: AppColors.black,
+                          ),
+                          label: Text(
+                            'Total marks',
+                            style: TextStyle(
+                              color: AppColors.black,
+                            ),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                primary: AppColors.black,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+                style: TextButton.styleFrom(
+                  primary: AppColors.green,
+                ),
+                onPressed: () async{
+                  if (editMcqController.text.trim().isNotEmpty) {
+                    if (int.tryParse(editMcqController.text.trim()) == null) {
+                      Globals.showSnackBar(
+                          context: context,
+                          message: 'Please enter valid mcq marks',
+                          isSuccess: false);
+                      return;
+                    }
+                    if (0 > int.parse(editMcqController.text.trim()) ||
+                        int.parse(editMcqController.text.trim()) > 100) {
+                      Globals.showSnackBar(
+                          context: context,
+                          message: 'mcq marks'
+                              ' should be between 0 and 100',
+                          isSuccess: false);
+                      return;
+                    }
+                  }
+                  if (editStructureController.text.trim().isNotEmpty) {
+                    if (int.tryParse(editStructureController.text.trim()) == null) {
+                      Globals.showSnackBar(
+                          context: context,
+                          message: 'Please enter valid structure marks',
+                          isSuccess: false);
+                      return;
+                    }
+                    if (0 > int.parse(editStructureController.text.trim()) ||
+                        int.parse(editStructureController.text.trim()) > 100) {
+                      Globals.showSnackBar(
+                          context: context,
+                          message: 'structure marks'
+                              ' should be between 0 and 100',
+                          isSuccess: false);
+                      return;
+                    }
+                  }
+                  if (editEssayController.text.trim().isNotEmpty) {
+                    if (int.tryParse(editEssayController.text.trim()) == null) {
+                      Globals.showSnackBar(
+                          context: context,
+                          message: 'Please enter valid essay marks',
+                          isSuccess: false);
+                      return;
+                    }
+                    if (0 > int.parse(editEssayController.text.trim()) ||
+                        int.parse(editEssayController.text.trim()) > 100) {
+                      Globals.showSnackBar(
+                          context: context,
+                          message: 'essay marks'
+                              ' should be between 0 and 100',
+                          isSuccess: false);
+                      return;
+                    }
+                  }
+                  if (editTotalMarksController.text.trim().isEmpty) {
+                    Globals.showSnackBar(
+                        context: context,
+                        message: 'Please enter the total marks',
+                        isSuccess: false);
+                    return;
+                  }
+
+                  await FirebaseFirestore.instance
+                      .collection('marks')
+                      .where('paperId', isEqualTo: widget.paper.paperId)
+                      .where('studentId', isEqualTo: studentId)
+                      .get()
+                      .then((value) {
+                    value.docs.forEach((element) {
+                      element.reference.update({
+                        'mcqMarks': editMcqController.text.trim().isNotEmpty
+                            ? int.parse(editMcqController.text.trim())
+                            : null,
+                        'structuredMarks': editStructureController.text.trim().isNotEmpty
+                            ? int.parse(editStructureController.text.trim())
+                            : null,
+                        'essayMarks': editEssayController.text.trim().isNotEmpty
+                            ? int.parse(editEssayController.text.trim())
+                            : null,
+                        'totalMarks': int.parse(editTotalMarksController.text.trim())
+                      });
+                    });
+                  });
+
+                  //edit row in table
+                  int index = studentIds.indexOf(studentId);
+                  index = index + 1;
+                  setState(() {
+                    rows.removeAt(index);
+                    rows.insert(
+                      index,
+                      TableRow(
+                        decoration: BoxDecoration(
+                          color: AppColors.ligthWhite,
+                        ),
+                        children: [
+                          GestureDetector(
+                            onLongPress: () {
+                              setState(() {
+                                showMarksEditDialog(
+                                    studentId: studentId,
+                                    mcq: mcq,
+                                    structure: structure,
+                                    essay: essay,
+                                    totalMarks: totalMarks);
+                              });
+                            },
+                            child: TableCell(
+                                child: Container(
+                                    height: 40,
+                                    color: AppColors.ligthWhite,
+                                    child: Center(
+                                        child: Text(
+                                      studentId.toString(),
+                                      style: const TextStyle(color: AppColors.black),
+                                    )))),
+                          ),
+                          TableCell(
+                              child: Container(
+                                  height: 40,
+                                  color: widget.paper.isMcq
+                                      ? AppColors.ligthWhite
+                                      : AppColors.grey,
+                                  child: Center(
+                                      child: Text(
+                                    editMcqController.text.trim().isNotEmpty
+                                        ? editMcqController.text.trim()
+                                        : '',
+                                    style: const TextStyle(color: AppColors.black),
+                                  )))),
+                          TableCell(
+                              child: Container(
+                                  height: 40,
+                                  color: widget.paper.isStructure
+                                      ? AppColors.ligthWhite
+                                      : AppColors.grey,
+                                  child: Center(
+                                      child: Text(
+                                    editStructureController.text.trim().isNotEmpty
+                                        ? editStructureController.text.trim()
+                                        : '',
+                                    style: const TextStyle(color: AppColors.black),
+                                  )))),
+                          TableCell(
+                              child: Container(
+                                  height: 40,
+                                  color: widget.paper.isEssay
+                                      ? AppColors.ligthWhite
+                                      : AppColors.grey,
+                                  child: Center(
+                                      child: Text(
+                                    editEssayController.text.trim().isNotEmpty
+                                        ? editEssayController.text.trim()
+                                        : '',
+                                    style: const TextStyle(color: AppColors.black),
+                                  )))),
+                          TableCell(
+                              child: Container(
+                                  height: 40,
+                                  color: AppColors.ligthWhite,
+                                  child: Center(
+                                      child: Text(
+                                    editTotalMarksController.text.trim(),
+                                    style: const TextStyle(color: AppColors.black),
+                                  )))),
+                        ],
+                      ),
+                    );
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Marks updated'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+
+                  Navigator.of(context).pop();
+
+
+                },
+                child: Text('Edit')),
+            //DELETE BUTTON
+            TextButton(
+              style: TextButton.styleFrom(
+                primary: AppColors.red,
+              ),
+              onPressed: () async {
+               //confirmation dialog
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Delete Marks'),
+                      content: const Text('Are you sure you want to delete the marks?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await FirebaseFirestore.instance
+                                .collection('marks')
+                                .where('paperId', isEqualTo: widget.paper.paperId)
+                                .where('studentId', isEqualTo: studentId)
+                                .get()
+                                .then((value) {
+                              value.docs.forEach((element) {
+                                element.reference.delete();
+                              });
+                            });
+                            //delete row in table
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Marks deleted'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => AddMarks(
+                                      paper: widget.paper,
+                                    )));
+                          },
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void fetchPaperMarks() async {
     setState(() {
       isLoading = true;
@@ -113,11 +491,14 @@ class _AddMarksState extends State<AddMarks> {
           .where('paperId', isEqualTo: widget.paper.paperId)
           .orderBy('studentId', descending: false)
           .get();
+      List<QueryDocumentSnapshot> m = querySnapshot.docs;
+      //sort by student id
+      m.sort((a, b) => a['studentId'].compareTo(b['studentId']));
       setState(() {
         isLoading = false;
       });
       setState(() {
-        marks.addAll(querySnapshot.docs);
+        marks.addAll(m);
         if (marks.isNotEmpty) {
           marks.forEach((element) {
             Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
@@ -131,14 +512,36 @@ class _AddMarksState extends State<AddMarks> {
               TableRow(
                 children: [
                   TableCell(
-                      child: Container(
-                          height: 40,
-                          color: AppColors.ligthWhite,
-                          child: Center(
-                              child: Text(
-                                studentId.toString(),
-                                style: const TextStyle(color: AppColors.black),
-                              )))),
+                      child: GestureDetector(
+                    onLongPress: () {
+                      setState(() {
+                        showMarksEditDialog(
+                            studentId: studentId,
+                            mcq: mcq,
+                            structure: structure,
+                            essay: essay,
+                            totalMarks: totalMarks);
+                      });
+                    },
+                        onDoubleTap: () {
+                          setState(() {
+                            showMarksEditDialog(
+                                studentId: studentId,
+                                mcq: mcq,
+                                structure: structure,
+                                essay: essay,
+                                totalMarks: totalMarks);
+                          });
+                        },
+                    child: Container(
+                        height: 40,
+                        color: AppColors.ligthWhite,
+                        child: Center(
+                            child: Text(
+                          studentId.toString(),
+                          style: const TextStyle(color: AppColors.black),
+                        ))),
+                  )),
                   TableCell(
                       child: Container(
                           height: 40,
@@ -147,8 +550,8 @@ class _AddMarksState extends State<AddMarks> {
                               : AppColors.grey,
                           child: Center(
                               child: Text(mcq != null ? mcq.toString() : '',
-                                  style:
-                                  const TextStyle(color: AppColors.black))))),
+                                  style: const TextStyle(
+                                      color: AppColors.black))))),
                   TableCell(
                       child: Container(
                           height: 40,
@@ -158,8 +561,8 @@ class _AddMarksState extends State<AddMarks> {
                           child: Center(
                               child: Text(
                                   structure != null ? structure.toString() : '',
-                                  style:
-                                  const TextStyle(color: AppColors.black))))),
+                                  style: const TextStyle(
+                                      color: AppColors.black))))),
                   TableCell(
                       child: Container(
                           height: 40,
@@ -168,24 +571,24 @@ class _AddMarksState extends State<AddMarks> {
                               : AppColors.grey,
                           child: Center(
                               child: Text(essay != null ? essay.toString() : '',
-                                  style:
-                                  const TextStyle(color: AppColors.black))))),
+                                  style: const TextStyle(
+                                      color: AppColors.black))))),
                   TableCell(
                       child: Container(
                           height: 40,
                           color: AppColors.ligthWhite,
                           child: Center(
                               child: Text(
-                                totalMarks.toString(),
-                                style: const TextStyle(color: AppColors.black),
-                              )))),
+                            totalMarks.toString(),
+                            style: const TextStyle(color: AppColors.black),
+                          )))),
                 ],
               ),
             );
           });
         }
       });
-    }else{
+    } else {
       setState(() {
         isLoading = false;
       });
@@ -226,14 +629,27 @@ class _AddMarksState extends State<AddMarks> {
           TableRow(
             children: [
               TableCell(
-                  child: Container(
-                      height: 40,
-                      color: AppColors.ligthWhite,
-                      child: Center(
-                          child: Text(
-                        studentIdController.text,
-                        style: const TextStyle(color: AppColors.black),
-                      )))),
+                  child: GestureDetector(
+                    onLongPress: () {
+                      setState(() {
+                        showMarksEditDialog(
+                            studentId: studentId,
+                            mcq: mcq,
+                            structure: structured,
+                            essay: essay,
+                            totalMarks: total);
+                      });
+                    },
+
+                    child: Container(
+                        height: 40,
+                        color: AppColors.ligthWhite,
+                        child: Center(
+                            child: Text(
+                          studentIdController.text,
+                          style: const TextStyle(color: AppColors.black),
+                        ))),
+                  )),
               TableCell(
                   child: Container(
                       height: 40,
@@ -315,7 +731,8 @@ class _AddMarksState extends State<AddMarks> {
                               color: AppColors.black,
                               // width: 1.5,
                             ),
-                          ), // Remove the default border
+                          ),
+                          // Remove the default border
                           enabledBorder: UnderlineInputBorder(
                             // Add bottom line as enabled border
                             borderSide: BorderSide(color: AppColors.black),
@@ -345,7 +762,8 @@ class _AddMarksState extends State<AddMarks> {
                               color: AppColors.black,
                               // width: 1.5,
                             ),
-                          ), // Remove the default border
+                          ),
+                          // Remove the default border
                           enabledBorder: const UnderlineInputBorder(
                             // Add bottom line as enabled border
                             borderSide: BorderSide(color: AppColors.black),
@@ -375,7 +793,8 @@ class _AddMarksState extends State<AddMarks> {
                               color: AppColors.black,
                               // width: 1.5,
                             ),
-                          ), // Remove the default border
+                          ),
+                          // Remove the default border
                           enabledBorder: const UnderlineInputBorder(
                             // Add bottom line as enabled border
                             borderSide: BorderSide(color: AppColors.black),
@@ -405,7 +824,8 @@ class _AddMarksState extends State<AddMarks> {
                               color: AppColors.black,
                               // width: 1.5,
                             ),
-                          ), // Remove the default border
+                          ),
+                          // Remove the default border
                           enabledBorder: const UnderlineInputBorder(
                             // Add bottom line as enabled border
                             borderSide: BorderSide(color: AppColors.black),
@@ -432,7 +852,8 @@ class _AddMarksState extends State<AddMarks> {
                               color: AppColors.black,
                               // width: 1.5,
                             ),
-                          ), // Remove the default border
+                          ),
+                          // Remove the default border
                           enabledBorder: UnderlineInputBorder(
                             // Add bottom line as enabled border
                             borderSide: BorderSide(color: AppColors.black),

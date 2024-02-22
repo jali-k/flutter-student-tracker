@@ -6,6 +6,7 @@ import '../../model/model.dart';
 import '../res/app_colors.dart';
 import 'add_folder.dart';
 
+
 class FolderListScreen extends StatefulWidget {
   const FolderListScreen({super.key});
 
@@ -16,6 +17,7 @@ class FolderListScreen extends StatefulWidget {
 class _FolderListScreenState extends State<FolderListScreen> {
   List<DocumentSnapshot> data = [];
   List<Folder> folderList = [];
+  List<String> folderName = [];
   bool isLoading = false;
   @override
   void initState() {
@@ -40,9 +42,11 @@ class _FolderListScreenState extends State<FolderListScreen> {
           Folder(
             folderName: folder['folderName'],
             emailList: folder['emailList'],
-            uploadedDate: folder['videoUploadedDate'], docId: folder.id,
+            uploadedDate: folder['videoUploadedDate'],
+            docId: folder.id,
           ),
         );
+        folderName.add(folder['folderName'].toString().toLowerCase());
       }
       isLoading = false;
     });
@@ -59,12 +63,13 @@ class _FolderListScreenState extends State<FolderListScreen> {
           // Navigator.of(context).pop();
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => AddFolder(
-                    isUpdate: false,
-                    callBack: () {
-                      fetch();
-                    },
-                    folderDetails: null,
-                  )));
+                isUpdate: false,
+                callBack: () {
+                  fetch();
+                },
+                folderDetails: null,
+                folderNames: folderName,
+              )));
         },
         child: const Icon(
           Icons.add,
@@ -78,58 +83,60 @@ class _FolderListScreenState extends State<FolderListScreen> {
       ),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-              color: AppColors.blue,
-            ))
+          child: CircularProgressIndicator(
+            color: AppColors.blue,
+          ))
           : folderList.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No folders',
-                    style: TextStyle(color: AppColors.black),
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: GridView.builder(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      // crossAxisSpacing: 10.0,
-                      // mainAxisSpacing: 10.0,
-                    ),
-                    itemCount: folderList.length, // Number of items in the grid
-                    itemBuilder: (BuildContext context, int index) {
-                      Folder folder = folderList[index];
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                              color: Colors.yellow,
-                              splashColor: AppColors.grey,
-                              focusColor: AppColors.grey,
-                              hoverColor: AppColors.grey,
-                              iconSize: 120,
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => AddFolder(
-                                          isUpdate: true,
-                                          callBack: () {
-                                            fetch();
-                                          },
-                                          folderDetails: folder,
-                                        )));
-                              },
-                              icon: const Icon(Icons.folder)),
-                          // const Gap(8),
-                          Text(
-                            folder.folderName,
-                            style: const TextStyle(color: AppColors.black),
-                          )
-                        ],
-                      );
+          ? const Center(
+        child: Text(
+          'No folders',
+          style: TextStyle(color: AppColors.black),
+        ),
+      )
+          : Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: GridView.builder(
+          gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            // crossAxisSpacing: 10.0,
+            // mainAxisSpacing: 10.0,
+          ),
+          itemCount: folderList.length, // Number of items in the grid
+          itemBuilder: (BuildContext context, int index) {
+            Folder folder = folderList[index];
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                    color: Colors.yellow,
+                    splashColor: AppColors.grey,
+                    focusColor: AppColors.grey,
+                    hoverColor: AppColors.grey,
+                    iconSize: 120,
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => AddFolder(
+                            isUpdate: true,
+                            callBack: () {
+                              fetch();
+                            },
+                            folderDetails: folder,
+                            folderNames: folderName,
+                          )));
                     },
-                  ),
-                ),
+                    icon: const Icon(Icons.folder)),
+                // const Gap(8),
+                Text(
+                  folder.folderName,
+                  style: const TextStyle(color: AppColors.black),
+                )
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }
+

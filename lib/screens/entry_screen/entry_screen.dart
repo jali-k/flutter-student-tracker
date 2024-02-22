@@ -5,8 +5,12 @@ import 'package:uuid/uuid.dart';
 
 import '../../globals.dart';
 import '../../model/model.dart';
+import '../../popups/confirmation_popup.dart';
 import '../../popups/loading_popup.dart';
+import '../../services/auth_services.dart';
+import '../../view/student/login_page.dart';
 import '../res/app_colors.dart';
+
 
 class EntryScreen extends StatefulWidget {
   const EntryScreen({super.key});
@@ -36,9 +40,9 @@ class _EntryScreenState extends State<EntryScreen> {
 
   Future<void> addData(
       {required String paperName,
-      required bool isMcqSelected,
-      required bool isStructuredSelected,
-      required bool isEssaySelected}) async {
+        required bool isMcqSelected,
+        required bool isStructuredSelected,
+        required bool isEssaySelected}) async {
     try {
       if (!isMcqSelected && !isStructuredSelected && !isEssaySelected) {
         Globals.showSnackBar(
@@ -59,22 +63,24 @@ class _EntryScreenState extends State<EntryScreen> {
         'isMcq': isMcqSelected,
         'isStructured': isStructuredSelected,
         'isEssay': isEssaySelected,
+      }).then((paper) {
+        setState(() {
+          paperList.insert(
+              0,
+              Paper(
+                  paperId: paperId,
+                  paperName: paperName,
+                  isMcq: isMcqSelected,
+                  isStructure: isStructuredSelected,
+                  isEssay: isEssaySelected,
+                  paperDocId: paper.id));
+          entryController.clear();
+          isMCQ = false;
+          isStructured = false;
+          isEssay = false;
+        });
       });
       loading.dismiss();
-      setState(() {
-        paperList.insert(
-            0,
-            Paper(
-                paperId: paperId,
-                paperName: paperName,
-                isMcq: isMcqSelected,
-                isStructure: isStructuredSelected,
-                isEssay: isEssaySelected));
-        entryController.clear();
-        isMCQ = false;
-        isStructured = false;
-        isEssay = false;
-      });
 
       // ignore: use_build_context_synchronously
       Globals.showSnackBar(
@@ -101,10 +107,34 @@ class _EntryScreenState extends State<EntryScreen> {
             paperName: data['paperName'],
             isMcq: data['isMcq'],
             isStructure: data['isStructured'],
-            isEssay: data['isEssay']));
+            isEssay: data['isEssay'],
+            paperDocId: data.id));
       });
       isLoading = false;
     });
+  }
+
+  void deletePaper(String paperDocId, int index) async {
+    try {
+      DocumentReference documentReference =
+      FirebaseFirestore.instance.collection('papers').doc(paperDocId);
+      final loading = LoadingPopup(context);
+      loading.show();
+      await documentReference.delete();
+      loading.dismiss();
+      setState(() {
+        paperList.removeAt(index);
+      });
+
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context,
+          message: 'Paper deleted successfully',
+          isSuccess: true);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error deleting instructor: $e');
+    }
   }
 
   @override
@@ -165,19 +195,19 @@ class _EntryScreenState extends State<EntryScreen> {
             const Gap(50),
             RichText(
                 text: const TextSpan(children: [
-              TextSpan(
-                text: 'Add a ',
-                style: TextStyle(color: AppColors.black, fontSize: 20),
-              ),
-              TextSpan(
-                text: 'new',
-                style: TextStyle(color: AppColors.green, fontSize: 20),
-              ),
-              TextSpan(
-                text: ' Entry',
-                style: TextStyle(color: AppColors.black, fontSize: 20),
-              ),
-            ])),
+                  TextSpan(
+                    text: 'Add a ',
+                    style: TextStyle(color: AppColors.black, fontSize: 20),
+                  ),
+                  TextSpan(
+                    text: 'new',
+                    style: TextStyle(color: AppColors.green, fontSize: 20),
+                  ),
+                  TextSpan(
+                    text: ' Entry',
+                    style: TextStyle(color: AppColors.black, fontSize: 20),
+                  ),
+                ])),
             const Gap(10),
             Form(
               key: formKey,
@@ -243,15 +273,15 @@ class _EntryScreenState extends State<EntryScreen> {
                           const Gap(5),
                           Center(
                               child: Text(
-                            'MCQ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: isMCQ
-                                  ? AppColors.ligthWhite
-                                  : AppColors.black,
-                            ),
-                          )),
+                                'MCQ',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: isMCQ
+                                      ? AppColors.ligthWhite
+                                      : AppColors.black,
+                                ),
+                              )),
                         ],
                       ),
                     ),
@@ -289,15 +319,15 @@ class _EntryScreenState extends State<EntryScreen> {
                           const Gap(5),
                           Center(
                               child: Text(
-                            'STRUCTURED',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: isStructured
-                                  ? AppColors.ligthWhite
-                                  : AppColors.black,
-                            ),
-                          )),
+                                'STRUCTURED',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: isStructured
+                                      ? AppColors.ligthWhite
+                                      : AppColors.black,
+                                ),
+                              )),
                         ],
                       ),
                     ),
@@ -333,15 +363,15 @@ class _EntryScreenState extends State<EntryScreen> {
                           const Gap(5),
                           Center(
                               child: Text(
-                            'ESSAY',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: isEssay
-                                  ? AppColors.ligthWhite
-                                  : AppColors.black,
-                            ),
-                          )),
+                                'ESSAY',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: isEssay
+                                      ? AppColors.ligthWhite
+                                      : AppColors.black,
+                                ),
+                              )),
                         ],
                       ),
                     ),
@@ -371,11 +401,11 @@ class _EntryScreenState extends State<EntryScreen> {
                     },
                     child: const Center(
                         child: Text(
-                      'Send',
-                      style: TextStyle(
-                        color: AppColors.ligthWhite,
-                      ),
-                    )),
+                          'Send',
+                          style: TextStyle(
+                            color: AppColors.ligthWhite,
+                          ),
+                        )),
                   ),
                 ),
               ],
@@ -385,15 +415,15 @@ class _EntryScreenState extends State<EntryScreen> {
               padding: const EdgeInsets.only(left: 20),
               child: RichText(
                   text: const TextSpan(children: [
-                TextSpan(
-                  text: 'Entries ',
-                  style: TextStyle(color: AppColors.green),
-                ),
-                TextSpan(
-                  text: ' sent',
-                  style: TextStyle(color: AppColors.black),
-                ),
-              ])),
+                    TextSpan(
+                      text: 'Entries ',
+                      style: TextStyle(color: AppColors.green),
+                    ),
+                    TextSpan(
+                      text: ' sent',
+                      style: TextStyle(color: AppColors.black),
+                    ),
+                  ])),
             ),
             const Gap(10),
             Expanded(
@@ -402,88 +432,127 @@ class _EntryScreenState extends State<EntryScreen> {
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : paperList.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No papers',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.black),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: paperList.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Column(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    // height: 60,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                        color: AppColors.ligthWhite,
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          paperList[index].paperName,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.black),
-                                        ),
-                                        Gap(5),
-                                        Row(
-                                          children: [
-                                            Visibility(
-                                              visible: paperList[index].isMcq,
-                                              child: const SizedBox(
-                                                height: 10,
-                                                width: 20,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      AppColors.purple,
-                                                ),
-                                              ),
-                                            ),
-                                            Visibility(
-                                              visible:
-                                                  paperList[index].isStructure,
-                                              child: const SizedBox(
-                                                height: 10,
-                                                width: 20,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      AppColors.green,
-                                                ),
-                                              ),
-                                            ),
-                                            Visibility(
-                                              visible: paperList[index].isEssay,
-                                              child: const SizedBox(
-                                                height: 10,
-                                                width: 20,
-                                                child: CircleAvatar(
-                                                  backgroundColor:
-                                                      AppColors.red,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      ],
+                    ? const Center(
+                  child: Text(
+                    'No papers',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black),
+                  ),
+                )
+                    : ListView.builder(
+                    itemCount: paperList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            // height: 60,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                                color: AppColors.ligthWhite,
+                                borderRadius:
+                                BorderRadius.circular(10)),
+                            child: Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      paperList[index].paperName,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.black),
                                     ),
+                                    const Gap(5),
+                                    Row(
+                                      children: [
+                                        Visibility(
+                                          visible:
+                                          paperList[index].isMcq,
+                                          child: const SizedBox(
+                                            height: 10,
+                                            width: 20,
+                                            child: CircleAvatar(
+                                              backgroundColor:
+                                              AppColors.purple,
+                                            ),
+                                          ),
+                                        ),
+                                        Visibility(
+                                          visible: paperList[index]
+                                              .isStructure,
+                                          child: const SizedBox(
+                                            height: 10,
+                                            width: 20,
+                                            child: CircleAvatar(
+                                              backgroundColor:
+                                              AppColors.green,
+                                            ),
+                                          ),
+                                        ),
+                                        Visibility(
+                                          visible:
+                                          paperList[index].isEssay,
+                                          child: const SizedBox(
+                                            height: 10,
+                                            width: 20,
+                                            child: CircleAvatar(
+                                              backgroundColor:
+                                              AppColors.red,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: IconButton(
+                                        onPressed: () {
+                                          ConfirmationPopup(context)
+                                              .show(
+                                              message:
+                                              'Are you sure you want to delete the ${paperList[index].paperName} paper?',
+                                              callbackOnYesPressed:
+                                                  () {
+                                                deletePaper(
+                                                    paperList[index]
+                                                        .paperDocId,
+                                                    index);
+                                              });
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: AppColors.red,
+                                        )),
                                   ),
-                                  const Gap(10)
-                                ],
-                              );
-                            }),
+                                )
+                              ],
+                            ),
+                          ),
+                          const Gap(10)
+                        ],
+                      );
+                    }),
               ),
             )
           ],
         ),
       ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            AuthService.signOut();
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const LoginPage()));
+          },
+          child: const Icon(Icons.logout),
+          backgroundColor: AppColors.green,
+        )
     );
   }
 }

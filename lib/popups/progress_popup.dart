@@ -6,13 +6,15 @@ import 'package:flutter/material.dart';
 import '../globals.dart';
 import '../screens/res/app_colors.dart';
 
+
 class ProgressPopup {
   BuildContext context;
   File? videoFile;
   File? videoThumnail;
   String videoId = '';
+  String docId = '';
 
-  ProgressPopup(this.context, this.videoFile, this.videoThumnail, this.videoId);
+  ProgressPopup(this.context, this.videoFile, this.videoThumnail, this.videoId, this.docId);
 
   void show() {
     showDialog(
@@ -27,7 +29,7 @@ class ProgressPopup {
           backgroundColor: AppColors.ligthWhite,
           clipBehavior: Clip.antiAliasWithSaveLayer,
           child: ProcessSyncProgressWidget(
-              context, videoFile, videoThumnail, videoId),
+              context, videoFile, videoThumnail, videoId,docId),
         );
       },
     );
@@ -39,9 +41,10 @@ class ProcessSyncProgressWidget extends StatefulWidget {
   final File? videoFile;
   final File? videoThumbnail;
   final String videoId;
+  final String docId;
 
   const ProcessSyncProgressWidget(
-      this.context, this.videoFile, this.videoThumbnail, this.videoId,
+      this.context, this.videoFile, this.videoThumbnail, this.videoId,this.docId,
       {Key? key})
       : super(key: key);
 
@@ -85,7 +88,7 @@ class _ProcessSyncProgressWidgetState extends State<ProcessSyncProgressWidget> {
       // loading.show();
       Reference firebaseStorageRef = FirebaseStorage.instance
           .ref()
-          .child('videos')
+          .child('videos/${widget.docId}')
           .child('${widget.videoId}.mp4');
 
       UploadTask uploadTask = firebaseStorageRef.putFile(videoFile!);
@@ -166,3 +169,4 @@ class _ProcessSyncProgressWidgetState extends State<ProcessSyncProgressWidget> {
     );
   }
 }
+

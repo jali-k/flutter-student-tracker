@@ -12,15 +12,18 @@ import '../../popups/progress_popup.dart';
 import '../res/app_colors.dart';
 import 'add_video.dart';
 
+
 class AddFolder extends StatefulWidget {
   final bool isUpdate;
   final Folder? folderDetails;
   final void Function() callBack;
+  final List<String> folderNames;
   const AddFolder(
       {super.key,
-      required this.isUpdate,
-      required this.folderDetails,
-      required this.callBack});
+        required this.isUpdate,
+        required this.folderDetails,
+        required this.callBack,
+        required this.folderNames});
 
   @override
   State<AddFolder> createState() => _AddFolderState();
@@ -33,7 +36,7 @@ class _AddFolderState extends State<AddFolder> {
   final formKey = GlobalKey<FormState>();
   final folderNameController = TextEditingController();
   final emailListController = TextEditingController();
-  late Video videoDetail;
+  Video? videoDetail;
   bool isVideo = false;
   List<VideoDetail> videoList = [];
   bool isLoading = false;
@@ -86,15 +89,15 @@ class _AddFolderState extends State<AddFolder> {
     try {
       final emailList = emailListController.text.split('\n');
       String videoId = const Uuid().v1();
-      ProgressPopup(
-              context, videoDetail.videoFile, videoDetail.thumbnail, videoId)
-          .show();
 
       await FirebaseFirestore.instance.collection('folders').add({
         'folderName': folderNameController.text,
         'emailList': emailList,
         'videoUploadedDate': DateTime.now()
       }).then((folderDoc) {
+        ProgressPopup(context, videoDetail!.videoFile, videoDetail!.thumbnail,
+            videoId, folderDoc.id)
+            .show();
         // Add video details to videoDetails subcollection
         FirebaseFirestore.instance
             .collection('folders')
@@ -103,12 +106,12 @@ class _AddFolderState extends State<AddFolder> {
             .add({
           'videoId': videoId,
           'docId': folderDoc.id,
-          'title': videoDetail.title,
-          'description': videoDetail.description,
-          'lessons': videoDetail.lesson,
-          'date': videoDetail.date,
+          'title': videoDetail!.title,
+          'description': videoDetail!.description,
+          'lessons': videoDetail!.lesson,
+          'date': videoDetail!.date,
           'videoUploadedDate': DateTime.now(),
-          'videoPath': videoDetail.videoFileName,
+          'videoPath': videoDetail!.videoFileName,
         });
       });
 
@@ -131,8 +134,8 @@ class _AddFolderState extends State<AddFolder> {
     try {
       final emailList = emailListController.text.split('\n');
       String videoId = const Uuid().v1();
-      ProgressPopup(
-              context, videoDetail.videoFile, videoDetail.thumbnail, videoId)
+      ProgressPopup(context, videoDetail!.videoFile, videoDetail!.thumbnail,
+          videoId, widget.folderDetails!.docId)
           .show();
       await FirebaseFirestore.instance
           .collection('folders')
@@ -149,12 +152,12 @@ class _AddFolderState extends State<AddFolder> {
           .add({
         'videoId': videoId,
         'docId': widget.folderDetails!.docId,
-        'title': videoDetail.title,
-        'description': videoDetail.description,
-        'lessons': videoDetail.lesson,
-        'date': videoDetail.date,
+        'title': videoDetail!.title,
+        'description': videoDetail!.description,
+        'lessons': videoDetail!.lesson,
+        'date': videoDetail!.date,
         'videoUploadedDate': DateTime.now(),
-        'videoPath': videoDetail.videoFileName,
+        'videoPath': videoDetail!.videoFileName,
       });
 
       setState(() {
@@ -173,16 +176,21 @@ class _AddFolderState extends State<AddFolder> {
 
   Future<void> deleteVideoFile(
       {required String videoDocId,
-      required String docId,
-      required String videoId}) async {
+        required String docId,
+        required String videoId}) async {
     try {
       final loading = LoadingPopup(context);
       loading.show();
+      print(videoId);
       FirebaseStorage storage = FirebaseStorage.instance;
-      Reference storageRef =
-          storage.ref().child('videos').child('$videoId.mp4');
-      Reference thumbnailRef =
-          storage.ref().child('thumbnail').child('$videoId.jpg');
+      Reference storageRef = storage
+          .ref()
+          .child('videos')
+          .child('$videoId.mp4');
+      Reference thumbnailRef = storage
+          .ref()
+          .child('thumbnail')
+          .child('$videoId.jpg');
       await storageRef.delete();
       await thumbnailRef.delete();
       await FirebaseFirestore.instance
@@ -198,6 +206,53 @@ class _AddFolderState extends State<AddFolder> {
       print('Video file deleted successfully');
     } catch (e) {
       print('Error deleting video file: $e');
+    }
+  }
+
+  Future<void> deleteFolder() async {
+    try {
+      final loading = LoadingPopup(context);
+      loading.show();
+      FirebaseStorage storage = FirebaseStorage.instance;
+      if(videoList.isNotEmpty){
+        for (var element in videoList) {
+          Reference storageRef = storage
+              .ref()
+              .child('videos/${widget.folderDetails!.docId}')
+              .child('${element.videoId}.mp4');
+          Reference thumbnailRef = storage
+              .ref()
+              .child('thumbnail/${widget.folderDetails!.docId}')
+              .child('${element.videoId}.jpg');
+          await storageRef.delete();
+          await thumbnailRef.delete();
+          await FirebaseFirestore.instance
+              .collection('folders')
+              .doc(element.docId)
+              .collection('videoDetails')
+              .doc(element.videoDocId)
+              .delete();
+        }
+      }
+
+      await FirebaseFirestore.instance
+          .collection('folders')
+          .doc(widget.folderDetails!.docId)
+          .delete();
+
+      loading.dismiss();
+      widget.callBack();
+      // ignore: use_build_context_synchronously
+      Navigator.of(context).pop();
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context, message: 'Deleted successfully', isSuccess: true);
+      print('Folder deleted successfully');
+    } catch (e) {
+      print('Error deleting video file: $e');
+      // ignore: use_build_context_synchronously
+      Globals.showSnackBar(
+          context: context, message: e.toString(), isSuccess: false);
     }
   }
 
@@ -243,6 +298,23 @@ class _AddFolderState extends State<AddFolder> {
         backgroundColor: AppColors.backGround,
         title: const Text('Add a new folder'),
         centerTitle: true,
+        actions: [
+          Visibility(
+            visible: widget.isUpdate,
+            child: IconButton(
+                onPressed: () {
+                  ConfirmationPopup(context).show(
+                      message: 'Are you sure you want to delete the folder?',
+                      callbackOnYesPressed: () {
+                        deleteFolder();
+                      });
+                },
+                icon: const Icon(
+                  Icons.delete,
+                  color: AppColors.red,
+                )),
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -259,34 +331,35 @@ class _AddFolderState extends State<AddFolder> {
                   style: TextStyle(color: AppColors.black),
                 ),
                 const Gap(10),
-                IgnorePointer(
-                  ignoring: widget.isUpdate,
-                  child: TextFormField(
-                    style: valueStyle,
-                    controller: folderNameController,
-                    cursorColor: cursorColor,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: widget.isUpdate
-                          ? AppColors.grey
-                          : AppColors.ligthWhite,
-                      labelText: 'Enter folder name',
-                      labelStyle: const TextStyle(fontSize: 10),
-                      focusedBorder: focusedBorder,
-                      enabledBorder: enabledBorder,
-                      border: focusedBorder,
-                      errorBorder: errorBorder,
-                      errorStyle: errorStyle,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter the folder name';
-                      }
-                      return null;
-                    },
+                TextFormField(
+                  style: valueStyle,
+                  controller: folderNameController,
+                  cursorColor: cursorColor,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.ligthWhite,
+                    labelText: 'Enter folder name',
+                    labelStyle: const TextStyle(fontSize: 10),
+                    focusedBorder: focusedBorder,
+                    enabledBorder: enabledBorder,
+                    border: focusedBorder,
+                    errorBorder: errorBorder,
+                    errorStyle: errorStyle,
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the folder name';
+                    }
+                    if (!widget.isUpdate) {
+                      if (widget.folderNames.contains(value.toLowerCase())) {
+                        return 'Folder name is already exists';
+                      }
+                    }
+
+                    return null;
+                  },
                 ),
                 const Gap(20),
                 GestureDetector(
@@ -294,14 +367,14 @@ class _AddFolderState extends State<AddFolder> {
                     if (!isVideo) {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => AddVideo(
-                                callBackVideo: (Video video) {
-                                  setState(() {
-                                    videoDetail = video;
-                                    isVideo = videoDetail.isVideo;
-                                  });
-                                },
-                                isUpdate: widget.isUpdate,
-                              )));
+                            callBackVideo: (Video video) {
+                              setState(() {
+                                videoDetail = video;
+                                isVideo = videoDetail!.isVideo;
+                              });
+                            },
+                            isUpdate: widget.isUpdate,
+                          )));
                     }
                   },
                   child: Container(
@@ -320,15 +393,15 @@ class _AddFolderState extends State<AddFolder> {
                         Center(
                             child: isVideo
                                 ? const Icon(
-                                    Icons.done_all_sharp,
-                                    size: 40,
-                                    color: AppColors.green,
-                                  )
+                              Icons.done_all_sharp,
+                              size: 40,
+                              color: AppColors.green,
+                            )
                                 : const Icon(
-                                    Icons.cloud_upload,
-                                    size: 40,
-                                    color: AppColors.blue,
-                                  )),
+                              Icons.cloud_upload,
+                              size: 40,
+                              color: AppColors.blue,
+                            )),
                       ],
                     ),
                   ),
@@ -337,58 +410,67 @@ class _AddFolderState extends State<AddFolder> {
                     visible: videoList.isNotEmpty,
                     child: isLoading
                         ? const Center(
-                            child: CircularProgressIndicator(
-                            color: AppColors.blue,
-                          ))
+                        child: CircularProgressIndicator(
+                          color: AppColors.blue,
+                        ))
                         : SizedBox(
-                            height: 150,
-                            child: ListView.builder(
-                                itemCount: videoList.length,
-                                itemBuilder: (context, index) {
-                                  VideoDetail video = videoList[index];
-                                  return Container(
-                                    margin: const EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                        color: AppColors.backGround,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                            color: AppColors.black,
-                                            width: 1.5)),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: ListTile(
-                                        dense: true,
-                                        trailing: IconButton(
-                                            onPressed: () {
-                                              ConfirmationPopup(context).show(
-                                                  message:
-                                                      'Are you sure you want to delete the file?',
-                                                  callbackOnYesPressed: () {
-                                                    deleteVideoFile(
-                                                        videoDocId:
-                                                            video.videoDocId,
-                                                        docId: video.docId,
-                                                        videoId: video.videoId);
-                                                  });
+                      height: 150,
+                      child: ListView.builder(
+                          itemCount: videoList.length,
+                          itemBuilder: (context, index) {
+                            VideoDetail video = videoList[index];
+                            return Container(
+                              margin: const EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                  color: AppColors.backGround,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                      color: AppColors.black,
+                                      width: 1.5)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ListTile(
+                                  dense: true,
+                                  trailing: IconButton(
+                                      onPressed: () {
+                                        ConfirmationPopup(context).show(
+                                            message:
+                                            'Are you sure you want to delete the file?',
+                                            callbackOnYesPressed: () {
+                                              try{
+                                                deleteVideoFile(
+                                                    videoDocId:
+                                                    video.videoDocId,
+                                                    docId: video.docId,
+                                                    videoId: video.videoId);
+                                                setState(() {
+                                                  videoList.removeAt(index);
+                                                });
+                                              }catch(e){
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text("Error Occured!"),
+                                                      backgroundColor: AppColors.red,
+                                                    ));
+                                              }
+                                            });
 
-                                              setState(() {
-                                                videoList.removeAt(index);
-                                              });
-                                            },
-                                            icon: const Icon(
-                                              Icons.cancel_outlined,
-                                              color: Colors.red,
-                                            )),
-                                        title: Text(
-                                          video.videoPath,
-                                          style: const TextStyle(
-                                              color: Colors.black),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                          )),
+
+                                      },
+                                      icon: const Icon(
+                                        Icons.cancel_outlined,
+                                        color: Colors.red,
+                                      )),
+                                  title: Text(
+                                    video.videoPath,
+                                    style: const TextStyle(
+                                        color: Colors.black),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                    )),
                 const Gap(20),
                 const Text(
                   'Email list',
@@ -455,7 +537,7 @@ class _AddFolderState extends State<AddFolder> {
                       onPressed: () {
                         FocusScope.of(context).requestFocus(FocusNode());
                         if (!formKey.currentState!.validate()) return;
-                        if (videoDetail.videoFileName.isEmpty) {
+                        if (videoDetail == null) {
                           Globals.showSnackBar(
                               context: context,
                               message: 'Please upload the file',
@@ -471,11 +553,11 @@ class _AddFolderState extends State<AddFolder> {
                       },
                       child: const Center(
                           child: Text(
-                        'Save',
-                        style: TextStyle(
-                          color: AppColors.ligthWhite,
-                        ),
-                      )),
+                            'Save',
+                            style: TextStyle(
+                              color: AppColors.ligthWhite,
+                            ),
+                          )),
                     ),
                   ),
                 ),

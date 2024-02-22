@@ -19,12 +19,14 @@ class PaperMarksService {
     return marks.docs;
   }
 
-  static Future<int> getLeaderboardPosition(String paperId,String studentId) async {
+  static Future<int> getLeaderboardPosition(String paperId,int studentId) async {
     QuerySnapshot marks = await  _firestore.collection('marks').where('paperId',isEqualTo: paperId).get();
     // sort the marks in descending order
-    marks.docs.sort((a,b) => b['totalMarks'].compareTo(a['totalMarks']));
+    List sortedMarks =marks.docs;
+    sortedMarks.sort((a,b) => b['totalMarks'].compareTo(a['totalMarks']));
     int position = 1;
-    for (var mark in marks.docs) {
+    print("Marks length: ${marks.docs.length}");
+    for (var mark in sortedMarks) {
       if(mark['studentId'] == studentId){
         return position;
       }
@@ -43,6 +45,7 @@ class PaperMarksService {
       String paperId = mark['paperId'];
       QuerySnapshot paper = await _firestore.collection('papers').where('paperId',isEqualTo: paperId).get();
       if(paper.docs.isNotEmpty){
+        int studentId = mark['studentId'];
         ExamPaper p = ExamPaper.fromQuery(paper.docs[0]);
         AttemptPaper a = AttemptPaper(
           essayMarks: mark['essayMarks'],
@@ -50,11 +53,12 @@ class PaperMarksService {
           structuredMarks: mark['structuredMarks'],
           totalMarks: mark['totalMarks'],
           paperId: mark['paperId'],
-          position:await getLeaderboardPosition(paperId,userID)
+          position:await getLeaderboardPosition(paperId,studentId)
         );
         papers[p] = a;
       }
     }
+    print("Papers length: ${papers.entries.map((e) => e.value.position).toList()}");
     return papers;
   }
 

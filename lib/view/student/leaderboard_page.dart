@@ -219,16 +219,52 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
             ),
         ),
           SizedBox(height: 20,),
+          // Add Heading
+          Container(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Text('Position', style: TextStyle(
+                      fontSize: 12,
+                    ),),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text('Name',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                    fontSize: 12,
+                  ),),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text('Minutes', style: TextStyle(
+                    fontSize: 12,
+                  ),
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(10),
             height: MediaQuery.of(context).size.height - 300,
             // Leaderboard
-            child: leaderBoardEntries.length > 0 ? ListView.builder(
+            child: leaderBoardEntries.isNotEmpty ? ListView.builder(
               controller: _scrollController,
               itemBuilder: (context, index) {
               if(leaderBoardEntries[index].uid == myID)
                 {
-                  navigateToPosition(index);
+                  WidgetsBinding.instance!.addPostFrameCallback((_) {
+                    navigateToPosition(index);
+                  });
                   return Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
