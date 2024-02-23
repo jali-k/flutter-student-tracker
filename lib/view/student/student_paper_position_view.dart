@@ -225,8 +225,8 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                   ),
                                 ),
                                 borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(50),
-                                  bottomLeft: Radius.circular(50),
+                                  topRight: Radius.circular(10),
+                                  bottomLeft: Radius.circular(10),
                                 ),
                               ),
                               child: StreamBuilder<Object>(
@@ -286,7 +286,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                                               .center,
                                                       children: [
                                                         Text(
-                                                          '${entries[index].name}',
+                                                          '${entries[index].name.length > 20 ? '${entries[index].name.substring(0, 20)}...' : entries[index].name}',
                                                           style: TextStyle(
                                                             fontSize: 14,
                                                             overflow: TextOverflow
@@ -302,8 +302,6 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                                           '${entries[index].marks}',
                                                           style: TextStyle(
                                                             fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.bold,
                                                             color: Colors.black,
                                                           ),
                                                         ),
@@ -356,24 +354,20 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                                             .center,
                                                     children: [
                                                       Text(
-                                                        '${entries[index].name}',
-                                                        style: TextStyle(
-                                                          fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                        entries[index].name.length > 20 ? '${entries[index].name.substring(0, 20)}...' : entries[index].name,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
                                                         ),
                                                       ),
-                                                      Expanded(
+                                                      const Expanded(
                                                           flex: 1,
                                                           child: SizedBox(
                                                             width: 10,
                                                           )),
                                                       Text(
                                                         '${entries[index].marks}',
-                                                        style: TextStyle(
-                                                          fontSize: 18,
-                                                          fontWeight:
-                                                              FontWeight.bold,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
                                                           color: Colors.black,
                                                         ),
                                                       ),
