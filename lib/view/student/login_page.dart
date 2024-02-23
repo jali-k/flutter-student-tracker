@@ -23,14 +23,13 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
 
-  final StreamController<bool> _loadingStream = StreamController<bool>();
+  bool loading = false;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _loadingStream.close();
     super.dispose();
   }
 
@@ -44,12 +43,6 @@ class _LoginPageState extends State<LoginPage> {
       emailController.text = "upekshalakshani100@gmail.com";
       passwordController.text = "pwd_100179";
     }
-
-    // _checkLogin();
-    _loadingStream.add(true);
-    Future.delayed(Duration(seconds: 2), () {
-      _loadingStream.add(false);
-    });
   }
 
   void _checkLogin() async {
@@ -62,7 +55,9 @@ class _LoginPageState extends State<LoginPage> {
   _login() async {
     // validate email and passwords
     // call the auth service
-    _loadingStream.add(true);
+    setState(() {
+      loading = true;
+    });
     String? error;
     if(emailController.text == "" && passwordController.text=="") {
       error = 'Please enter email and password';
@@ -141,14 +136,18 @@ class _LoginPageState extends State<LoginPage> {
           }
         }
 
-        _loadingStream.add(false);
+        setState(() {
+          loading = false;
+        });
       }else{
         error = 'Could not sign in with those credentials';
       }
 
     }
     if(error != null) {
-      _loadingStream.add(false);
+      setState(() {
+        loading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(error),
@@ -160,7 +159,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _signInWithGoogle() async {
-    _loadingStream.add(true);
+    setState(() {
+      loading = true;
+    });
     UserCredential? userCredential = await AuthService.signInWithGoogle();
     User? user = userCredential.user;
     print(user!.uid);
@@ -240,7 +241,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
 
-    _loadingStream.add(false);
+    setState(() {
+      loading = false;
+    });
         }
 
   @override
@@ -248,11 +251,9 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          height: MediaQuery.of(context).size.height,
           color: const Color(0xFF00C897),
           child: Stack(
             alignment: Alignment.topCenter,
-            fit: StackFit.loose,
             children: [
               Positioned(
                 top: 0,
@@ -390,24 +391,18 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 )
               ),
-              StreamBuilder<bool>(
-                stream: _loadingStream.stream,
-                builder: (context, snapshot) {
-                  if(snapshot.hasData && snapshot.data == true) {
-                    return Container(
-                      color: Colors.black.withOpacity(0.5),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                  return Container();
-                },
-              ),
+              if(loading)
+                Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
             ],
           ),
         ),
       ),
+
     );
   }
 }

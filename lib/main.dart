@@ -1,3 +1,4 @@
+
 import 'dart:ui';
 import 'dart:io';
 
@@ -7,7 +8,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
-// import 'package:flutter_web_frame/flutter_web_frame.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
@@ -15,6 +15,7 @@ import 'package:spt/screens/bottomBar_screen/bottom_bar_screen.dart';
 import 'package:spt/screens/instructor_screen/instructor_entry_screen.dart';
 import 'package:spt/view/student/login_page.dart';
 import 'firebase_options.dart';
+//universal html
 
 
 
@@ -50,7 +51,7 @@ WidgetsFlutterBinding.ensureInitialized();
   // FirebaseAuth.instance.signOut();
   runApp(MyApp());
   WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-    if(Platform.isAndroid){
+    if(!kIsWeb && Platform.isAndroid){
       if(kReleaseMode) {
         await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
       }
@@ -77,85 +78,58 @@ bool isUserLoggedIn(){
 
 }
 
-Future<Widget> getLandingPage() async {
-  if(isUserLoggedIn()){
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (prefs.containsKey('role')) {
-      String role = prefs.getString('role')!;
-      if(role == 'student'){
-        return MainLayout();
-      }else if(role == 'instructor'){
-          return InstructorEntryScreen();
-        return const InstructorEntryScreen();
-      } else if(role == 'admin') {
-        return const BottomBarScreen(
-            isEntryScreen: false,
-            isInstructorScreen: false,
-          isAddFolderScreen: false,
-        );
-      }
-      // Unkown role
-      return MainLayout();
-    }
-    return LoginPage();
-  }else{
-    return LoginPage();
-  }
-}
 
 
 
 
-class MyApp extends StatelessWidget {
+
+class MyApp extends StatefulWidget {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
   MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+  Future<Widget> getLandingPage(BuildContext context) async {
+    bool isMobile = TargetPlatform.android == defaultTargetPlatform || TargetPlatform.iOS == defaultTargetPlatform;
+    if(!isMobile){
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Text('This app is only available for mobile devices'),
+        ),
+      );
+    }
+
+
+    if(isUserLoggedIn()){
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.containsKey('role')) {
+        String role = prefs.getString('role')!;
+        if(role == 'student'){
+          return MainLayout();
+        }else if(role == 'instructor'){
+          return const InstructorEntryScreen();
+          return const InstructorEntryScreen();
+        } else if(role == 'admin') {
+          return const BottomBarScreen(
+            isEntryScreen: false,
+            isInstructorScreen: false,
+            isAddFolderScreen: false,
+          );
+        }
+        // Unkown role
+        return MainLayout();
+      }
+    }
+    return const LoginPage();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // double height = MediaQuery.of(context).size.height;
-    // if(kIsWeb) {
-    //   return FlutterWebFrame(
-    //     builder: (context) {
-    //       return MaterialApp(
-    //         debugShowCheckedModeBanner: false,
-    //         navigatorKey: MyApp.navigatorKey,
-    //         title: 'Studo',
-    //         theme: ThemeData(
-    //           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-    //           useMaterial3: true,
-    //         ),
-    //         home: FutureBuilder(
-    //           future: getLandingPage(),
-    //           builder: (context, snapshot) {
-    //             if (snapshot.connectionState == ConnectionState.waiting) {
-    //               return const Scaffold(
-    //                 body: Center(
-    //                   child: CircularProgressIndicator(),
-    //                 ),
-    //               );
-    //             } else {
-    //               if (snapshot.hasError) {
-    //                 return Scaffold(
-    //                   body: Center(
-    //                     child: Text('Error: ${snapshot.error}'),
-    //                   ),
-    //                 );
-    //               } else {
-    //                 return snapshot.data!;
-    //               }
-    //             }
-    //           },
-    //         ),
-    //       );
-    //     },
-    //     clipBehavior: Clip.antiAlias,
-    //     maximumSize: Size(400, (height) as double),
-    //     enabled: kIsWeb,
-    //     backgroundColor: Colors.black54,
-    //   );
-    // }
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: MyApp.navigatorKey,
@@ -165,7 +139,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: FutureBuilder(
-        future: getLandingPage(),
+        future: getLandingPage(context),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(

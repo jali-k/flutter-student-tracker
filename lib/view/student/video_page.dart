@@ -26,7 +26,7 @@ class _VideoPageState extends State<VideoPage> {
   final StreamController<int> _progressController = StreamController<int>();
   final CustomVideoPlayerSettings _customVideoPlayerSettings =
   const CustomVideoPlayerSettings(showSeekButtons: true);
-  int bottom = 400;
+  int bottom = 600;
   late String _userEmail;
 
   @override
@@ -62,7 +62,7 @@ class _VideoPageState extends State<VideoPage> {
         if (bottom > 100+height * 0.5) {
           bottom = 0;
         }
-        bottom += 10;
+        bottom += 2;
       });
     });
   }
@@ -106,7 +106,7 @@ class _VideoPageState extends State<VideoPage> {
                 bottom: bottom.toDouble(),
                 right: 10,
                 child: Container(
-                  padding: const EdgeInsets.all(5),
+                  padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(5),
@@ -115,7 +115,7 @@ class _VideoPageState extends State<VideoPage> {
                     _userEmail,
                     style: TextStyle(
                       color: Colors.white60,
-                      fontSize: 12,
+                      fontSize: 8,
                     ),
                   ),
                 ),

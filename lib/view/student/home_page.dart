@@ -545,19 +545,12 @@ class _HomePageState extends State<HomePage> {
                                                 size: 30,
                                               ),
                                               SizedBox(width: 5),
-                                              Text('Find',
+                                              Text('Lessons',
                                                 style: TextStyle(
                                                   fontSize: 20,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                              SizedBox(width: 10),
-                                              Text('Tutors',
-                                                style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              )
                                             ],
                                           ),
                                         )
