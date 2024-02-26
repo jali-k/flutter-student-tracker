@@ -119,7 +119,6 @@ class _MyAppState extends State<MyApp> {
             isAddFolderScreen: false,
           );
         }
-        // Unkown role
         return MainLayout();
       }
     }
@@ -128,16 +127,6 @@ class _MyAppState extends State<MyApp> {
 
 
 
-
-class MyApp extends StatefulWidget {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-  MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {

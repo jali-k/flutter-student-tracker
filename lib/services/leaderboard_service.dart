@@ -15,34 +15,42 @@ class LeaderBoardService {
     List<ExamPaper> paperList = [];
 
     Map<String, List<LeaderBoardEntries>> groupedMarks = {};
-    marks.docs.forEach((mark)  {
+    marks.docs.forEach((mark) {
       String paperId = mark['paperId'];
-      QueryDocumentSnapshot? paper = papers.docs.firstWhere(
-        (element) => element['paperId'] == paperId);
-      ExamPaper p = ExamPaper.fromQuery(paper);
-      // get Student by Student ID If not found then return null
-      bool isStudentExist = students.docs.any((element) => element['registrationNumber'] == mark['studentId']);
-      String name = 'Unknown';
-      if(isStudentExist){
-        QueryDocumentSnapshot student = students.docs.firstWhere((element) => element['registrationNumber'] == mark['studentId']);
-        name = student['name'];
-      }
-      // String name = student.exists ? student['firstName'] : 'Unknown';
+      bool isExist =
+          papers.docs.any((element) => element['paperId'] == paperId);
+      if (isExist) {
+        QueryDocumentSnapshot? paper =
+            papers.docs.firstWhere((element) => element['paperId'] == paperId);
+        ExamPaper p = ExamPaper.fromQuery(paper);
+        // get Student by Student ID If not found then return null
+        bool isStudentExist = students.docs.any(
+            (element) => element['registrationNumber'] == mark['studentId']);
+        String name = 'Unknown';
+        if (isStudentExist) {
+          QueryDocumentSnapshot student = students.docs.firstWhere(
+              (element) => element['registrationNumber'] == mark['studentId']);
+          name = student['name'];
+        }
+        // String name = student.exists ? student['firstName'] : 'Unknown';
 
-
-      paperList.add(p);
-      if (groupedMarks[paperId] == null) {
-        groupedMarks[paperId] = [];
+        paperList.add(p);
+        if (groupedMarks[paperId] == null) {
+          groupedMarks[paperId] = [];
+        }
+        groupedMarks[paperId]!.add(
+          LeaderBoardEntries(
+            name: name,
+            marks: mark['totalMarks'],
+            position: 0,
+            uid: students.docs
+                .firstWhere((element) =>
+                    element['registrationNumber'] == mark['studentId'])
+                .id,
+          ),
+        );
       }
-      groupedMarks[paperId]!.add(
-        LeaderBoardEntries(
-          name: name,
-          marks: mark['totalMarks'],
-          position: 0,
-          uid: students.docs.firstWhere((element) => element['registrationNumber'] == mark['studentId']).id,
-        ),
-      );
-        });
+    });
 
     // add position based on marks
     groupedMarks.forEach((key, value) {
@@ -52,10 +60,8 @@ class LeaderBoardService {
       }
     });
 
-
     return groupedMarks;
   }
-
 
   static Future<List<ExamPaper>> getAttemptedPapers() async {
     QuerySnapshot marks = await _firestore.collection('marks').get();
@@ -66,13 +72,15 @@ class LeaderBoardService {
     Map<String, List<LeaderBoardEntries>> groupedMarks = {};
     marks.docs.forEach((mark) {
       String paperId = mark['paperId'];
-      QueryDocumentSnapshot? paper = papers.docs.firstWhere(
-              (element) => element['paperId'] == paperId);
-      ExamPaper p = ExamPaper.fromQuery(paper);
-      paperList.add(p);
+      bool isExist =
+          papers.docs.any((element) => element['paperId'] == paperId);
+      if(isExist){
+        QueryDocumentSnapshot? paper =
+        papers.docs.firstWhere((element) => element['paperId'] == paperId);
+        ExamPaper p = ExamPaper.fromQuery(paper);
+        paperList.add(p);
+      }
     });
     return paperList;
   }
-
-
 }

@@ -361,7 +361,7 @@ class _LoginPageState extends State<LoginPage> {
                           },
                           child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.black,
+                            backgroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),

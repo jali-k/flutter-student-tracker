@@ -345,8 +345,8 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                   ],
                                                 ),
                                                 style: ElevatedButton.styleFrom(
-                                                  primary: Color(0xFF00C897),
-                                                  onPrimary: Colors.white,
+                                                  backgroundColor: Color(0xFF00C897),
+                                                  foregroundColor: Colors.white,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius: BorderRadius.only(
                                                       topLeft: Radius.circular(10),

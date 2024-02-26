@@ -51,9 +51,12 @@ class _HomePageState extends State<HomePage> {
     for (DocumentSnapshot m in _paperMarks) {
       AttemptPaper atmp = AttemptPaper.fromMap(m);
       QuerySnapshot _papers = await PaperMarksService.getPaperByID(atmp.paperId!);
-      atmp.paperId = _papers.docs[0]['paperName'];
+      if(_papers.docs.isNotEmpty) {
+        atmp.paperId = _papers.docs[0]['paperName'];
+        _marks.add(atmp);
+      }
 
-      _marks.add(atmp);
+
 
     }
 

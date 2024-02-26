@@ -124,7 +124,6 @@ class _AddMarksState extends State<AddMarks> {
           alignment: Alignment.center,
           title: const Text('Edit Marks'),
           content: Container(
-            height: MediaQuery.of(context).size.height * 0.8,
             width: MediaQuery.of(context).size.width * 0.9,
             child: SingleChildScrollView(
               child: Column(
@@ -139,60 +138,66 @@ class _AddMarksState extends State<AddMarks> {
                         ),
                         enabled: false,
                       ),
-                      TextFormField(
-                        controller: editMcqController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          alignLabelWithHint: true,
-                          floatingLabelAlignment: FloatingLabelAlignment.start,
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          floatingLabelStyle: TextStyle(
-                            color: AppColors.black,
-                          ),
-                          label: Text(
-                            'MCQ Marks',
-                            style: TextStyle(
+                      if(widget.paper.isMcq)
+                        TextFormField(
+                          controller: editMcqController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            alignLabelWithHint: true,
+                            floatingLabelAlignment: FloatingLabelAlignment.start,
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            floatingLabelStyle: TextStyle(
                               color: AppColors.black,
                             ),
-                          ),
-                        ),
-                      ),
-                      TextFormField(
-                        controller: editStructureController,
-                        decoration: const InputDecoration(
-                          alignLabelWithHint: true,
-                          floatingLabelAlignment: FloatingLabelAlignment.start,
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          floatingLabelStyle: TextStyle(
-                            color: AppColors.black,
-                          ),
-                          label: Text(
-                            'Structured Marks',
-                            style: TextStyle(
-                              color: AppColors.black,
+                            label: Text(
+                              'MCQ Marks',
+                              style: TextStyle(
+                                color: AppColors.black,
+                              ),
                             ),
                           ),
+                          enabled: widget.paper.isMcq,
                         ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      TextFormField(
-                        controller: editEssayController,
-                        decoration: const InputDecoration(
-                          alignLabelWithHint: true,
-                          floatingLabelAlignment: FloatingLabelAlignment.start,
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          floatingLabelStyle: TextStyle(
-                            color: AppColors.black,
-                          ),
-                          label: Text(
-                            'Essay Marks',
-                            style: TextStyle(
+                      if(widget.paper.isStructure)
+                        TextFormField(
+                          controller: editStructureController,
+                          decoration: const InputDecoration(
+                            alignLabelWithHint: true,
+                            floatingLabelAlignment: FloatingLabelAlignment.start,
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            floatingLabelStyle: TextStyle(
                               color: AppColors.black,
                             ),
+                            label: Text(
+                              'Structured Marks',
+                              style: TextStyle(
+                                color: AppColors.black,
+                              ),
+                            ),
                           ),
+                          keyboardType: TextInputType.number,
+                          enabled: widget.paper.isStructure,
                         ),
-                        keyboardType: TextInputType.number,
-                      ),
+                      if(widget.paper.isEssay)
+                        TextFormField(
+                          controller: editEssayController,
+                          decoration: const InputDecoration(
+                            alignLabelWithHint: true,
+                            floatingLabelAlignment: FloatingLabelAlignment.start,
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            floatingLabelStyle: TextStyle(
+                              color: AppColors.black,
+                            ),
+                            label: Text(
+                              'Essay Marks',
+                              style: TextStyle(
+                                color: AppColors.black,
+                              ),
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                          enabled: widget.paper.isEssay,
+                        ),
                       TextFormField(
                         controller: editTotalMarksController,
                         decoration: const InputDecoration(
@@ -221,7 +226,7 @@ class _AddMarksState extends State<AddMarks> {
           actions: <Widget>[
             TextButton(
               style: TextButton.styleFrom(
-                primary: AppColors.black,
+                backgroundColor: AppColors.black,
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -230,7 +235,7 @@ class _AddMarksState extends State<AddMarks> {
             ),
             TextButton(
                 style: TextButton.styleFrom(
-                  primary: AppColors.green,
+                  backgroundColor: AppColors.green,
                 ),
                 onPressed: () async{
                   if (editMcqController.text.trim().isNotEmpty) {
@@ -417,7 +422,7 @@ class _AddMarksState extends State<AddMarks> {
             //DELETE BUTTON
             TextButton(
               style: TextButton.styleFrom(
-                primary: AppColors.red,
+                backgroundColor: AppColors.red,
               ),
               onPressed: () async {
                //confirmation dialog
