@@ -1,9 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
 import 'package:spt/model/paper_attempt.dart';
+import 'package:spt/provider/attemptedPaperProvider.dart';
+import 'package:spt/provider/paperProvider.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/services/mark_service.dart';
 import 'package:spt/view/student/login_page.dart';
@@ -19,11 +22,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _BiologyFocus=0;
-  int _ChemistryFocus=0;
-  int _PhysicsFocus=0;
-  int _AgricultureFocus=0;
-  int _overallFocus=0;
+  int _BiologyFocus=-1;
+  int _ChemistryFocus=-1;
+  int _PhysicsFocus=-1;
+  int _AgricultureFocus=-1;
+  int _overallFocus=-1;
   List<AttemptPaper> paperMarks = [];
   bool unknown = true;
 
@@ -52,15 +55,15 @@ class _HomePageState extends State<HomePage> {
       AttemptPaper atmp = AttemptPaper.fromMap(m);
       QuerySnapshot _papers = await PaperMarksService.getPaperByID(atmp.paperId!);
       if(_papers.docs.isNotEmpty) {
-        atmp.paperId = _papers.docs[0]['paperName'];
+        atmp.paperName = _papers.docs[0]['paperName'];
         _marks.add(atmp);
       }
 
 
 
     }
-
     if (!mounted) return;
+    Provider.of<attemptedPaperProvider>(context, listen: false).setLoader(false);
     setState(() {
       paperMarks = _marks.length > 5 ? _marks.sublist(0, 5) : _marks;
     });
@@ -212,7 +215,7 @@ class _HomePageState extends State<HomePage> {
                                                       size: 30,
                                                     ),
                                                     SizedBox(width: 5),
-                                                    Text(_overallFocus.toString(),
+                                                    Text(_overallFocus == -1 ? "__":_overallFocus.toString(),
                                                       style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
@@ -231,7 +234,7 @@ class _HomePageState extends State<HomePage> {
                                                       size: 30,
                                                     ),
                                                     SizedBox(width: 5),
-                                                    Text(_BiologyFocus.toString(),
+                                                    Text(_BiologyFocus == -1 ? "__":_BiologyFocus.toString(),
                                                       style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
@@ -250,7 +253,7 @@ class _HomePageState extends State<HomePage> {
                                                       size: 30,
                                                     ),
                                                     SizedBox(width: 5),
-                                                    Text(_ChemistryFocus.toString(),
+                                                    Text(_ChemistryFocus == -1 ? "__":_ChemistryFocus.toString(),
                                                       style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
@@ -269,7 +272,7 @@ class _HomePageState extends State<HomePage> {
                                                       size: 30,
                                                     ),
                                                     SizedBox(width: 5),
-                                                    Text(_PhysicsFocus.toString(),
+                                                    Text(_PhysicsFocus == -1 ? "__":_PhysicsFocus.toString(),
                                                       style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
@@ -288,7 +291,7 @@ class _HomePageState extends State<HomePage> {
                                                       size: 30,
                                                     ),
                                                     SizedBox(width: 5),
-                                                    Text(_AgricultureFocus.toString(),
+                                                    Text(_AgricultureFocus == -1 ? "__":_AgricultureFocus.toString(),
                                                       style: TextStyle(
                                                         fontSize: 20,
                                                         fontWeight: FontWeight.bold,
@@ -400,9 +403,17 @@ class _HomePageState extends State<HomePage> {
                                         child: Container(
                                           margin: const EdgeInsets.only(top: 10,right: 5),
                                           width: 150,
-                                          child: ListView.builder(
-                                            itemCount: paperMarks.length,
+                                          child: context.watch<attemptedPaperProvider>().isLoading ?
+                                          Container(
+                                            alignment: Alignment.center,
+                                            child: CircularProgressIndicator(
+                                              color: Color(0xFF00C897),
+                                            ),
+                                          ) :
+                                          ListView.builder(
+                                            itemCount: context.watch<paperProvider>().paperController.entries.length > 5 ? 5 : context.watch<paperProvider>().paperController.entries.length,
                                             itemBuilder: (context, index) {
+                                              List<AttemptPaper> paperMarks = context.watch<paperProvider>().paperController.values.toList();
                                               return Container(
                                                 margin: const EdgeInsets.only(top: 5),
                                                 child: SingleChildScrollView(
@@ -423,10 +434,10 @@ class _HomePageState extends State<HomePage> {
                                                         ),
                                                       ),
                                                       SizedBox(width: 10),
-                                                      Text(paperMarks[index].paperId!,
+                                                      Text(paperMarks[index].paperName!,
                                                         style: TextStyle(
-                                                          fontSize: 20,
-                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.normal,
                                                         ),
                                                       )
                                                     ],

@@ -282,6 +282,7 @@ class _FocusModeState extends State<FocusMode> {
         isStarted = true;
       });
       timer = Timer(Duration(minutes: selectedTime), () {
+        print("Time is up!");
         // Show the alert
         FocusService.endFocusOnLesson();
         showDialog(
@@ -293,6 +294,7 @@ class _FocusModeState extends State<FocusMode> {
               actions: [
                 TextButton(
                   onPressed: () {
+                    Navigator.pop(context);
                     Navigator.pop(context);
                   },
                   child: const Text('OK'),

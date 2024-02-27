@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/services/SubjectLessonService.dart';
 import 'package:spt/services/focusService.dart';
@@ -24,6 +25,10 @@ import 'package:toggle_switch/toggle_switch.dart';
 //import math
 import 'dart:math' as math;
 
+import '../model/Paper.dart';
+import '../model/paper_attempt.dart';
+import '../provider/paperProvider.dart';
+import '../services/mark_service.dart';
 import '../util/notification_controller.dart';
 import '../view/student/show_profile.dart';
 
@@ -50,6 +55,13 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   late AppLifecycleListener lifecycleListener;
   bool unknown = true;
   bool timerShow = false;
+
+  getPapers() async {
+    print("Getting papers");
+    Map<ExamPaper,AttemptPaper> p = await PaperMarksService.getStudentPapers();
+    if (!mounted) return;
+    Provider.of<paperProvider>(context, listen: false).setPapers(p);
+  }
 
   selectSubject(int index, QueryDocumentSnapshot lesson, String lessonContent,
       String subjectName) {
@@ -186,7 +198,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     final bool isBackground = state == AppLifecycleState.paused;
     if (isBackground) {
       SharedPreferences prefs =await  SharedPreferences.getInstance();
-      if (prefs.containsKey('countDown')) {
+      if (prefs.containsKey('focusData')) {
         AwesomeNotifications().createNotification(
             content: NotificationContent(
               id: 10,
@@ -197,6 +209,10 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
             )
         );
         reminderTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+          if(!prefs.containsKey('focusData')){
+            reminderTimer?.cancel();
+            AwesomeNotifications().cancelAll();
+          }
           AwesomeNotifications().createNotification(
               content: NotificationContent(
                 id: math.Random().nextInt(1000),
@@ -231,6 +247,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    getPapers();
     AwesomeNotifications().setListeners(
         onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
         onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,

@@ -10,8 +10,9 @@ class AttemptPaper{
   String? paperId;
   int? studentId;
   int? position;
+  String? paperName;
 
-  AttemptPaper({this.essayMarks, this.mcqMarks, this.structuredMarks, this.totalMarks, this.paperId,this.studentId,this.position});
+  AttemptPaper({this.essayMarks, this.mcqMarks, this.structuredMarks, this.totalMarks, this.paperId,this.studentId,this.position,this.paperName});
 
   static fromMap(DocumentSnapshot data) {
     return AttemptPaper(
@@ -21,7 +22,6 @@ class AttemptPaper{
       totalMarks: data['totalMarks'],
       paperId: data['paperId'],
       studentId: data['studentId'],
-      position: 0
-    );
+      position: 0,);
   }
 }

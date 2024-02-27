@@ -8,17 +8,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
+import 'package:spt/provider/attemptedPaperProvider.dart';
+import 'package:spt/provider/paperProvider.dart';
 import 'package:spt/screens/bottomBar_screen/bottom_bar_screen.dart';
 import 'package:spt/screens/instructor_screen/instructor_entry_screen.dart';
 import 'package:spt/view/student/login_page.dart';
 import 'firebase_options.dart';
 
-
-
 Future<void> main() async {
-WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -47,42 +48,46 @@ WidgetsFlutterBinding.ensureInitialized();
   }
 
   // FirebaseAuth.instance.signOut();
-  runApp(MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => paperProvider()),
+        ChangeNotifierProvider(create: (_) => attemptedPaperProvider()),
+      ],
+      child: MyApp(),
+    ),
+  );
   WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-    if(!kIsWeb && Platform.isAndroid){
-      if(kReleaseMode) {
+    if (!kIsWeb && Platform.isAndroid) {
+      if (kReleaseMode) {
         await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
       }
     }
   });
 }
 
-
 showOverlay() async {
-  if(!await FlutterOverlayWindow.isPermissionGranted()){
+  if (!await FlutterOverlayWindow.isPermissionGranted()) {
     await FlutterOverlayWindow.requestPermission();
-  }else{
-    await FlutterOverlayWindow.showOverlay(height:500,width:500,overlayTitle: "");
+  } else {
+    await FlutterOverlayWindow.showOverlay(
+        height: 500, width: 500, overlayTitle: "");
   }
 }
 
-bool isUserLoggedIn(){
+bool isUserLoggedIn() {
   FirebaseAuth auth = FirebaseAuth.instance;
-  if(auth.currentUser != null){
+  if (auth.currentUser != null) {
     return true;
-  }else{
+  } else {
     return false;
   }
-
 }
 
-
-
-
-
-
 class MyApp extends StatefulWidget {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   MyApp({super.key});
 
   @override
@@ -92,8 +97,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   Future<Widget> getLandingPage(BuildContext context) async {
-    bool isMobile = TargetPlatform.android == defaultTargetPlatform || TargetPlatform.iOS == defaultTargetPlatform;
-    if(!isMobile){
+    bool isMobile = TargetPlatform.android == defaultTargetPlatform ||
+        TargetPlatform.iOS == defaultTargetPlatform;
+    if (!isMobile) {
       return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -102,17 +108,16 @@ class _MyAppState extends State<MyApp> {
       );
     }
 
-
-    if(isUserLoggedIn()){
+    if (isUserLoggedIn()) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.containsKey('role')) {
         String role = prefs.getString('role')!;
-        if(role == 'student'){
+        if (role == 'student') {
           return MainLayout();
-        }else if(role == 'instructor'){
+        } else if (role == 'instructor') {
           return const InstructorEntryScreen();
           return const InstructorEntryScreen();
-        } else if(role == 'admin') {
+        } else if (role == 'admin') {
           return const BottomBarScreen(
             isEntryScreen: false,
             isInstructorScreen: false,
@@ -124,8 +129,6 @@ class _MyAppState extends State<MyApp> {
     }
     return const LoginPage();
   }
-
-
 
   // This widget is the root of your application.
   @override

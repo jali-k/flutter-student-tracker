@@ -53,7 +53,8 @@ class PaperMarksService {
           structuredMarks: mark['structuredMarks'],
           totalMarks: mark['totalMarks'],
           paperId: mark['paperId'],
-          position:await getLeaderboardPosition(paperId,studentId)
+          position:await getLeaderboardPosition(paperId,studentId),
+          paperName: p.paperName,
         );
         papers[p] = a;
       }
