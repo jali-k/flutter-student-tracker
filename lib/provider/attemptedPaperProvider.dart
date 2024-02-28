@@ -11,6 +11,7 @@ class attemptedPaperProvider with ChangeNotifier {
   Map<String, List<LeaderBoardEntries>> leaderBoard = {};
 
   setPapers(List<ExamPaper> papers, Map<String, List<LeaderBoardEntries>> leaderBoard){
+    print("Setting papers ${papers.length}");
     this.papers=papers;
     this.leaderBoard=leaderBoard;
     notifyListeners();

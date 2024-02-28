@@ -77,7 +77,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
     await LeaderBoardService.getLeaderBoard();
     List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
     if(!mounted) return;
-    Provider.of<attemptedPaperProvider>(context, listen: false).setPapers(papers,leaderBoard);
+    Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
   }
 
         @override

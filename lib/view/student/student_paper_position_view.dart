@@ -127,85 +127,90 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                           stream: _paperSelectorBloc.stream,
                           initialData: 0,
                           builder: (context, snapshot) {
-                            int index = snapshot.data!;
-                            ExamPaper paper = context.watch<attemptedPaperProvider>().papers[index];
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  onPressed: () {
-                                    if (index > 0) {
-                                      _paperSelectorBloc.sink
-                                          .add(index - 1);
-                                      getLeaderBoardForPaper(
-                                          _papers[index - 1].paperId);
-                                    }
-                                  },
-                                  icon: Icon(
-                                    Icons.arrow_left,
-                                    color: Color(0xFF00C897),
-                                  ),
-                                  style: ButtonStyle(
-                                    fixedSize: MaterialStateProperty.all(
-                                      Size(10, 10),
+                            if(snapshot.hasData){
+                              int index = snapshot.data!;
+                              print("Index is $index , length is : ${context.watch<attemptedPaperProvider>().papers.length}");
+                              ExamPaper paper = context.watch<attemptedPaperProvider>().papers[index];
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      if (index > 0) {
+                                        _paperSelectorBloc.sink
+                                            .add(index - 1);
+                                        getLeaderBoardForPaper(
+                                            _papers[index - 1].paperId);
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.arrow_left,
+                                      color: Color(0xFF00C897),
                                     ),
-                                    backgroundColor:
-                                    MaterialStateProperty.all(
-                                        Colors.black),
-                                    shape: MaterialStateProperty.all(
-                                      RoundedRectangleBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(100),
+                                    style: ButtonStyle(
+                                      fixedSize: MaterialStateProperty.all(
+                                        Size(10, 10),
+                                      ),
+                                      backgroundColor:
+                                      MaterialStateProperty.all(
+                                          Colors.black),
+                                      shape: MaterialStateProperty.all(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(100),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Container(
-                                  width: 200,
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    paper.paperName,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  SizedBox(
+                                    width: 10,
                                   ),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    if (index < _papers.length - 1) {
-                                      _paperSelectorBloc.sink.add(index + 1);
-                                      getLeaderBoardForPaper(
-                                          _papers[index + 1].paperId);
-                                    }
-                                  },
-                                  icon: Icon(
-                                    Icons.arrow_right,
-                                    color: Color(0xFF00C897),
-                                  ),
-                                  style: ButtonStyle(
-                                    fixedSize: MaterialStateProperty.all(
-                                      Size(10, 10),
-                                    ),
-                                    backgroundColor:
-                                    MaterialStateProperty.all(
-                                        Colors.black),
-                                    shape: MaterialStateProperty.all(
-                                      RoundedRectangleBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(100),
+                                  Container(
+                                    width: 200,
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      paper.paperName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            );
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      if (index < _papers.length - 1) {
+                                        _paperSelectorBloc.sink.add(index + 1);
+                                        getLeaderBoardForPaper(
+                                            _papers[index + 1].paperId);
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.arrow_right,
+                                      color: Color(0xFF00C897),
+                                    ),
+                                    style: ButtonStyle(
+                                      fixedSize: MaterialStateProperty.all(
+                                        Size(10, 10),
+                                      ),
+                                      backgroundColor:
+                                      MaterialStateProperty.all(
+                                          Colors.black),
+                                      shape: MaterialStateProperty.all(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(100),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }else{
+                              return Container();
+                            }
                           }),
                       SizedBox(
                         height: 20,

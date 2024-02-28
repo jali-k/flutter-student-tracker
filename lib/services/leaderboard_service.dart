@@ -38,17 +38,26 @@ class LeaderBoardService {
         if (groupedMarks[paperId] == null) {
           groupedMarks[paperId] = [];
         }
-        groupedMarks[paperId]!.add(
-          LeaderBoardEntries(
-            name: name,
-            marks: mark['totalMarks'],
-            position: 0,
-            uid: students.docs
-                .firstWhere((element) =>
-                    element['registrationNumber'] == mark['studentId'])
-                .id,
-          ),
-        );
+        List<dynamic> studentIDs = students.docs
+            .map((e) => e['registrationNumber'])
+            .toList();
+        print('Student ID : ${mark['studentId']}');
+        print(studentIDs);
+        bool isExist = studentIDs.contains(mark['studentId']);
+
+        if(isExist){
+          groupedMarks[paperId]!.add(
+            LeaderBoardEntries(
+              name: name,
+              marks: mark['totalMarks'],
+              position: 0,
+              uid: students.docs
+                  .firstWhere((element) =>
+              element['registrationNumber'] == mark['studentId'])
+                  .id,
+            ),
+          );
+        }
       }
     });
 
