@@ -181,7 +181,6 @@ class _AddFolderState extends State<AddFolder> {
     try {
       final loading = LoadingPopup(context);
       loading.show();
-      print(videoId);
       FirebaseStorage storage = FirebaseStorage.instance;
       Reference storageRef = storage
           .ref()
@@ -218,11 +217,11 @@ class _AddFolderState extends State<AddFolder> {
         for (var element in videoList) {
           Reference storageRef = storage
               .ref()
-              .child('videos/${widget.folderDetails!.docId}')
+              .child('videos')
               .child('${element.videoId}.mp4');
           Reference thumbnailRef = storage
               .ref()
-              .child('thumbnail/${widget.folderDetails!.docId}')
+              .child('thumbnail')
               .child('${element.videoId}.jpg');
           await storageRef.delete();
           await thumbnailRef.delete();
@@ -232,7 +231,7 @@ class _AddFolderState extends State<AddFolder> {
               .collection('videoDetails')
               .doc(element.videoDocId)
               .delete();
-        }
+                }
       }
 
       await FirebaseFirestore.instance

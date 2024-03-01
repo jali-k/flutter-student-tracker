@@ -40,8 +40,8 @@ class _LoginPageState extends State<LoginPage> {
     if(kDebugMode){
       // emailController.text = "dilushalakmal69@gmail.com";
       // passwordController.text = "pass_dilushalakmal69";
-      emailController.text = "upekshalakshani100@gmail.com";
-      passwordController.text = "pwd_100179";
+      emailController.text = "mihirannimansha@gmail.com";
+      passwordController.text = "pwd_100001";
     }
   }
 
@@ -259,9 +259,9 @@ class _LoginPageState extends State<LoginPage> {
                 top: 0,
                 left: 0,
                 child: Image.asset(
-                  'assets/images/login_background.png',
+                  'assets/images/login_background.gif',
                   fit: BoxFit.fitWidth,
-                  height: MediaQuery.of(context).size.height,
+                  height: MediaQuery.of(context).size.height/2,
                   width: MediaQuery.of(context).size.width,
                   alignment: Alignment.center,
                 ),
@@ -270,7 +270,7 @@ class _LoginPageState extends State<LoginPage> {
                 bottom: 0,
                 left: 0,
                 child: Container(
-                  height: MediaQuery.of(context).size.height * 0.55,
+                  height: MediaQuery.of(context).size.height / 2,
                   width: MediaQuery.of(context).size.width,
                   decoration: const BoxDecoration(
                     color: Colors.white,

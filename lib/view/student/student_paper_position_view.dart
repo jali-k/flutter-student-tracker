@@ -60,11 +60,19 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
     _paperBloc.add(paperId);
   }
 
+  void getCurrentPaper() {
+    ExamPaper paper = Provider.of<attemptedPaperProvider>(context, listen: false).papers.where((element) => element.paperId == widget.paperId).isNotEmpty ? Provider.of<attemptedPaperProvider>(context, listen: false).papers.where((element) => element.paperId == widget.paperId).first : Provider.of<attemptedPaperProvider>(context, listen: false).papers.first;
+    int index = Provider.of<attemptedPaperProvider>(context, listen: false).papers.indexOf(paper);
+    _paperSelectorBloc.sink.add(index);
+    _paperBloc.sink.add(paper.paperId);
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     // getPaperLeaderBoard();
+    getCurrentPaper();
   }
 
   @override
@@ -125,12 +133,12 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                       ),
                       StreamBuilder<int>(
                           stream: _paperSelectorBloc.stream,
-                          initialData: 0,
                           builder: (context, snapshot) {
                             if(snapshot.hasData){
+                              print("Index: ${snapshot.data}");
                               int index = snapshot.data!;
-                              print("Index is $index , length is : ${context.watch<attemptedPaperProvider>().papers.length}");
-                              ExamPaper paper = context.watch<attemptedPaperProvider>().papers[index];
+                              List<ExamPaper> papers =  context.watch<attemptedPaperProvider>().papers;
+                              ExamPaper paper = papers[index];
                               return Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -140,7 +148,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                         _paperSelectorBloc.sink
                                             .add(index - 1);
                                         getLeaderBoardForPaper(
-                                            _papers[index - 1].paperId);
+                                            papers[index - 1].paperId);
                                       }
                                     },
                                     icon: Icon(
@@ -181,10 +189,10 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                   ),
                                   IconButton(
                                     onPressed: () {
-                                      if (index < _papers.length - 1) {
+                                      if (index < papers.length - 1) {
                                         _paperSelectorBloc.sink.add(index + 1);
                                         getLeaderBoardForPaper(
-                                            _papers[index + 1].paperId);
+                                            papers[index + 1].paperId);
                                       }
                                     },
                                     icon: Icon(
@@ -236,18 +244,85 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                         ),
                         child: StreamBuilder<Object>(
                             stream: _paperBloc.stream,
-                            initialData: context
-                                .watch<attemptedPaperProvider>()
-                                .papers[0]
-                                .paperId,
                             builder: (context, snapshot) {
-                              List<LeaderBoardEntries> entries = context.watch<attemptedPaperProvider>().leaderBoard[snapshot.data]!;
-                              return ListView.builder(
-                                controller: _scrollController,
-                                itemBuilder: (context, index) {
-                                  if (entries[index].uid == myID) {
-                                    navigateToPosition(
-                                        entries[index].position);
+                              if(snapshot.hasData){
+                                List<LeaderBoardEntries> entries = context.watch<attemptedPaperProvider>().leaderBoard[snapshot.data]!;
+                                return ListView.builder(
+                                  controller: _scrollController,
+                                  itemBuilder: (context, index) {
+                                    if (entries[index].uid == myID) {
+                                      return Container(
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 2, horizontal: 2),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              flex: 1,
+                                              child: CircleAvatar(
+                                                minRadius: 30,
+                                                backgroundColor:
+                                                Color(0xFF00C897),
+                                                child: Text(
+                                                  '${entries[index].position}',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: SizedBox(),
+                                              flex: 1,
+                                            ),
+                                            Expanded(
+                                              flex: 6,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFF00C897),
+                                                  borderRadius:
+                                                  BorderRadius.circular(
+                                                      15),
+                                                ),
+                                                padding:
+                                                const EdgeInsets.all(
+                                                    10),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .center,
+                                                  children: [
+                                                    Text(
+                                                      '${entries[index].name.length > 20 ? '${entries[index].name.substring(0, 20)}...' : entries[index].name}',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                    ),
+                                                    const Expanded(
+                                                        flex: 1,
+                                                        child: SizedBox(
+                                                          width: 10,
+                                                        )),
+                                                    Text(
+                                                      '${entries[index].marks}',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
                                     return Container(
                                       margin: const EdgeInsets.symmetric(
                                           vertical: 2, horizontal: 2),
@@ -257,13 +332,11 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                         children: [
                                           Expanded(
                                             flex: 1,
-                                            child: CircleAvatar(
-                                              minRadius: 30,
-                                              backgroundColor:
-                                              Color(0xFF00C897),
+                                            child: Container(
+                                              alignment: Alignment.center,
                                               child: Text(
                                                 '${entries[index].position}',
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight:
                                                   FontWeight.bold,
@@ -271,7 +344,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                               ),
                                             ),
                                           ),
-                                          Expanded(
+                                          const Expanded(
                                             child: SizedBox(),
                                             flex: 1,
                                           ),
@@ -279,35 +352,31 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                             flex: 6,
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color: Color(0xFF00C897),
                                                 borderRadius:
                                                 BorderRadius.circular(
                                                     15),
                                               ),
                                               padding:
-                                              const EdgeInsets.all(
-                                                  10),
+                                              const EdgeInsets.all(10),
                                               child: Row(
                                                 mainAxisAlignment:
                                                 MainAxisAlignment
                                                     .center,
                                                 children: [
                                                   Text(
-                                                    '${entries[index].name.length > 20 ? '${entries[index].name.substring(0, 20)}...' : entries[index].name}',
-                                                    style: TextStyle(
+                                                    entries[index].name.length > 20 ? '${entries[index].name.substring(0, 20)}...' : entries[index].name,
+                                                    style: const TextStyle(
                                                       fontSize: 14,
-                                                      overflow: TextOverflow
-                                                          .ellipsis,
                                                     ),
                                                   ),
-                                                  Expanded(
+                                                  const Expanded(
                                                       flex: 1,
                                                       child: SizedBox(
                                                         width: 10,
                                                       )),
                                                   Text(
                                                     '${entries[index].marks}',
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
                                                       fontSize: 14,
                                                       color: Colors.black,
                                                     ),
@@ -319,76 +388,13 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                                         ],
                                       ),
                                     );
-                                  }
-                                  return Container(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical: 2, horizontal: 2),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          flex: 1,
-                                          child: Container(
-                                            alignment: Alignment.center,
-                                            child: Text(
-                                              '${entries[index].position}',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight:
-                                                FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: SizedBox(),
-                                          flex: 1,
-                                        ),
-                                        Expanded(
-                                          flex: 6,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                              BorderRadius.circular(
-                                                  15),
-                                            ),
-                                            padding:
-                                            const EdgeInsets.all(10),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                              MainAxisAlignment
-                                                  .center,
-                                              children: [
-                                                Text(
-                                                  entries[index].name.length > 20 ? '${entries[index].name.substring(0, 20)}...' : entries[index].name,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                                const Expanded(
-                                                    flex: 1,
-                                                    child: SizedBox(
-                                                      width: 10,
-                                                    )),
-                                                Text(
-                                                  '${entries[index].marks}',
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                itemCount: entries.length,
-                                shrinkWrap: true,
-                              );
+                                  },
+                                  itemCount: entries.length,
+                                  shrinkWrap: true,
+                                );
+                              }else{
+                                return Container();
+                              }
                             }),
                       ),
                       if(context.watch<attemptedPaperProvider>().papers.isEmpty)
@@ -508,4 +514,6 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
       curve: Curves.easeIn,
     );
   }
+
+
 }

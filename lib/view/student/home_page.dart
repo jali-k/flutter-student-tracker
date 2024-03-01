@@ -12,7 +12,9 @@ import 'package:spt/services/mark_service.dart';
 import 'package:spt/view/student/login_page.dart';
 
 import '../../model/Paper.dart';
+import '../../model/leaderboard_entries.dart';
 import '../../model/model.dart';
+import '../../services/leaderboard_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -82,6 +84,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void getPaperLeaderBoard() async {
+    Map<String, List<LeaderBoardEntries>> leaderBoard =
+    await LeaderBoardService.getLeaderBoard();
+    List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
+    if(!mounted) return;
+    Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
+  }
+
 
   @override
   void initState() {
@@ -90,6 +100,7 @@ class _HomePageState extends State<HomePage> {
     getMarks();
     super.initState();
     getSubjectFocus();
+    getPaperLeaderBoard();
   }
 
   @override

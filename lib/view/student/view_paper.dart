@@ -125,7 +125,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                         // Title : What’s catching your interest today?
                         children: [
                           Container(
-                            height: 220,
+                            height: 150,
                             margin: EdgeInsets.all(10),
                             padding: EdgeInsets.all(20),
                             //Linear Color 00C897 to 245247
@@ -164,7 +164,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                   children: [
                                     SizedBox(height: 40),
                                     Text(
-                                      'Welcome',
+                                      'Daily Reminder',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -175,26 +175,26 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                 ),
                                 Container(
                                   child: Text(
-                                    '\“ The whole secret of existence is to have no fear. Never fear what will become of you, depend on no one. Only the moment you reject all help are you freed \"',
+                                    '\“ Work hard in silence. Let your success be the noise. \"',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
                                 SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Container(
-                                      child: Text(
-                                        'Lord Buddha',
-                                        textAlign: TextAlign.right,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                // Row(
+                                //   mainAxisAlignment: MainAxisAlignment.end,
+                                //   children: [
+                                //     Container(
+                                //       child: Text(
+                                //         'Lord Buddha',
+                                //         textAlign: TextAlign.right,
+                                //         style: TextStyle(
+                                //           color: Colors.white,
+                                //           fontWeight: FontWeight.bold,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
                               ],
                             ),
                           ),

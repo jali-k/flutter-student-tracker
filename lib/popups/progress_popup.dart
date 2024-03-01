@@ -88,7 +88,7 @@ class _ProcessSyncProgressWidgetState extends State<ProcessSyncProgressWidget> {
       // loading.show();
       Reference firebaseStorageRef = FirebaseStorage.instance
           .ref()
-          .child('videos/${widget.docId}')
+          .child('videos')
           .child('${widget.videoId}.mp4');
 
       UploadTask uploadTask = firebaseStorageRef.putFile(videoFile!);
