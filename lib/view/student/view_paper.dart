@@ -130,7 +130,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                             padding: EdgeInsets.all(20),
                             //Linear Color 00C897 to 245247
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
@@ -141,10 +141,10 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                               borderRadius: BorderRadius.circular(20),
                               //Linear Color 00C897 to 245247 border
                               border: Border.all(
-                                color: Color(0xFF00C897),
+                                color: const Color(0xFF00C897),
                                 width: 2,
                               ),
-                              boxShadow: [
+                              boxShadow: const [
                                 BoxShadow(
                                   color: Colors.white54,
                                   blurRadius: 5,
@@ -158,7 +158,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Row(
+                                const Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
@@ -208,8 +208,8 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                     Container(
                                     height: 150,
                                     width: MediaQuery.of(context).size.width - 60,
-                                    margin: EdgeInsets.only(bottom: 10),
-                                    decoration: BoxDecoration(
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    decoration: const BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.only(
                                         topLeft: Radius.circular(20),
@@ -240,7 +240,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                       color: Colors.white,
                                                       borderRadius:
                                                           BorderRadius.circular(10),
-                                                      boxShadow: [
+                                                      boxShadow: const [
                                                         BoxShadow(
                                                           color: Colors.white54,
                                                           blurRadius: 5,
@@ -253,7 +253,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                       children: [
                                                         Text(
                                                           paper.key.paperName,
-                                                          style: TextStyle(
+                                                          style: const TextStyle(
                                                             fontSize: 20,
                                                             fontWeight:
                                                                 FontWeight.bold,
@@ -265,13 +265,13 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                           children: [
                                                             Text(
                                                               paper.value.totalMarks.toString(),
-                                                              style: TextStyle(
+                                                              style: const TextStyle(
                                                                 fontSize: 40,
                                                                 fontWeight: FontWeight.bold,
                                                                 color: Color(0xFFA30A0A),
                                                               ),
                                                             ),
-                                                            Text(
+                                                            const Text(
                                                               '%',
                                                               style: TextStyle(
                                                                 fontSize: 16,
@@ -288,7 +288,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                 ],
                                               ),
                                               // 25 and LeaderBoard Link
-                                              SizedBox(width: 10),
+                                              const SizedBox(width: 10),
                                               Column(
                                                 mainAxisAlignment: MainAxisAlignment.start,
                                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +298,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                       color: Colors.white,
                                                       borderRadius:
                                                           BorderRadius.circular(10),
-                                                      boxShadow: [
+                                                      boxShadow: const [
                                                         BoxShadow(
                                                           color: Colors.white54,
                                                           blurRadius: 5,
@@ -317,7 +317,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                               width: 50,
                                                             ),
                                                             Text(paper.value.position.toString(),
-                                                              style: TextStyle(
+                                                              style: const TextStyle(
                                                                 fontSize: 24,
                                                                 fontWeight: FontWeight.bold,
                                                               ),
@@ -337,8 +337,8 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                           right: 0,
                                           child: Container(
                                             alignment: Alignment.bottomRight,
-                                            padding: EdgeInsets.only(top: 10,left:10,bottom: 0,right: 0),
-                                            decoration: BoxDecoration(
+                                            padding: const EdgeInsets.only(top: 10,left:10,bottom: 0,right: 0),
+                                            decoration: const BoxDecoration(
                                               color: Color(0xFFF2F8F2),
                                               borderRadius: BorderRadius.only(
                                                 topLeft: Radius.circular(10),
@@ -351,21 +351,21 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                       MaterialPageRoute(builder: (context) => StudentPaperPositionPage(paper.key.paperId))
                                                   );
                                                 },
-                                                child: Row(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(0xFF00C897),
+                                                  foregroundColor: Colors.white,
+                                                  shape: const RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.only(
+                                                      topLeft: Radius.circular(10),
+                                                    )
+                                                  ),
+                                                ),
+                                                child: const Row(
                                                   children: [
                                                     Text('LeaderBoard'),
                                                     SizedBox(width: 10),
                                                     Icon(Icons.arrow_forward),
                                                   ],
-                                                ),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: Color(0xFF00C897),
-                                                  foregroundColor: Colors.white,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius: BorderRadius.only(
-                                                      topLeft: Radius.circular(10),
-                                                    )
-                                                  ),
                                                 ),
 
                                             ),

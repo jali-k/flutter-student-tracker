@@ -6,7 +6,7 @@ class Student{
   String lastName;
   String email;
   String uid;
-  String? registrationNumber;
+  int? registrationNumber;
 
   Student({
     required this.firstName,
@@ -18,7 +18,7 @@ class Student{
 
   // convert a Student into a List
   List<String> toList() {
-    return [firstName, lastName, email, uid,registrationNumber ?? ""]; // convert createdAt to a string (ISO8601 format
+    return [firstName, lastName, email, uid,registrationNumber.toString()]; // convert createdAt to a string (ISO8601 format
   }
 
 
@@ -29,7 +29,7 @@ class Student{
       lastName: list[1],
       email: list[2],
       uid: list[3],
-      registrationNumber: list[4]
+      registrationNumber: int.parse(list[4])
     );
   }
 

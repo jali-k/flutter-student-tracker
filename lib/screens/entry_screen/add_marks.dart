@@ -247,7 +247,7 @@ class _AddMarksState extends State<AddMarks> {
                       return;
                     }
                     if (0 > int.parse(editMcqController.text.trim()) ||
-                        int.parse(editMcqController.text.trim()) > 100) {
+                        int.parse(editMcqController.text.trim()) > 2000) {
                       Globals.showSnackBar(
                           context: context,
                           message: 'mcq marks'
@@ -265,7 +265,7 @@ class _AddMarksState extends State<AddMarks> {
                       return;
                     }
                     if (0 > int.parse(editStructureController.text.trim()) ||
-                        int.parse(editStructureController.text.trim()) > 100) {
+                        int.parse(editStructureController.text.trim()) > 2000) {
                       Globals.showSnackBar(
                           context: context,
                           message: 'structure marks'
@@ -283,7 +283,7 @@ class _AddMarksState extends State<AddMarks> {
                       return;
                     }
                     if (0 > int.parse(editEssayController.text.trim()) ||
-                        int.parse(editEssayController.text.trim()) > 100) {
+                        int.parse(editEssayController.text.trim()) > 2000) {
                       Globals.showSnackBar(
                           context: context,
                           message: 'essay marks'
@@ -1012,7 +1012,7 @@ class _AddMarksState extends State<AddMarks> {
                         return;
                       }
                       if (0 > int.parse(mcqController.text.trim()) ||
-                          int.parse(mcqController.text.trim()) > 100) {
+                          int.parse(mcqController.text.trim()) > 2000) {
                         Globals.showSnackBar(
                             context: context,
                             message: 'mcq marks should be between 0 and 100',
@@ -1038,7 +1038,7 @@ class _AddMarksState extends State<AddMarks> {
                         return;
                       }
                       if (0 > int.parse(structureController.text.trim()) ||
-                          int.parse(structureController.text.trim()) > 100) {
+                          int.parse(structureController.text.trim()) > 2000) {
                         Globals.showSnackBar(
                             context: context,
                             message:
@@ -1064,7 +1064,7 @@ class _AddMarksState extends State<AddMarks> {
                         return;
                       }
                       if (0 > int.parse(essayController.text.trim()) ||
-                          int.parse(essayController.text.trim()) > 100) {
+                          int.parse(essayController.text.trim()) > 2000) {
                         Globals.showSnackBar(
                             context: context,
                             message: 'essay marks should be between 0 and 100',
@@ -1092,7 +1092,7 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isStructure &&
                           widget.paper.isEssay) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 300) {
+                            int.parse(totalMarksController.text.trim()) > 2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1105,7 +1105,7 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isStructure &&
                           !widget.paper.isEssay) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 200) {
+                            int.parse(totalMarksController.text.trim()) > 2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1118,7 +1118,7 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isEssay &&
                           !widget.paper.isStructure) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 200) {
+                            int.parse(totalMarksController.text.trim()) > 2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1131,7 +1131,7 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isEssay &&
                           !widget.paper.isMcq) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 200) {
+                            int.parse(totalMarksController.text.trim()) > 2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1145,7 +1145,7 @@ class _AddMarksState extends State<AddMarks> {
                           !widget.paper.isStructure &&
                           !widget.paper.isEssay) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 100) {
+                            int.parse(totalMarksController.text.trim()) > 2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:

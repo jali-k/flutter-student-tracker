@@ -268,7 +268,7 @@ Future<void> _saveUserDataToFirestore(User user) async {
       firstName: firstNameController.text,
       lastName: lastNameController.text,
       uid: user.uid,
-      registrationNumber: "N/A"
+      registrationNumber: null
     );
   await FirebaseFirestore.instance.collection('students').doc(user.uid).set(student.toMap());
   SharedPreferences prefs = await SharedPreferences.getInstance();

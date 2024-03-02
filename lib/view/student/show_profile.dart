@@ -229,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                             const Gap(10),
                             Text(
-                              student.registrationNumber ?? 'Not Available',
+                              student.registrationNumber.toString() ?? 'Not Available',
                               style: TextStyle(
                                 fontSize: 16,
                               ),

@@ -58,6 +58,7 @@ dependencies:
   flutter_windowmanager: ^0.2.0
   appinio_video_player: ^1.2.2
   provider: ^6.1.1
+  firebase_app_check: ^0.2.1+15
 dev_dependencies:
   flutter_test:
     sdk: flutter

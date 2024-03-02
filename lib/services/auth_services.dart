@@ -78,6 +78,7 @@ class AuthService {
     Response res = await dio.post('${APIProvider.BASE_URL}/csv', data: {
       'fields': jsonEncode(fields),
     });
+    print(res.data);
     if(!context.mounted) return;
     if(res.data == []) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
