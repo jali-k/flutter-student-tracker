@@ -75,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (user != null) {
         DocumentSnapshot instructorDoc = await FirebaseFirestore.instance
-            .collection('instructors')
+            .collection('Instructors')
             .doc(user.uid)
             .get();
         if (instructorDoc.exists) {
@@ -254,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                 .get()
                 .then((value) => Student(
               firstName:
-              value.get('name').toString().split(" ").length > 0
+              value.get('name').toString().split(" ").isNotEmpty
                   ? value.get('name').toString().split(" ")[0]
                   : value.get('name'),
               lastName: value.get('name').toString().split(" ").length > 1

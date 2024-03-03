@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
 
 import '../../globals.dart';
@@ -35,6 +37,8 @@ class _AddMarksState extends State<AddMarks> {
   bool isLoading = false;
   int totalValidationMarks = 0;
   List<int> studentIds = [];
+  List<int> instructorAssignedStudentIds = [];
+  int? selectedStudentId;
 
   @override
   void initState() {
@@ -101,6 +105,22 @@ class _AddMarksState extends State<AddMarks> {
       ),
     );
     fetchPaperMarks();
+    getInstructorAssignedStudentIds();
+  }
+
+  getInstructorAssignedStudentIds() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('Instructors')
+        .where('email', isEqualTo: FirebaseAuth.instance.currentUser!.email)
+        .get();
+    List<QueryDocumentSnapshot> m = querySnapshot.docs;
+    //get student ids array
+    for (var element in m) {
+      Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
+      setState(() {
+        instructorAssignedStudentIds = data['students'].cast<int>();
+      });
+    }
   }
 
   showMarksEditDialog(
@@ -716,34 +736,76 @@ class _AddMarksState extends State<AddMarks> {
         rows.add(
           TableRow(
             children: [
+              // TableCell(
+              //     child: SizedBox(
+              //         height: 40,
+              //         child: Center(
+              //             child: TextFormField(
+              //           style: const TextStyle(
+              //               color: AppColors.black, fontSize: 12),
+              //           textAlign: TextAlign.center,
+              //           controller: studentIdController,
+              //           decoration: const InputDecoration(
+              //             filled: true,
+              //             fillColor: AppColors.ligthWhite,
+              //             hintStyle:
+              //                 TextStyle(color: AppColors.black, fontSize: 12),
+              //             hintText: 'Enter',
+              //             border: OutlineInputBorder(
+              //               borderSide: BorderSide(
+              //                 color: AppColors.black,
+              //                 // width: 1.5,
+              //               ),
+              //             ),
+              //             // Remove the default border
+              //             enabledBorder: UnderlineInputBorder(
+              //               // Add bottom line as enabled border
+              //               borderSide: BorderSide(color: AppColors.black),
+              //             ),
+              //           ),
+              //         )))),
               TableCell(
                   child: SizedBox(
                       height: 40,
                       child: Center(
-                          child: TextFormField(
-                        style: const TextStyle(
-                            color: AppColors.black, fontSize: 12),
-                        textAlign: TextAlign.center,
-                        controller: studentIdController,
-                        decoration: const InputDecoration(
-                          filled: true,
-                          fillColor: AppColors.ligthWhite,
-                          hintStyle:
-                              TextStyle(color: AppColors.black, fontSize: 12),
-                          hintText: 'Enter',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.black,
-                              // width: 1.5,
+                          child: TypeAheadField(
+                            controller: studentIdController,
+                            builder: (context, controller, focusNode) => TextField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              autofocus: true,
+                              style: DefaultTextStyle.of(context)
+                                  .style
+                                  .copyWith(
+                                fontSize: 12,
+                              ),
+                              decoration: InputDecoration(
+                                border: const OutlineInputBorder(),
+                                hintText: 'Enter student id',
+                              ),
                             ),
-                          ),
-                          // Remove the default border
-                          enabledBorder: UnderlineInputBorder(
-                            // Add bottom line as enabled border
-                            borderSide: BorderSide(color: AppColors.black),
-                          ),
-                        ),
-                      )))),
+                            decorationBuilder: (context, child) => Material(
+                              type: MaterialType.card,
+                              elevation: 4,
+                              borderRadius: BorderRadius.circular(4),
+                              child: child,
+                            ),
+                            itemBuilder: (context, product) => ListTile(
+                              title: Text(product.toString()),
+                            ),
+                            onSelected: (product) {
+                              setState(() {
+                                selectedStudentId = int.parse(product.toString());
+                                studentIdController.text = product.toString();
+                              });
+                            },
+                            suggestionsCallback: (pattern) async {
+                              return instructorAssignedStudentIds
+                                  .where((element) =>
+                                  element.toString().contains(pattern))
+                                  .toList();
+                            },
+                          )))),
               TableCell(
                   child: SizedBox(
                       height: 40,

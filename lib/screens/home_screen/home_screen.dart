@@ -531,7 +531,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> uploadFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
     setState(() {
       isLoading = true;
     });
