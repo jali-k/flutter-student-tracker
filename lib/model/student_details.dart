@@ -1,5 +1,6 @@
 
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:spt/model/paper_attempt.dart';
 
 class StudentDetails{
@@ -22,12 +23,12 @@ class StudentDetails{
 
 class FocusData{
   int duration;
-  DateTime endAt;
+  Timestamp? endAt;
   String focusID;
   bool isCompleted;
   String lessonContent;
   String lessonID;
-  DateTime startAt;
+  Timestamp startAt;
   String subjectName;
 
   FocusData({
