@@ -8,6 +8,7 @@ import 'package:spt/view/student/login_page.dart';
 import '../../model/model.dart';
 import '../entry_screen/add_marks.dart';
 import '../res/app_colors.dart';
+import '../view_student_screen/view_students_screen.dart';
 
 class InstructorEntryScreen extends StatefulWidget {
   const InstructorEntryScreen({super.key});
@@ -58,6 +59,24 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                     color: AppColors.black),
+              ),
+            ),
+            const Gap(10),
+            Center(
+              child: ElevatedButton(
+                onPressed: (){
+                  Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const ViewStudentsScreen()));
+                },
+                child: Text(
+                  'View Students',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(
+                        AppColors.green)),
               ),
             ),
             const Gap(50),

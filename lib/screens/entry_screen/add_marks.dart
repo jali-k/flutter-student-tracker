@@ -104,8 +104,8 @@ class _AddMarksState extends State<AddMarks> {
         ],
       ),
     );
-    fetchPaperMarks();
     getInstructorAssignedStudentIds();
+    fetchPaperMarks();
   }
 
   getInstructorAssignedStudentIds() async {
@@ -115,12 +115,12 @@ class _AddMarksState extends State<AddMarks> {
         .get();
     List<QueryDocumentSnapshot> m = querySnapshot.docs;
     //get student ids array
-    for (var element in m) {
+    var element = m[0];
       Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
       setState(() {
         instructorAssignedStudentIds = data['students'].cast<int>();
       });
-    }
+
   }
 
   showMarksEditDialog(
@@ -514,6 +514,7 @@ class _AddMarksState extends State<AddMarks> {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('marks')
           .where('paperId', isEqualTo: widget.paper.paperId)
+          .where('studentId', arrayContains: instructorAssignedStudentIds)
           .orderBy('studentId', descending: false)
           .get();
       List<QueryDocumentSnapshot> m = querySnapshot.docs;
@@ -791,7 +792,14 @@ class _AddMarksState extends State<AddMarks> {
                               child: child,
                             ),
                             itemBuilder: (context, product) => ListTile(
-                              title: Text(product.toString()),
+                              title: Text(product.toString(),
+                                  style: const TextStyle(
+                                    color: AppColors.black,
+                                    fontSize: 10,
+                                  ),
+
+                            ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 4)
                             ),
                             onSelected: (product) {
                               setState(() {
@@ -805,6 +813,7 @@ class _AddMarksState extends State<AddMarks> {
                                   element.toString().contains(pattern))
                                   .toList();
                             },
+
                           )))),
               TableCell(
                   child: SizedBox(

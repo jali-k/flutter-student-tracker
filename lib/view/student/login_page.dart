@@ -36,12 +36,14 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     if (kDebugMode) {
+      emailController.text = "nilakshahirushan45@gmail.com";
+      passwordController.text = "pwd_nilakshahirushan45";
       // emailController.text = "dilushalakmal69@gmail.com";
       // passwordController.text = "pass_dilushalakmal69";
       // emailController.text = "mihirannimansha@gmail.com";
       // passwordController.text = "pwd_100001";
-      emailController.text = "admin@mail.com";
-      passwordController.text = "123456";
+      // emailController.text = "admin@mail.com";
+      // passwordController.text = "123456";
     }
   }
 
