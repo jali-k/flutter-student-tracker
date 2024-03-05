@@ -19,7 +19,7 @@ import 'package:spt/screens/instructor_screen/instructor_entry_screen.dart';
 import 'package:spt/view/student/login_page.dart';
 import 'firebase_options.dart';
 
-Future<void> main() async {
+main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

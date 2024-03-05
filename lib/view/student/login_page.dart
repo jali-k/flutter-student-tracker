@@ -218,7 +218,7 @@ class _LoginPageState extends State<LoginPage> {
           MaterialPageRoute(builder: (context) => InstructorEntryScreen()),
         );
       }
-        else {
+      else {
           DocumentSnapshot studentDoc = await FirebaseFirestore.instance
               .collection('students')
               .doc(user?.uid)
@@ -293,7 +293,18 @@ class _LoginPageState extends State<LoginPage> {
         loading = false;
       });
     } catch (e) {
-      print("Error: " + e.toString());
+      showDialog(context: context, builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(e.toString()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ));
       setState(() {
         loading = false;
       });
