@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/Subject.dart';
@@ -214,111 +215,115 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
               ],
             ),
             const SizedBox(height: 20),
-            Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              child: GestureDetector(
-                onTap: () {
-                  if(!widget.enableFocus){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: GestureDetector(
+                  onTap: () {
+                    if(!widget.enableFocus){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
+                        ),
+                      );
+                    }
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/icons/fire_overall.png',
+                        width: 54,
+                        height: 54,
                       ),
-                    );
-                  }
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/icons/fire_overall.png',
-                      width: 54,
-                      height: 54,
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    //You are 25th
-                    // on the leader board
-                    Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'You are',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      SizedBox(
+                        width: 10,
+                      ),
+                      //You are 25th
+                      // on the leader board
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'You are',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 5),
-                            ShaderMask(
-                                // black to F2513B
-                                blendMode: BlendMode.srcIn,
-                                shaderCallback: (Rect bounds) {
-                                  return LinearGradient(
-                                    colors: <Color>[
-                                      Color(0xFF000000),
-                                      Color(0xFFF2513B),
-                                    ],
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                  ).createShader(bounds);
-                                },
-                                child: Text(
-                                  currentPosition == 0?'__':currentPosition.toString(),
-                                  style: TextStyle(
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )),
-                            Text(
-                              getSuffixOfPosition(currentPosition),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                              const SizedBox(width: 5),
+                              ShaderMask(
+                                  // black to F2513B
+                                  blendMode: BlendMode.srcIn,
+                                  shaderCallback: (Rect bounds) {
+                                    return LinearGradient(
+                                      colors: <Color>[
+                                        Color(0xFF000000),
+                                        Color(0xFFF2513B),
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ).createShader(bounds);
+                                  },
+                                  child: Text(
+                                    currentPosition == 0?'__':currentPosition.toString(),
+                                    style: TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )),
+                              Text(
+                                getSuffixOfPosition(currentPosition),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Text(
-                              'on the leader board',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Text(
+                                'on the leader board',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Container(
-                              width: 20,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: Color(0xFFC88200),
-                                borderRadius: BorderRadius.circular(100),
+                              SizedBox(
+                                width: 10,
                               ),
-                              child: Icon(
-                                Icons.arrow_forward,
-                                size: 16,
-                                color: Colors.white,
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFC88200),
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

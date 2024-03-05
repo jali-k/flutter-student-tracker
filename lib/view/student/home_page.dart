@@ -424,7 +424,9 @@ class _HomePageState extends State<HomePage> {
                                           ListView.builder(
                                             itemCount: context.watch<paperProvider>().paperController.entries.length > 5 ? 5 : context.watch<paperProvider>().paperController.entries.length,
                                             itemBuilder: (context, index) {
-                                              List<AttemptPaper> paperMarks = context.watch<paperProvider>().paperController.values.toList();
+                                              List<AttemptPaper?> paperMarks = context.watch<paperProvider>().paperController.values.toList();
+                                              AttemptPaper? paper = paperMarks[index];
+                                              if(paper == null) return Container();
                                               return Container(
                                                 margin: const EdgeInsets.only(top: 5),
                                                 child: SingleChildScrollView(
@@ -438,14 +440,14 @@ class _HomePageState extends State<HomePage> {
                                                         size: 30,
                                                       ),
                                                       SizedBox(width: 5),
-                                                      Text(paperMarks[index].totalMarks.toString(),
+                                                      Text(paperMarks[index]!.totalMarks.toString(),
                                                         style: TextStyle(
                                                           fontSize: 20,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
                                                       SizedBox(width: 10),
-                                                      Text(paperMarks[index].paperName!,
+                                                      Text(paperMarks[index]!.paperName!,
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight: FontWeight.normal,

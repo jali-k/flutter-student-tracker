@@ -35,12 +35,40 @@ class PaperMarksService {
     return position;
   }
 
-  static Future<Map<ExamPaper,AttemptPaper>> getStudentPapers() async {
+  // static Future<Map<ExamPaper,AttemptPaper>> getStudentPapers() async {
+  //   String userID = _auth.currentUser!.uid;
+  //   QuerySnapshot student = await _firestore.collection('students').where('uid',isEqualTo: userID).get();
+  //   int registrationNumber = student.docs[0]['registrationNumber'];
+  //   QuerySnapshot studentMarks = await _firestore.collection('marks').where('studentId',isEqualTo: registrationNumber).get();
+  //   Map<ExamPaper,AttemptPaper> papers = {};
+  //   for (var mark in studentMarks.docs) {
+  //     String paperId = mark['paperId'];
+  //     QuerySnapshot paper = await _firestore.collection('papers').where('paperId',isEqualTo: paperId).get();
+  //     if(paper.docs.isNotEmpty){
+  //       int studentId = mark['studentId'];
+  //       ExamPaper p = ExamPaper.fromQuery(paper.docs[0]);
+  //       AttemptPaper a = AttemptPaper(
+  //         essayMarks: mark['essayMarks'],
+  //         mcqMarks: mark['mcqMarks'],
+  //         structuredMarks: mark['structuredMarks'],
+  //         totalMarks: mark['totalMarks'],
+  //         paperId: mark['paperId'],
+  //         position:await getLeaderboardPosition(paperId,studentId),
+  //         paperName: p.paperName,
+  //       );
+  //       papers[p] = a;
+  //     }
+  //   }
+  //   print("Papers length: ${papers.entries.map((e) => e.value.position).toList()}");
+  //   return papers;
+  // }
+
+  static Future<Map<ExamPaper,AttemptPaper?>> getStudentPapers() async {
     String userID = _auth.currentUser!.uid;
     QuerySnapshot student = await _firestore.collection('students').where('uid',isEqualTo: userID).get();
     int registrationNumber = student.docs[0]['registrationNumber'];
     QuerySnapshot studentMarks = await _firestore.collection('marks').where('studentId',isEqualTo: registrationNumber).get();
-    Map<ExamPaper,AttemptPaper> papers = {};
+    Map<ExamPaper,AttemptPaper?> papers = {};
     for (var mark in studentMarks.docs) {
       String paperId = mark['paperId'];
       QuerySnapshot paper = await _firestore.collection('papers').where('paperId',isEqualTo: paperId).get();
@@ -59,7 +87,14 @@ class PaperMarksService {
         papers[p] = a;
       }
     }
-    print("Papers length: ${papers.entries.map((e) => e.value.position).toList()}");
+    //get all papers and set it to the papers map and make values to null
+    QuerySnapshot allPapers = await _firestore.collection('papers').get();
+    for (var paper in allPapers.docs) {
+      ExamPaper p = ExamPaper.fromQuery(paper);
+      if(!papers.containsKey(p)){
+        papers[p] = null;
+      }
+    }
     return papers;
   }
 

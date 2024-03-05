@@ -514,10 +514,11 @@ class _AddMarksState extends State<AddMarks> {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('marks')
           .where('paperId', isEqualTo: widget.paper.paperId)
-          .where('studentId', arrayContains: instructorAssignedStudentIds)
           .orderBy('studentId', descending: false)
           .get();
       List<QueryDocumentSnapshot> m = querySnapshot.docs;
+      //remove QueryDocumentSnapshot that does not have the student id in the instructor assigned student ids
+      m.removeWhere((element) => !instructorAssignedStudentIds.contains(element['studentId']));
       //sort by student id
       m.sort((a, b) => a['studentId'].compareTo(b['studentId']));
       setState(() {

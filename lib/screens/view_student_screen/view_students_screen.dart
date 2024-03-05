@@ -135,61 +135,65 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
       builder: (context) {
         return AlertDialog(
           title: Text(studentDetails.name),
-          content: Column(
-            children: [
-              Text('Email: ${studentDetails.email}',textAlign: TextAlign.start,),
-              Text('Registration Number: ${studentDetails.registrationNumber}',textAlign: TextAlign.start),
-              SizedBox(height: 10),
-              Container(
-                height: 35,
-                child: Text(
-                  'Focus Data',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+          content: Container(
+            height: MediaQuery.of(context).size.height - 100,
+            width: MediaQuery.of(context).size.width - 50,
+            child: Column(
+              children: [
+                Text('Email: ${studentDetails.email}',textAlign: TextAlign.start,),
+                Text('Registration Number: ${studentDetails.registrationNumber}',textAlign: TextAlign.start),
+                SizedBox(height: 10),
+                Container(
+                  height: 35,
+                  child: Text(
+                    'Focus Data',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 10),
-              Container(
-                height: (MediaQuery.of(context).size.height - 400)/2,
-                child: ListView.builder(
-                  itemCount: studentDetails.focusData.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(studentDetails.focusData[index].subjectName),
-                      subtitle: Text(lessonIdToLessonName[studentDetails.focusData[index].lessonID]!),
-                      trailing: Text('${focusDataBySubjectAndLesson[studentDetails.focusData[index].subjectName]![studentDetails.focusData[index].lessonID]!} mins'),
-                    );
-                  },
-                ),
-              ),
-              SizedBox(height: 10),
-              Container(
-                height: 35,
-                child: Text(
-                  'Attempt Papers',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                SizedBox(height: 10),
+                Container(
+                  height: (MediaQuery.of(context).size.height - 400)/2,
+                  child: ListView.builder(
+                    itemCount: studentDetails.focusData.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(studentDetails.focusData[index].subjectName),
+                        subtitle: Text(lessonIdToLessonName[studentDetails.focusData[index].lessonID]!),
+                        trailing: Text('${focusDataBySubjectAndLesson[studentDetails.focusData[index].subjectName]![studentDetails.focusData[index].lessonID]!} mins'),
+                      );
+                    },
                   ),
                 ),
-              ),
-              //marks
-              Container(
-                height: (MediaQuery.of(context).size.height - 400)/2,
-                child: ListView.builder(
-                  itemCount: studentDetails.attemptPapers.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(studentDetails.attemptPapers[index].paperName!),
-                      subtitle: Text('MCQ: ${studentDetails.attemptPapers[index].mcqMarks} Structured: ${studentDetails.attemptPapers[index].structuredMarks} Essay: ${studentDetails.attemptPapers[index].essayMarks}'),
-                      trailing: Text('Total: ${studentDetails.attemptPapers[index].totalMarks}'),
-                    );
-                  },
+                SizedBox(height: 10),
+                Container(
+                  height: 35,
+                  child: Text(
+                    'Attempt Papers',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                //marks
+                Container(
+                  height: (MediaQuery.of(context).size.height - 400)/2,
+                  child: ListView.builder(
+                    itemCount: studentDetails.attemptPapers.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(studentDetails.attemptPapers[index].paperName!),
+                        subtitle: Text('MCQ: ${studentDetails.attemptPapers[index].mcqMarks} Structured: ${studentDetails.attemptPapers[index].structuredMarks} Essay: ${studentDetails.attemptPapers[index].essayMarks}'),
+                        trailing: Text('Total: ${studentDetails.attemptPapers[index].totalMarks}'),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(

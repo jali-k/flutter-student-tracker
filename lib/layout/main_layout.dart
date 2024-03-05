@@ -58,7 +58,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
 
   getPapers() async {
     print("Getting papers");
-    Map<ExamPaper,AttemptPaper> p = await PaperMarksService.getStudentPapers();
+    Map<ExamPaper,AttemptPaper?> p = await PaperMarksService.getStudentPapers();
     if (!mounted) return;
     Provider.of<paperProvider>(context, listen: false).setPapers(p);
   }

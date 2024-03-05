@@ -57,42 +57,75 @@ class _InstructorScreenState extends State<InstructorScreen> {
     });
   }
 
-  Future<void> addData(
-      {required String instructorEmail, required String password}) async {
+  // Future<void> addData(
+  //     {required String instructorEmail, required String password}) async {
+  //   try {
+  //     final loading = LoadingPopup(context);
+  //     loading.show();
+  //     String instructorId = const Uuid().v1();
+  //     DocumentReference documentReference = await FirebaseFirestore.instance
+  //         .collection('instructor') // Reference to the collection
+  //         .add({
+  //       'id': instructor.length,
+  //       'instructorId': instructorId,
+  //       'email': instructorEmail,
+  //       'password': password
+  //     });
+  //     loading.dismiss();
+  //     setState(() {
+  //       instructor.insert(
+  //           0,
+  //           Instructor(
+  //               instructorId: instructorId,
+  //               email: instructorEmail,
+  //               docId: documentReference.id));
+  //       entryController.clear();
+  //       passwordController.clear();
+  //     });
+  //     final Email email = Email(
+  //       body: 'Instructor password is $password',
+  //       subject: 'Instructor\'s password',
+  //       recipients: [instructorEmail],
+  //       // cc: ['cc@example.com'],
+  //       // bcc: ['bcc@example.com'],
+  //       // attachmentPaths: ['/path/to/attachment.zip'],
+  //       isHTML: false,
+  //     );
+  //
+  //     await FlutterEmailSender.send(email);
+  //
+  //     // ignore: use_build_context_synchronously
+  //     Globals.showSnackBar(
+  //         context: context, isSuccess: true, message: 'Success');
+  //   } catch (error) {
+  //     // ignore: avoid_print
+  //     print("Failed to add user: $error");
+  //   }
+  // }
+  //
+    Future<void> addData(
+      {required String instructorEmail}) async {
     try {
       final loading = LoadingPopup(context);
       loading.show();
-      String instructorId = const Uuid().v1();
-      DocumentReference documentReference = await FirebaseFirestore.instance
-          .collection('instructor') // Reference to the collection
-          .add({
-        'id': instructor.length,
-        'instructorId': instructorId,
-        'email': instructorEmail,
-        'password': password
-      });
+      Dio dio = Dio();
+      final response = await dio.post(
+        '${APIProvider.BASE_URL}instructor',
+        data: {
+          'email': instructorEmail,
+        },
+      );
       loading.dismiss();
       setState(() {
         instructor.insert(
             0,
             Instructor(
-                instructorId: instructorId,
+                instructorId: response.data['instructorId'],
                 email: instructorEmail,
-                docId: documentReference.id));
+                docId: response.data['id']));
         entryController.clear();
         passwordController.clear();
       });
-      final Email email = Email(
-        body: 'Instructor password is $password',
-        subject: 'Instructor\'s password',
-        recipients: [instructorEmail],
-        // cc: ['cc@example.com'],
-        // bcc: ['bcc@example.com'],
-        // attachmentPaths: ['/path/to/attachment.zip'],
-        isHTML: false,
-      );
-
-      await FlutterEmailSender.send(email);
 
       // ignore: use_build_context_synchronously
       Globals.showSnackBar(
@@ -102,6 +135,8 @@ class _InstructorScreenState extends State<InstructorScreen> {
       print("Failed to add user: $error");
     }
   }
+
+
 
   void deleteInstructor(String instructorId, int index) async {
     try {
@@ -240,36 +275,6 @@ class _InstructorScreenState extends State<InstructorScreen> {
                     ),
                   ),
                   const Gap(20),
-                  Center(
-                    child: SizedBox(
-                      width: width / 2,
-                      child: TextFormField(
-                        style: valueStyle,
-                        controller: passwordController,
-                        cursorColor: cursorColor,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: AppColors.ligthWhite,
-                          labelStyle: const TextStyle(fontSize: 10),
-                          labelText: 'Enter instructor\'s password',
-                          focusedBorder: focusedBorder,
-                          enabledBorder: enabledBorder,
-                          border: focusedBorder,
-                          errorBorder: errorBorder,
-                          errorStyle: errorStyle,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter the instructor\'s password';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  const Gap(20),
                   Padding(
                     padding: EdgeInsets.only(right: (width / 4) - 20),
                     child: Container(
@@ -283,8 +288,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
                           FocusScope.of(context).requestFocus(FocusNode());
                           if (!formKey.currentState!.validate()) return;
                           addData(
-                              instructorEmail: entryController.text.trim(),
-                              password: passwordController.text.trim());
+                              instructorEmail: entryController.text.trim());
                         },
                         child: const Center(
                             child: Text(

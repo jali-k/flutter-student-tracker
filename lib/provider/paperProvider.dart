@@ -5,9 +5,9 @@ import '../model/Paper.dart';
 import '../model/paper_attempt.dart';
 
 class paperProvider with ChangeNotifier {
-  Map<ExamPaper, AttemptPaper> paperController={};
+  Map<ExamPaper, AttemptPaper?> paperController={};
 
-  setPapers(Map<ExamPaper, AttemptPaper> papers){
+  setPapers(Map<ExamPaper, AttemptPaper?> papers){
     paperController=papers;
     notifyListeners();
   }

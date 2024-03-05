@@ -26,7 +26,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
   bool isLoadingPapers = true;
   int selected = 0;
   final myID = 5;
-  Map<ExamPaper,AttemptPaper> papers = {};
+  Map<ExamPaper,AttemptPaper?> papers = {};
   void handleSelected(int i) {
     for (int j = 0; j < isSelected.length; j++) {
       if (j == i) {
@@ -65,7 +65,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
   }
 
   getPapers() async {
-    Map<ExamPaper,AttemptPaper> p = await PaperMarksService.getStudentPapers();
+    Map<ExamPaper,AttemptPaper?> p = await PaperMarksService.getStudentPapers();
     setState(() {
       papers = p;
       isLoadingPapers = false;
@@ -206,7 +206,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                 children: [
                                   for (var paper in context.watch<paperProvider>().paperController.entries)
                                     Container(
-                                    height: 150,
+                                    height: 200,
                                     width: MediaQuery.of(context).size.width - 60,
                                     margin: const EdgeInsets.only(bottom: 10),
                                     decoration: const BoxDecoration(
@@ -264,19 +264,11 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                           crossAxisAlignment: CrossAxisAlignment.center,
                                                           children: [
                                                             Text(
-                                                              paper.value.totalMarks.toString(),
+                                                              paper.value == null ? '__' : paper.value!.totalMarks.toString(),
                                                               style: const TextStyle(
                                                                 fontSize: 40,
                                                                 fontWeight: FontWeight.bold,
                                                                 color: Color(0xFFA30A0A),
-                                                              ),
-                                                            ),
-                                                            const Text(
-                                                              '%',
-                                                              style: TextStyle(
-                                                                fontSize: 16,
-                                                                fontWeight:
-                                                                    FontWeight.bold,
                                                               ),
                                                             ),
                                                           ],
@@ -308,6 +300,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                     ),
                                                     child: Column(
                                                       mainAxisAlignment: MainAxisAlignment.start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
                                                         Row(
                                                           children: [
@@ -316,11 +309,79 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                               height: 50,
                                                               width: 50,
                                                             ),
-                                                            Text(paper.value.position.toString(),
+                                                            Text(paper.value == null ? '__' : paper.value!.position.toString(),
                                                               style: const TextStyle(
                                                                 fontSize: 24,
                                                                 fontWeight: FontWeight.bold,
                                                               ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        //MCQ,Structured,Essay Marks with the name
+                                                        Column(
+                                                          children: [
+                                                            const SizedBox(height: 5),
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  'MCQ',
+                                                                  style: const TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(width: 10),
+                                                                Text(
+                                                                  paper.value == null ? '__' : paper.value!.mcqMarks == null ? '__' : paper.value!.mcqMarks.toString(),
+                                                                  style: const TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const SizedBox(height: 5),
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  'Structured',
+                                                                  style: const TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(width: 10),
+                                                                Text(
+                                                                  paper.value == null ? '__' : paper.value!.structuredMarks == null ? '__' : paper.value!.structuredMarks.toString(),
+                                                                  style: const TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            const SizedBox(height: 5),
+                                                            Row(
+                                                              mainAxisAlignment: MainAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  'Essay',
+                                                                  style: const TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(width: 10),
+                                                                Text(
+                                                                  paper.value == null ? '__' : paper.value!.essayMarks == null ? '__' : paper.value!.essayMarks.toString(),
+                                                                  style: const TextStyle(
+                                                                    fontSize: 12,
+                                                                    fontWeight: FontWeight.bold,
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
                                                         ),

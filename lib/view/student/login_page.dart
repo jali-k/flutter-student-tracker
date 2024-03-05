@@ -36,12 +36,14 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     if (kDebugMode) {
-      emailController.text = "nilakshahirushan45@gmail.com";
-      passwordController.text = "pwd_nilakshahirushan45";
+      // emailController.text = "nilakshahirushan45@gmail.com";
+      // passwordController.text = "pwd_nilakshahirushan45";
+      // emailController.text = "athmajabhagya123@gmail.com";
+      // passwordController.text = "pwd_athmajabhagya123";
       // emailController.text = "dilushalakmal69@gmail.com";
       // passwordController.text = "pass_dilushalakmal69";
-      // emailController.text = "mihirannimansha@gmail.com";
-      // passwordController.text = "pwd_100001";
+      emailController.text = "dewminamatheesha48@gmail.com";
+      passwordController.text = "pwd_100001";
       // emailController.text = "admin@mail.com";
       // passwordController.text = "123456";
     }
@@ -215,34 +217,7 @@ class _LoginPageState extends State<LoginPage> {
           context,
           MaterialPageRoute(builder: (context) => InstructorEntryScreen()),
         );
-      } else {
-        DocumentSnapshot tempInstructorDoc = await FirebaseFirestore.instance
-            .collection('tempInstructors')
-            .doc(user?.email)
-            .get();
-        if (tempInstructorDoc.exists) {
-          isUserInstructor = true;
-          Instructor? instructor = tempInstructorDoc.exists
-              ? Instructor(
-                  instructorId: user!.uid,
-                  email: tempInstructorDoc.get('email'),
-                  docId: user!.uid,
-                )
-              : null;
-          FirebaseFirestore.instance.collection('instructors').doc(user?.uid).set({
-            'uid': user!.uid,
-            'email': instructor?.email,
-            'students':tempInstructorDoc.get('students')
-          });
-          // save on shared preference
-          prefs.setString('uid', instructor!.instructorId);
-          prefs.setStringList('user', instructor.toList());
-          prefs.setString("role", "instructor");
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => InstructorEntryScreen()),
-          );
-        }
+      }
         else {
           DocumentSnapshot studentDoc = await FirebaseFirestore.instance
               .collection('students')
@@ -276,49 +251,7 @@ class _LoginPageState extends State<LoginPage> {
               context,
               MaterialPageRoute(builder: (context) => MainLayout()),
             );
-          } else {
-
-            DocumentSnapshot tempStudentDoc = await FirebaseFirestore.instance
-                .collection('tempStudents')
-                .doc(user?.email)
-                .get();
-            if (tempStudentDoc.exists) {
-              isUserStudent = true;
-              Student? student = await FirebaseFirestore.instance
-                  .collection('tempStudents')
-                  .doc(user?.email)
-                  .get()
-                  .then((value) =>
-                  Student(
-                firstName:
-                value.get('name').toString().split(" ").length > 0
-                    ? value.get('name').toString().split(" ")[0]
-                    : value.get('name'),
-                lastName: value.get('name').toString().split(" ").length > 1
-                    ? value.get('name').toString().split(" ")[1]
-                    : "",
-                email: value.get('email'),
-                uid: user!.uid.toString(),
-                registrationNumber: value.get('registrationNumber'),
-              ));
-              FirebaseFirestore.instance.collection('students').doc(user?.uid).set({
-                'uid': student!.uid,
-                'email': student.email,
-                'name': student.firstName + " " + student.lastName,
-                'registrationNumber': student.registrationNumber!,
-                'instructorEmail': tempStudentDoc.get('instructorEmail')
-              });
-              // save on shared preference
-
-              prefs.setString('uid', student!.uid);
-              prefs.setStringList('user', student.toList());
-              prefs.setString("role", "student");
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MainLayout()),
-              );
-              return;
-            }
+          }
             else{
               DocumentSnapshot adminDoc = await FirebaseFirestore.instance
                   .collection('admin')
@@ -354,12 +287,6 @@ class _LoginPageState extends State<LoginPage> {
                 );
               }
             }
-
-
-        }
-
-
-        }
       }
 
       setState(() {
