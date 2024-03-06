@@ -42,10 +42,10 @@ class _LoginPageState extends State<LoginPage> {
       // passwordController.text = "pwd_athmajabhagya123";
       // emailController.text = "dilushalakmal69@gmail.com";
       // passwordController.text = "pass_dilushalakmal69";
-      emailController.text = "dewminamatheesha48@gmail.com";
-      passwordController.text = "pwd_100001";
-      // emailController.text = "admin@mail.com";
-      // passwordController.text = "123456";
+      // emailController.text = "dewminamatheesha48@gmail.com";
+      // passwordController.text = "pwd_100001";
+      emailController.text = "admin@mail.com";
+      passwordController.text = "123456";
     }
   }
 
@@ -189,7 +189,6 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       UserCredential? userCredential = await AuthService.signInWithGoogle();
-      print(userCredential?.user?.email);
       User? user = userCredential.user;
       String? error;
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -361,7 +360,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 20),
                         if(kDebugMode)
-                        Padding(
+                          Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: TextField(
                             controller: emailController,

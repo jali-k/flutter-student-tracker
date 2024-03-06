@@ -5,7 +5,9 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/Subject.dart';
 import 'package:spt/model/leaderboard_entries.dart';
+import 'package:spt/model/student_details.dart';
 
 class FocusService{
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -172,6 +174,39 @@ static Future<List<LeaderBoardEntries>> getSubjectLeaderBoardEntries(String subj
     List<LeaderBoardEntries> leaderBoardEntries = await getOverallLeaderBoardEntries();
     int position = leaderBoardEntries.indexWhere((element) => element.uid == _auth.currentUser!.uid);
     return (position+1);
+  }
+
+  static Future<Map<String, Map<String, int>>> getFocusDataBySubjectAndLesson() async {
+    QuerySnapshot focusData = await _firestore.collection('focusData').where('userID',isEqualTo: _auth.currentUser!.uid).get();
+    //subject -> lesson -> duration
+    Map<String,Map<String,int>> focusDataBySubjectAndLesson = {};
+    Map<String,String> lessonIDToLessonName = {};
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collectionGroup('lessons').get();
+    for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
+      lessonIDToLessonName[documentSnapshot.id] = documentSnapshot.get('name');
+    }
+
+    for (var doc in focusData.docs) {
+      String subjectName = doc['subjectName'];
+      //make subject name uppercase first letter
+      String lessonID = doc['lessonID'];
+      int duration = doc['duration'];
+      bool isCompleted = doc['isCompleted'];
+      if(!isCompleted){
+        continue;
+      }
+      if(focusDataBySubjectAndLesson.containsKey(subjectName)){
+        if(focusDataBySubjectAndLesson[subjectName]!.containsKey(lessonID)){
+          focusDataBySubjectAndLesson[subjectName]![lessonIDToLessonName[lessonID]!] =
+              focusDataBySubjectAndLesson[subjectName]![lessonIDToLessonName[lessonID]!]! + duration;
+        }else{
+          focusDataBySubjectAndLesson[subjectName]![lessonIDToLessonName[lessonID]!] = duration;
+        }
+      }else{
+        focusDataBySubjectAndLesson[subjectName] = {lessonIDToLessonName[lessonID]!: duration};
+      }
+    }
+    return focusDataBySubjectAndLesson;
   }
 
 

@@ -54,6 +54,7 @@ class AuthService {
 
   static void signOut() async{
     _auth.signOut();
+    await GoogleSignIn().signOut();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
   }
@@ -119,7 +120,8 @@ class AuthService {
   }
 
   static Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    final GoogleSignInAccount? googleUser = await GoogleSignIn(
+    ).signIn();
 
     // Obtain the auth details from the request
     final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;

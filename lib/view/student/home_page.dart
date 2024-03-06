@@ -51,7 +51,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   getMarks() async{
-    List<QueryDocumentSnapshot> _paperMarks = await PaperMarksService.getPaperMarksReference();
+    List<QueryDocumentSnapshot>? _paperMarks = await PaperMarksService.getPaperMarksReference();
+    if(_paperMarks == null) {
+      if (!mounted) return;
+      Provider.of<attemptedPaperProvider>(context, listen: false).setLoader(false);
+      return;
+    }
     List<AttemptPaper> _marks = [];
     for (DocumentSnapshot m in _paperMarks) {
       AttemptPaper atmp = AttemptPaper.fromMap(m);
@@ -90,6 +95,7 @@ class _HomePageState extends State<HomePage> {
     List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
     if(!mounted) return;
     Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
+
   }
 
 

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
+import 'package:spt/model/student_details.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/util/SubjectColorUtil.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -46,6 +47,7 @@ class _FocusModeState extends State<FocusMode> {
   bool isPaused = false;
   bool isStarted = false;
   final List<int> _timeDuration = [25, 30, 35, 40, 45, 50, 55, 60];
+  late Map<String,Map<String,int>> focusData = {};
   List<ChartData> dailyChartData = [];
   List<ChartData> weeklyChartData = [];
   List<ChartData> monthlyChartData = [];
@@ -70,6 +72,14 @@ class _FocusModeState extends State<FocusMode> {
     lessonContent = widget.lessonContent;
     checkEnabledFocus();
     getRecentData();
+    getFocusData();
+  }
+
+  getFocusData() async {
+    Map<String,Map<String,int>> _focusData = await FocusService.getFocusDataBySubjectAndLesson();
+    setState(() {
+      focusData = _focusData;
+    });
   }
 
   changeStat(int index, StateSetter changeState) {
@@ -671,8 +681,36 @@ class _FocusModeState extends State<FocusMode> {
           ),
           // See more button
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              //report button
+              TextButton(
+                onPressed: () {
+                  showReport();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+                child: const Row(
+                  children: [
+                    Text(
+                      'Report',
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Icon(
+                      Icons.ac_unit,
+                      size: 15,
+                    ),
+                  ],
+                ),
+              ),
               TextButton(
                 onPressed: () {
                   showStatistics(weeklyChartData);
@@ -698,6 +736,7 @@ class _FocusModeState extends State<FocusMode> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
               ),
+
             ],
           )
 
@@ -904,8 +943,18 @@ class _FocusModeState extends State<FocusMode> {
                           color: Colors.white,
                         ),
                       ),
+                      if(selectedStat["hour"]! >= 2)
                       Text(
                         'Good Job! Keep it up',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0XFFC3E2C2),
+                        ),
+                      ),
+                      if(selectedStat["hour"]! < 2)
+                      Text(
+                        'Focus more!',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -922,6 +971,119 @@ class _FocusModeState extends State<FocusMode> {
       },
     );
   }
+
+  void showReport() {
+    showModalBottomSheet(
+        context: context,
+        useSafeArea: true,
+        isScrollControlled: true,
+        enableDrag: true,
+        backgroundColor: Color(0xFF424242),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(50),
+            topRight: Radius.circular(50),
+          ),
+        ),
+        builder: (context) {
+          return Container(
+              height: MediaQuery.of(context).size.height - 100,
+              width: MediaQuery.of(context).size.width,
+              decoration: const BoxDecoration(
+                color: Color(0xFF424242),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(50),
+                  topRight: Radius.circular(50),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                  children: [
+                   //Title and List of Reports focusData by subject expansion and lessons
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "REPORT",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    //List of Reports
+                    Container(
+                      height: 600,
+                      child: focusData.length == 0 ? Center(
+                        child: Text(
+                          "No data available",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ) :
+                      ListView.builder(
+                        itemCount: focusData.length,
+                        itemBuilder: (context, index) {
+                          return ExpansionTile(
+                            title: Text(
+                              focusData.keys.elementAt(index)[0].toUpperCase() + focusData.keys.elementAt(index).substring(1),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            backgroundColor: Color(0xFF818181),
+                            collapsedBackgroundColor: Color(0xFF565656),
+                            children: [
+                              Container(
+                                height: 200,
+                                child: ListView.builder(
+                                  itemCount: focusData[focusData.keys.elementAt(index)]!.length,
+                                  itemBuilder: (context, i) {
+                                    return ListTile(
+                                      title: Text(
+                                        focusData[focusData.keys.elementAt(index)]!.keys.elementAt(i),
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      trailing: Text(
+                                        '${focusData[focusData.keys.elementAt(index)]!.values.elementAt(i)} mins',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ]
+              )
+          );
+        }
+    );
+  }
+
+
 }
 
 class ChartData {

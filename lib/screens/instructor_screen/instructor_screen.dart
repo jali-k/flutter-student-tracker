@@ -110,11 +110,12 @@ class _InstructorScreenState extends State<InstructorScreen> {
       loading.show();
       Dio dio = Dio();
       final response = await dio.post(
-        '${APIProvider.BASE_URL}instructor',
+        '${APIProvider.BASE_URL}/instructor',
         data: {
           'email': instructorEmail,
         },
       );
+      print("Response is: ${response.data}");
       loading.dismiss();
       setState(() {
         instructor.insert(

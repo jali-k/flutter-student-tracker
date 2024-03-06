@@ -13,10 +13,14 @@ class PaperMarksService {
     String userID = _auth.currentUser!.uid;
     //get student registration number
     DocumentSnapshot student = await _firestore.collection('students').doc(userID).get();
+    if(student.exists){
+      int registrationNumber = student['registrationNumber'];
+      QuerySnapshot marks =await  _firestore.collection('marks').where('studentId',isEqualTo: registrationNumber).get();
+      return marks.docs;
+    }
+    return null;
 
-    int registrationNumber = student['registrationNumber'];
-    QuerySnapshot marks =await  _firestore.collection('marks').where('studentId',isEqualTo: registrationNumber).get();
-    return marks.docs;
+
   }
 
   static Future<int> getLeaderboardPosition(String paperId,int studentId) async {

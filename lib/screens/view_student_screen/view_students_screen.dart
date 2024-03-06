@@ -160,7 +160,7 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                     itemCount: studentDetails.focusData.length,
                     itemBuilder: (context, index) {
                       return ListTile(
-                        title: Text(studentDetails.focusData[index].subjectName),
+                        title: Text(studentDetails.focusData[index].subjectName[0].toUpperCase() + studentDetails.focusData[index].subjectName.substring(1)),
                         subtitle: Text(lessonIdToLessonName[studentDetails.focusData[index].lessonID]!),
                         trailing: Text('${focusDataBySubjectAndLesson[studentDetails.focusData[index].subjectName]![studentDetails.focusData[index].lessonID]!} mins'),
                       );
