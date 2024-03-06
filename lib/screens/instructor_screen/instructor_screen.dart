@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:spt/services/api_provider.dart';
-import 'package:uuid/uuid.dart';
+import 'dart:math' as math;
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 
 import '../../globals.dart';
@@ -42,17 +42,18 @@ class _InstructorScreenState extends State<InstructorScreen> {
       isLoading = true;
     });
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('instructor')
-        .orderBy('id', descending: true)
+        .collection('Instructors')
+        .orderBy('email', descending: false)
         .get();
     setState(() {
       data.addAll(querySnapshot.docs);
-      data.forEach((email) {
+      for (var email in data) {
         instructor.add(Instructor(
-            instructorId: email['instructorId'],
+            instructorId: email['uid'],
             email: email['email'],
-            docId: email.id));
-      });
+            docId: email.id
+        ));
+      }
       isLoading = false;
     });
   }
@@ -115,18 +116,14 @@ class _InstructorScreenState extends State<InstructorScreen> {
           'email': instructorEmail,
         },
       );
-      print("Response is: ${response.data}");
+      instructor.add(Instructor(
+          instructorId: response.data['uid'],
+          email: instructorEmail,
+          docId: response.data['uid']
+      ));
       loading.dismiss();
-      setState(() {
-        instructor.insert(
-            0,
-            Instructor(
-                instructorId: response.data['instructorId'],
-                email: instructorEmail,
-                docId: response.data['id']));
-        entryController.clear();
-        passwordController.clear();
-      });
+      entryController.clear();
+      passwordController.clear();
 
       // ignore: use_build_context_synchronously
       Globals.showSnackBar(
@@ -141,11 +138,12 @@ class _InstructorScreenState extends State<InstructorScreen> {
 
   void deleteInstructor(String instructorId, int index) async {
     try {
-      DocumentReference documentReference =
-      FirebaseFirestore.instance.collection('instructor').doc(instructorId);
       final loading = LoadingPopup(context);
       loading.show();
-      await documentReference.delete();
+      Dio dio = Dio();
+      final response = await dio.delete(
+        '${APIProvider.BASE_URL}/instructor/$instructorId',
+      );
       loading.dismiss();
       setState(() {
         instructor.removeAt(index);
@@ -362,11 +360,6 @@ class _InstructorScreenState extends State<InstructorScreen> {
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.black),
                                       ),
-                                      const Text(
-                                        'email',
-                                        style: TextStyle(
-                                            color: AppColors.black),
-                                      )
                                     ],
                                   ),
                                 ),
