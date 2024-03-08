@@ -196,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
       bool isUserStudent = false;
       bool isUserAdmin = false;
       DocumentSnapshot instructorDoc = await FirebaseFirestore.instance
-          .collection('instructors')
+          .collection('Instructors')
           .doc(user?.uid)
           .get();
       if (instructorDoc.exists) {
