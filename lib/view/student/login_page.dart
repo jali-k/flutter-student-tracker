@@ -345,125 +345,141 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(100),
+                        topRight: Radius.circular(50),
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 40),
-                        const Text(
-                          'Welcome',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 40),
+                          const Text(
+                            'Welcome',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        if(kDebugMode)
+                          const SizedBox(height: 20),
+                          if(kDebugMode)
+                            Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextField(
+                              controller: emailController,
+                              decoration: InputDecoration(
+                                hintText: 'Email Address',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                prefixIcon: const Icon(Icons.email),
+                                prefixIconColor: Color(0xFF00C897).withOpacity(0.4),
+                              ),
+                            ),
+                          ),
+                          if(kDebugMode)
+                          const SizedBox(height: 20),
+                          if(kDebugMode)
                           Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: emailController,
-                            decoration: InputDecoration(
-                              hintText: 'Email Address',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: TextField(
+                              controller: passwordController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                hintText: 'Password',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                prefixIcon: const Icon(Icons.lock),
+                                prefixIconColor: Color(0xFF00C897).withOpacity(0.4)
                               ),
-                              prefixIcon: const Icon(Icons.email),
-                              prefixIconColor: Color(0xFF00C897).withOpacity(0.4),
                             ),
                           ),
-                        ),
-                        if(kDebugMode)
-                        const SizedBox(height: 20),
-                        if(kDebugMode)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: TextField(
-                            controller: passwordController,
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              hintText: 'Password',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                          if(kDebugMode)
+                          const SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            margin: const EdgeInsets.symmetric(vertical: 20),
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            child: Text(
+                              'Dopamine is an online learning platform for advanced level students. '
+                                  'It is to improve and enhance your studies and evaluate your progress.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16
                               ),
-                              prefixIcon: const Icon(Icons.lock),
-                              prefixIconColor: Color(0xFF00C897).withOpacity(0.4)
                             ),
                           ),
-                        ),
-                        if(kDebugMode)
-                        const SizedBox(height: 20),
-                        // sign in with google
-                        if (!kIsWeb)
+                          // sign in with google
+                          if (!kIsWeb)
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  _signInWithGoogle();
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.network(
+                                        'http://pngimg.com/uploads/google/google_PNG19635.png',
+                                        fit: BoxFit.cover),
+                                    const SizedBox(width: 10),
+                                    const Text('Sign in with Google',
+                                        style: TextStyle(
+                                            fontSize: 18, color: Colors.black)),
+                                  ],
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 40, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: const BorderSide(color: Colors.black),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (!kIsWeb) const SizedBox(height: 20),
+                          if(kDebugMode)
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.8,
                             height: 50,
                             child: ElevatedButton(
                               onPressed: () {
-                                _signInWithGoogle();
+                                _login();
                               },
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.network(
-                                      'http://pngimg.com/uploads/google/google_PNG19635.png',
-                                      fit: BoxFit.cover),
-                                  const SizedBox(width: 10),
-                                  const Text('Sign in with Google',
-                                      style: TextStyle(
-                                          fontSize: 18, color: Colors.black)),
-                                ],
-                              ),
+                              child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 40, vertical: 10),
+                                backgroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
-                                  side: const BorderSide(color: Colors.black),
                                 ),
                               ),
                             ),
                           ),
-                        if (!kIsWeb) const SizedBox(height: 20),
-                        if(kDebugMode)
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _login();
-                            },
-                            child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.center,
-                        //   children: [
-                        //     const Text('Don\'t have an account?'),
-                        //     const SizedBox(width: 10),
-                        //     Text('|'),
-                        //     TextButton(
-                        //       onPressed: () {
-                        //         Navigator.push(
-                        //           context,
-                        //           MaterialPageRoute(builder: (context) => const SignUpPage()
-                        //         ));
-                        //       },
-                        //       child: const Text('Create'),
-                        //     ),
-                        //   ],
-                        // ),
-                      ],
+                          const SizedBox(height: 20),
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.center,
+                          //   children: [
+                          //     const Text('Don\'t have an account?'),
+                          //     const SizedBox(width: 10),
+                          //     Text('|'),
+                          //     TextButton(
+                          //       onPressed: () {
+                          //         Navigator.push(
+                          //           context,
+                          //           MaterialPageRoute(builder: (context) => const SignUpPage()
+                          //         ));
+                          //       },
+                          //       child: const Text('Create'),
+                          //     ),
+                          //   ],
+                          // ),
+                        ],
+                      ),
                     ),
                   )),
               if (loading)
