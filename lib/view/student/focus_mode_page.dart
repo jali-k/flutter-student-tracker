@@ -292,8 +292,6 @@ class _FocusModeState extends State<FocusMode> {
         isStarted = true;
       });
       timer = Timer(Duration(minutes: selectedTime), () {
-        print("Time is up!");
-        // Show the alert
         FocusService.endFocusOnLesson();
         showDialog(
           context: context,

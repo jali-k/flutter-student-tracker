@@ -95,7 +95,6 @@ class _HomePageState extends State<HomePage> {
     List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
     if(!mounted) return;
     Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
-
   }
 
 

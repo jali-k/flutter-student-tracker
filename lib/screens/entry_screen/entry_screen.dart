@@ -116,11 +116,21 @@ class _EntryScreenState extends State<EntryScreen> {
 
   void deletePaper(String paperDocId, int index) async {
     try {
-      DocumentReference documentReference =
-      FirebaseFirestore.instance.collection('papers').doc(paperDocId);
       final loading = LoadingPopup(context);
       loading.show();
+      DocumentReference documentReference =
+      FirebaseFirestore.instance.collection('papers').doc(paperDocId);
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('marks')
+          .where('paperId', isEqualTo: paperDocId)
+          .get();
       await documentReference.delete();
+      querySnapshot.docs.forEach((element) async {
+        await FirebaseFirestore.instance
+            .collection('marks')
+            .doc(element.id)
+            .delete();
+      });
       loading.dismiss();
       setState(() {
         paperList.removeAt(index);

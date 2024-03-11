@@ -118,13 +118,26 @@ class FocusService{
         leaderBoardEntries[index].marks += doc['duration'] as int;
       } else {
         //add new entry
-        LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
-          uid: doc['userID'],
-          marks: doc['duration'] as int,
-          position: 0,
-          name: student.docs[0]['name'],
-        );
-        leaderBoardEntries.add(leaderBoardEntry);
+        if(student.docs.isNotEmpty){
+          LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
+            uid: doc['userID'],
+            marks: doc['duration'] as int,
+            position: 0,
+            name: student.docs[0]['name'],
+          );
+
+          leaderBoardEntries.add(leaderBoardEntry);
+        }else{
+          LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
+            uid: doc['userID'],
+            marks: doc['duration'] as int,
+            position: 0,
+            name: "Unknown",
+          );
+
+          leaderBoardEntries.add(leaderBoardEntry);
+        }
+
       }
     }
     print(leaderBoardEntries.length);
@@ -150,13 +163,24 @@ static Future<List<LeaderBoardEntries>> getSubjectLeaderBoardEntries(String subj
         leaderBoardEntries[index].marks += doc['duration'] as int;
       } else {
         //add new entry
-        LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
-          uid: doc['userID'],
-          marks: doc['duration'] as int,
-          position: 0,
-          name: student.docs[0]['name'],
-        );
-        leaderBoardEntries.add(leaderBoardEntry);
+        if(student.docs.isNotEmpty) {
+          LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
+            uid: doc['userID'],
+            marks: doc['duration'] as int,
+            position: 0,
+            name: student.docs[0]['name'],
+          );
+
+          leaderBoardEntries.add(leaderBoardEntry);
+        }else{
+          LeaderBoardEntries leaderBoardEntry = LeaderBoardEntries(
+            uid: doc['userID'],
+            marks: doc['duration'] as int,
+            position: 0,
+            name: "Unknown",
+          );
+          leaderBoardEntries.add(leaderBoardEntry);
+        }
       }
     }
     print(leaderBoardEntries.length);

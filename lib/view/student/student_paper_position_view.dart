@@ -9,6 +9,8 @@ import 'package:toggle_switch/toggle_switch.dart';
 import '../../layout/main_layout.dart';
 import '../../model/Paper.dart';
 import '../../model/leaderboard_entries.dart';
+import '../../model/paper_attempt.dart';
+import '../../provider/paperProvider.dart';
 import '../../services/leaderboard_service.dart';
 
 class StudentPaperPositionPage extends StatefulWidget {
@@ -61,8 +63,9 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
   }
 
   void getCurrentPaper() {
-    ExamPaper paper = Provider.of<attemptedPaperProvider>(context, listen: false).papers.where((element) => element.paperId == widget.paperId).isNotEmpty ? Provider.of<attemptedPaperProvider>(context, listen: false).papers.where((element) => element.paperId == widget.paperId).first : Provider.of<attemptedPaperProvider>(context, listen: false).papers.first;
-    int index = Provider.of<attemptedPaperProvider>(context, listen: false).papers.indexOf(paper);
+    Map<ExamPaper, AttemptPaper?> paperList =  Provider.of<paperProvider>(context, listen: false).paperController;
+    ExamPaper paper = paperList.keys.where((element) => element.paperId == widget.paperId).first;
+    int index = paperList.keys.toList().indexOf(paper);
     _paperSelectorBloc.sink.add(index);
     _paperBloc.sink.add(paper.paperId);
   }
@@ -71,7 +74,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    // getPaperLeaderBoard();
+    getPaperLeaderBoard();
     getCurrentPaper();
   }
 
@@ -137,7 +140,7 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                             if(snapshot.hasData){
                               print("Index: ${snapshot.data}");
                               int index = snapshot.data!;
-                              List<ExamPaper> papers =  context.watch<attemptedPaperProvider>().papers;
+                              List<ExamPaper> papers =  context.watch<paperProvider>().paperController.keys.toList();
                               ExamPaper paper = papers[index];
                               return Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -246,7 +249,20 @@ class _StudentPaperPositionPageState extends State<StudentPaperPositionPage> {
                             stream: _paperBloc.stream,
                             builder: (context, snapshot) {
                               if(snapshot.hasData){
-                                List<LeaderBoardEntries> entries = context.watch<attemptedPaperProvider>().leaderBoard[snapshot.data]!;
+                                List<LeaderBoardEntries>? entries = context.watch<attemptedPaperProvider>().leaderBoard[snapshot.data];
+                                if(entries == null){
+                                  return Container(
+                                    child: Center(
+                                      child: Text(
+                                        'No Leaderboard Entries',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
                                 return ListView.builder(
                                   controller: _scrollController,
                                   itemBuilder: (context, index) {

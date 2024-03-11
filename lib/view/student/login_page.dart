@@ -42,10 +42,13 @@ class _LoginPageState extends State<LoginPage> {
       // passwordController.text = "pwd_athmajabhagya123";
       // emailController.text = "dilushalakmal69@gmail.com";
       // passwordController.text = "pass_dilushalakmal69";
-      // emailController.text = "dewminamatheesha48@gmail.com";
-      // passwordController.text = "pwd_100001";
+      // emailController.text = "asithumi2004@gmail.com";
+      // passwordController.text = "pwd_101098";
       emailController.text = "admin@mail.com";
       passwordController.text = "123456";
+
+      // emailController.text = "ehasikaherath@gmail.com";
+      // passwordController.text = "pwd_100748";
     }
   }
 
@@ -72,6 +75,20 @@ class _LoginPageState extends State<LoginPage> {
       // String password = "123456";
       User? user =
           await AuthService.signInWithEmailAndPassword(email, password);
+      if(user == null){
+        error = 'Could not sign in with those credentials';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          loading = false;
+        });
+        return;
+
+      }
       bool isUserInstructor = false;
       bool isUserStudent = false;
       bool isUserAdmin = false;
@@ -108,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
             isUserStudent = true;
             Student? student = await FirebaseFirestore.instance
                 .collection('students')
-                .doc(user!.uid)
+                .doc(user.uid)
                 .get()
                 .then((value) => Student(
                       firstName:
@@ -360,7 +377,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          if(kDebugMode)
+                          if(kDebugMode || !kIsWeb)
                             Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: TextField(
@@ -375,9 +392,9 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          if(kDebugMode)
+                          if(kDebugMode || !kIsWeb)
                           const SizedBox(height: 20),
-                          if(kDebugMode)
+                          if(kDebugMode || !kIsWeb)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: TextField(
@@ -393,7 +410,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          if(kDebugMode)
+                          if(kDebugMode || !kIsWeb)
                           const SizedBox(height: 20),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -410,7 +427,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           // sign in with google
-                          if (!kIsWeb)
+                          if (kIsWeb)
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.8,
                               height: 50,

@@ -40,16 +40,6 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
     });
   }
 
-  Future<void> _runMethod(
-      BuildContext context,
-      Future<void> Function() method,
-      ) async {
-    try {
-      await method();
-    } catch (error) {
-      print('Error: $error');
-    }
-  }
 
   showOverlay() async {
     if(!await FlutterOverlayWindow.isPermissionGranted()){
@@ -251,12 +241,15 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                                     child: Column(
                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
-                                                        Text(
-                                                          paper.key.paperName,
-                                                          style: const TextStyle(
-                                                            fontSize: 20,
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                        Container(
+                                                          width: MediaQuery.of(context).size.width * 0.4,
+                                                          child: Text(
+                                                            paper.key.paperName,
+                                                            style: const TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight:
+                                                                  FontWeight.bold,
+                                                            ),
                                                           ),
                                                         ),
                                                         Row(

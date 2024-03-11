@@ -93,9 +93,10 @@ class PaperMarksService {
     }
     //get all papers and set it to the papers map and make values to null
     QuerySnapshot allPapers = await _firestore.collection('papers').get();
+    List<String> paperIds = papers.keys.map((e) => e.paperId).toList();
     for (var paper in allPapers.docs) {
       ExamPaper p = ExamPaper.fromQuery(paper);
-      if(!papers.containsKey(p)){
+      if(!paperIds.contains(p.paperId)){
         papers[p] = null;
       }
     }

@@ -17,6 +17,10 @@ class attemptedPaperProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  getLeaderBoardEntries(String paperId){
+    return leaderBoard[paperId];
+  }
+
   setLoader(bool isLoading){
     this.isLoading=isLoading;
     notifyListeners();
