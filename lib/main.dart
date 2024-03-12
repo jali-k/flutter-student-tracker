@@ -24,25 +24,25 @@ main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseAppCheck.instance.activate(androidProvider: AndroidProvider.debug);
-  await AwesomeNotifications().initialize(
-    null,
-    [
-      NotificationChannel(
-        channelKey: 'basic_channel',
-        channelName: 'Basic notifications',
-        channelDescription: 'Notification channel for basic tests',
-        defaultColor: Color(0xFF9D50DD),
-        ledColor: Colors.white,
-      )
-    ],
-    channelGroups: [
-      NotificationChannelGroup(
-        channelGroupKey: 'grouped',
-        channelGroupName: 'Grouped notifications',
-      )
-    ],
-  );
+  // await FirebaseAppCheck.instance.activate(androidProvider: AndroidProvider.debug);
+  // await AwesomeNotifications().initialize(
+  //   null,
+  //   [
+  //     NotificationChannel(
+  //       channelKey: 'basic_channel',
+  //       channelName: 'Basic notifications',
+  //       channelDescription: 'Notification channel for basic tests',
+  //       defaultColor: Color(0xFF9D50DD),
+  //       ledColor: Colors.white,
+  //     )
+  //   ],
+  //   channelGroups: [
+  //     NotificationChannelGroup(
+  //       channelGroupKey: 'grouped',
+  //       channelGroupName: 'Grouped notifications',
+  //     )
+  //   ],
+  // );
 
   bool permissionGranted = await AwesomeNotifications().isNotificationAllowed();
   if (!permissionGranted) {

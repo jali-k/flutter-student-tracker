@@ -67,6 +67,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '399348135128',
     projectId: 'student-progress-app-854fa',
     storageBucket: 'student-progress-app-854fa.appspot.com',
+    androidClientId: '399348135128-g8358l94ne5ugi03vrcahgi4keumauf3.apps.googleusercontent.com',
+    iosClientId: '399348135128-fdc4u1s11mr0kihrm50i9d1601n09inq.apps.googleusercontent.com',
     iosBundleId: 'com.spt.spt',
   );
 
@@ -76,6 +78,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '399348135128',
     projectId: 'student-progress-app-854fa',
     storageBucket: 'student-progress-app-854fa.appspot.com',
+    androidClientId: '399348135128-g8358l94ne5ugi03vrcahgi4keumauf3.apps.googleusercontent.com',
+    iosClientId: '399348135128-o244kddhu1h5sj7qc4kgt0vqqshckdti.apps.googleusercontent.com',
     iosBundleId: 'com.spt.spt.RunnerTests',
   );
 }

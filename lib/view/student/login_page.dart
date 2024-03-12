@@ -205,8 +205,32 @@ class _LoginPageState extends State<LoginPage> {
       loading = true;
     });
     try {
-      UserCredential? userCredential = await AuthService.signInWithGoogle();
-      User? user = userCredential.user;
+      UserCredential? userCredential;
+      User? user;
+      // UserCredential? userCredential = await AuthService.signInWithGoogle();
+      // User? user = userCredential.user;
+
+      if(kIsWeb){
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+        user = userCredential.user;
+      }else{
+        userCredential = await AuthService.signInWithGoogle();
+        user = userCredential.user;
+      }
+      if(user == null){
+        setState(() {
+          loading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Could not sign in with those credentials'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       String? error;
       SharedPreferences prefs = await SharedPreferences.getInstance();
       bool isUserInstructor = false;
