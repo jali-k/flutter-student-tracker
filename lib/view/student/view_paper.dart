@@ -40,6 +40,44 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
     });
   }
 
+  ShowReleaseSoonBanner(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(''),
+          content: //create fancy content with images
+          Container(
+            width: 300,
+            height: 230,
+            child: Column(
+              children: [
+                Container(
+                    width: 200,
+                    height: 200,
+                    child: Image.asset('assets/images/cs.gif',width: 100,height: 100,)),
+                Text('This feature will be ',style: TextStyle(fontSize: 10,fontWeight: FontWeight.w200)),
+                Text('available soon',style: TextStyle(fontSize: 10,fontWeight: FontWeight.w200)),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Close'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Color(0xFF00C897),
+                )
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.center,
+        );
+      },
+    );
+  }
+
 
   showOverlay() async {
     if(!await FlutterOverlayWindow.isPermissionGranted()){
@@ -75,7 +113,7 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
     // TODO: implement initState
     super.initState();
     getPapers();
-    getPaperLeaderBoard();
+    // getPaperLeaderBoard();
 
 
     // _requestOverlayPermission(context);
@@ -400,10 +438,12 @@ class _StudentMarksPageState extends State<StudentMarksPage> {
                                             ),
                                             child: ElevatedButton(
                                                 onPressed: () {
-                                                  Navigator.push
-                                                    (context,
-                                                      MaterialPageRoute(builder: (context) => StudentPaperPositionPage(paper.key.paperId))
-                                                  );
+                                                  // Navigator.push
+                                                  //   (context,
+                                                  //     MaterialPageRoute(builder: (context) => StudentPaperPositionPage(paper.key.paperId))
+                                                  // );
+                                                  ShowReleaseSoonBanner(context);
+
                                                 },
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor: const Color(0xFF00C897),

@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -97,6 +99,23 @@ class _HomePageState extends State<HomePage> {
     Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
   }
 
+  // void getPaperLeaderBoard() async {
+  //   final ReceivePort receivePort = ReceivePort();
+  //   List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
+  //   await Isolate.spawn(LeaderBoardService.getISOLeaderBoard, receivePort.sendPort);
+  //   receivePort.listen((message) {
+  //     if(!mounted) return;
+  //     Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,message);
+  //   });
+  //
+  // }
+
+
+
+
+
+
+
 
   @override
   void initState() {
@@ -105,7 +124,7 @@ class _HomePageState extends State<HomePage> {
     getMarks();
     super.initState();
     getSubjectFocus();
-    getPaperLeaderBoard();
+    // getPaperLeaderBoard();
   }
 
   @override

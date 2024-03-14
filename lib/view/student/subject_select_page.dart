@@ -87,6 +87,45 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
   }
 
 
+  ShowReleaseSoonBanner(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(''),
+          content: //create fancy content with images
+          Container(
+            width: 300,
+            height: 230,
+            child: Column(
+              children: [
+                Container(
+                  width: 200,
+                  height: 200,
+                    child: Image.asset('assets/images/cs.gif',width: 100,height: 100,)),
+                Text('This feature will be ',style: TextStyle(fontSize: 10,fontWeight: FontWeight.w200)),
+                Text('available soon',style: TextStyle(fontSize: 10,fontWeight: FontWeight.w200)),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF00C897),
+              )
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.center,
+        );
+      },
+    );
+  }
+
+
 
   @override
   void initState() {
@@ -228,13 +267,14 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: GestureDetector(
                   onTap: () {
-                    if(!widget.enableFocus){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
-                        ),
-                      );
+                    if(!widget.enableFocus) {
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
+                      //   ),
+                      // );
+                      ShowReleaseSoonBanner(context);
                     }
                   },
                   child: Row(
