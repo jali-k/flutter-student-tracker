@@ -44,8 +44,8 @@ class _LoginPageState extends State<LoginPage> {
       // passwordController.text = "pass_dilushalakmal69";
       // emailController.text = "asithumi2004@gmail.com";
       // passwordController.text = "pwd_101098";
-      emailController.text = "admin@mail.com";
-      passwordController.text = "123456";
+      emailController.text = "chamudidewanga@gmail.com";
+      passwordController.text = "pwd_101725";
 
       // emailController.text = "ehasikaherath@gmail.com";
       // passwordController.text = "pwd_100748";
@@ -377,7 +377,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          if(kDebugMode || !kIsWeb)
+                          if(kDebugMode && !kIsWeb)
                             Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: TextField(
@@ -392,9 +392,9 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          if(kDebugMode || !kIsWeb)
+                          if(kDebugMode && !kIsWeb)
                           const SizedBox(height: 20),
-                          if(kDebugMode || !kIsWeb)
+                          if(kDebugMode && !kIsWeb)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: TextField(
@@ -410,7 +410,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          if(kDebugMode || !kIsWeb)
+                          if(kDebugMode && !kIsWeb)
                           const SizedBox(height: 20),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -427,7 +427,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           // sign in with google
-                          if (kIsWeb)
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.8,
                               height: 50,
