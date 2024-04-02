@@ -108,7 +108,7 @@ class FocusService{
 
   static Future<List<LeaderBoardEntries>> getOverallLeaderBoardEntries() async {
     List<LeaderBoardEntries> leaderBoardEntries = [];
-    QuerySnapshot focusData = await _firestore.collection('focusData').get();
+    QuerySnapshot focusData = await _firestore.collection('focusData').limit(50).get();
     for (var doc in focusData.docs) {
       QuerySnapshot student =await _firestore.collection('students').where('uid',isEqualTo: doc['userID']).get();
       // if leaderBoardEntries contains student uid

@@ -44,11 +44,13 @@ class _LoginPageState extends State<LoginPage> {
       // passwordController.text = "pass_dilushalakmal69";
       // emailController.text = "asithumi2004@gmail.com";
       // passwordController.text = "pwd_101098";
-      emailController.text = "chamudidewanga@gmail.com";
-      passwordController.text = "pwd_101725";
+      // emailController.text = "chamudidewanga@gmail.com";
+      // passwordController.text = "pwd_101725";
+      // emailController.text = "admin@mail.com";
+      // passwordController.text = "123456";
 
-      // emailController.text = "ehasikaherath@gmail.com";
-      // passwordController.text = "pwd_100748";
+      emailController.text = "snehasilva28@gmail.com";
+      passwordController.text = "pwd_101900";
     }
   }
 
