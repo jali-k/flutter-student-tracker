@@ -108,7 +108,8 @@ class FocusService{
 
   static Future<List<LeaderBoardEntries>> getOverallLeaderBoardEntries() async {
     List<LeaderBoardEntries> leaderBoardEntries = [];
-    QuerySnapshot focusData = await _firestore.collection('focusData').get();
+    QuerySnapshot focusData = await _firestore.collection('focusData').where('startAt',isGreaterThan: DateTime.now().subtract(const Duration(days: 1))).get();
+    //List
     for (var doc in focusData.docs) {
       QuerySnapshot student =await _firestore.collection('students').where('uid',isEqualTo: doc['userID']).get();
       // if leaderBoardEntries contains student uid
@@ -153,7 +154,7 @@ class FocusService{
 
 static Future<List<LeaderBoardEntries>> getSubjectLeaderBoardEntries(String subject) async {
     List<LeaderBoardEntries> leaderBoardEntries = [];
-    QuerySnapshot focusData = await _firestore.collection('focusData').where('subjectName',isEqualTo: subject).get();
+    QuerySnapshot focusData = await _firestore.collection('focusData').where('subjectName',isEqualTo: subject).where('startAt',isGreaterThan: DateTime.now().subtract(const Duration(days: 1))).limit(100).get();
     for (var doc in focusData.docs) {
       QuerySnapshot student =await _firestore.collection('students').where('uid',isEqualTo: doc['userID']).get();
       // if leaderBoardEntries contains student uid

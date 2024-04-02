@@ -29,7 +29,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
   List<LeaderBoardEntries> physicsEntries = [];
   List<LeaderBoardEntries> agricultureEntries = [];
 
-  void handleSelected(int i) {
+  Future<void> handleSelected(int i) async {
     for (int j = 0; j < isSelected.length; j++) {
       if (j == i) {
         isSelected[j] = true;
@@ -37,22 +37,44 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
         isSelected[j] = false;
       }
     }
-    setState(() {
+    if(selected == i){
+      return;
+    }
+      setState(() {
+        isloding = true;
+        leaderBoardEntries = [];
+      });
       selected = i;
       if (i == 0) {
         leaderBoardEntries = overallEntries;
       } else if (i == 1) {
-        leaderBoardEntries = biologyEntries;
+        List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
+        setState(() {
+          leaderBoardEntries = biologyEntries;
+        });
       } else if (i == 2) {
-        leaderBoardEntries = chemistryEntries;
+        List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
+        setState(() {
+          leaderBoardEntries = chemistryEntries;
+        });
       } else if (i == 3) {
-        leaderBoardEntries = physicsEntries;
+        List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
+        setState(() {
+          leaderBoardEntries = physicsEntries;
+        });
       } else if (i == 4) {
-        leaderBoardEntries = agricultureEntries;
+        List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
+        setState(() {
+          leaderBoardEntries = agricultureEntries;
+        });
       }else{
-        leaderBoardEntries = overallEntries;
+        setState(() {
+          leaderBoardEntries = overallEntries;
+        });
       }
-    });
+      setState(() {
+        isloding = false;
+      });
   }
 
   void navigateToPosition(int position) {
@@ -349,7 +371,15 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
               itemCount: leaderBoardEntries.length,
               shrinkWrap: true,
             ) : Center(
-              child: isloding ? CircularProgressIndicator() : Text('No Data Found'),
+              child: isloding ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("Hold On Your Leaderboard is Loading"),
+                  SizedBox(height: 10,),
+                  CircularProgressIndicator()
+                ],
+              ) : Text('No Data Found'),
           ),
           ),
           SizedBox(height: 20,),
@@ -362,17 +392,17 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
 
   Future<void> getStudentLeaderBoard() async {
     List<LeaderBoardEntries> overallEntries =await FocusService.getOverallLeaderBoardEntries();
-    List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
-    List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
-    List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
-    List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
+    // List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
+    // List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
+    // List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
+    // List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
     setState(() {
       leaderBoardEntries = overallEntries;
       this.overallEntries = overallEntries;
-      this.biologyEntries = biologyEntries;
-      this.chemistryEntries = chemistryEntries;
-      this.physicsEntries = physicsEntries;
-      this.agricultureEntries = agricultureEntries;
+      // this.biologyEntries = biologyEntries;
+      // this.chemistryEntries = chemistryEntries;
+      // this.physicsEntries = physicsEntries;
+      // this.agricultureEntries = agricultureEntries;
       isloding = false;
     });
   }

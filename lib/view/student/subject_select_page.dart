@@ -268,13 +268,13 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                 child: GestureDetector(
                   onTap: () {
                     if(!widget.enableFocus) {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
-                      //   ),
-                      // );
-                      ShowReleaseSoonBanner(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
+                        ),
+                      );
+                      // ShowReleaseSoonBanner(context);
                     }
                   },
                   child: Row(
