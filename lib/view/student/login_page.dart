@@ -206,6 +206,7 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       UserCredential? userCredential = await AuthService.signInWithGoogle();
+      String? accessToken = userCredential.credential?.accessToken;
       User? user = userCredential.user;
       String? error;
       SharedPreferences prefs = await SharedPreferences.getInstance();

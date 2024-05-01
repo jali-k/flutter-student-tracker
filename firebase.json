@@ -1,13 +1,1 @@
-{
-  "hosting": {
-    "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-central1"
-    }
-  }
-}
+{"hosting":{"source":".","ignore":["firebase.json","**/.*","**/node_modules/**"],"frameworksBackend":{"region":"us-central1"}},"flutter":{"platforms":{"android":{"default":{"projectId":"student-progress-app-854fa","appId":"1:399348135128:android:049ae50601c9b5e81613ad","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"student-progress-app-854fa","configurations":{"android":"1:399348135128:android:049ae50601c9b5e81613ad","web":"1:399348135128:web:68e3111c7c123cf61613ad"}}}}}}
