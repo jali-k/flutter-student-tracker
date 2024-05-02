@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/model.dart';
 import 'package:spt/services/auth_services.dart';
+import 'package:spt/services/authenticationService.dart';
 
 import '../../model/Admin.dart';
 import '../../model/Student.dart';
@@ -207,104 +208,8 @@ class _LoginPageState extends State<LoginPage> {
     try {
       UserCredential? userCredential = await AuthService.signInWithGoogle();
       String? accessToken = userCredential.credential?.accessToken;
-      User? user = userCredential.user;
-      String? error;
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      bool isUserInstructor = false;
-      bool isUserStudent = false;
-      bool isUserAdmin = false;
-      DocumentSnapshot instructorDoc = await FirebaseFirestore.instance
-          .collection('Instructors')
-          .doc(user?.uid)
-          .get();
-      if (instructorDoc.exists) {
-        isUserInstructor = true;
-        Instructor? instructor = instructorDoc.exists
-            ? Instructor(
-                instructorId: instructorDoc.get('uid'),
-                email: instructorDoc.get('email'),
-                docId: instructorDoc.get('uid'),
-              )
-            : null;
-        // save on shared preference
-        prefs.setString('uid', instructor!.instructorId);
-        prefs.setStringList('user', instructor.toList());
-        prefs.setString("role", "instructor");
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => InstructorEntryScreen()),
-        );
-      }
-      else {
-          DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-              .collection('students')
-              .doc(user?.uid)
-              .get();
-          if (studentDoc.exists) {
-            isUserStudent = true;
-            Student? student = await FirebaseFirestore.instance
-                .collection('students')
-                .doc(user!.uid)
-                .get()
-                .then((value) => Student(
-              firstName:
-              value.get('name').toString().split(" ").isNotEmpty
-                  ? value.get('name').toString().split(" ")[0]
-                  : value.get('name'),
-              lastName: value.get('name').toString().split(" ").length > 1
-                  ? value.get('name').toString().split(" ")[1]
-                  : "",
-              email: value.get('email'),
-              uid: value.get('uid'),
-              registrationNumber:
-              value.get('registrationNumber') ?? 0,
-            ));
-            // save on shared preference
 
-            prefs.setString('uid', student!.uid);
-            prefs.setStringList('user', student.toList());
-            prefs.setString("role", "student");
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => MainLayout()),
-            );
-          }
-            else{
-              DocumentSnapshot adminDoc = await FirebaseFirestore.instance
-                  .collection('admin')
-                  .doc(user?.uid)
-                  .get();
-              if (adminDoc.exists) {
-                isUserAdmin = true;
-                Admin? admin = adminDoc.exists
-                    ? Admin(
-                    email: adminDoc.get('email'),
-                    password: adminDoc.get('password'),
-                    uid: adminDoc.get('uid'))
-                    : null;
-                // save on shared preference
-                prefs.setString('uid', admin!.uid);
-                prefs.setStringList('user', admin.toList());
-                prefs.setString("role", "admin");
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BottomBarScreen(
-                        isEntryScreen: false,
-                        isInstructorScreen: false,
-                        isAddFolderScreen: false,
-                      )),
-                );
-              } else {
-                //means user is not in any of the roles so make as unknown user and redirect to MainLayout
-                prefs.setString("role", "unknown");
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainLayout()),
-                );
-              }
-            }
-      }
+      bool isLoggedIn = await AuthenticationService.login(accessToken!);
 
       setState(() {
         loading = false;

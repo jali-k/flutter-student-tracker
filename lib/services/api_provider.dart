@@ -2,25 +2,23 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class APIProvider {
-  static const String _baseUrl = 'http://localhost:9000/api/v1';
+  static const String _baseUrl = 'http://10.0.2.2:9000/api/v1';
+  static const String BASE_URL = 'http://localhost:9000/api/v1';
   static final Dio _dio = Dio();
   static APIProvider? _instance;
-
   String? _token;
 
-  APIProvider._internal();
-
-  factory APIProvider() {
+  static get instance {
     if (_instance == null) {
-      _instance = APIProvider._internal();
+      _instance = APIProvider();
       _instance!._initializeInterceptors();
     }
-    return _instance!;
+    return _instance;
   }
 
   Future<void> _initializeInterceptors() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('token')!;
+    _token = prefs.getString('accessToken')!;
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
