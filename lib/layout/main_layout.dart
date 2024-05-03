@@ -251,7 +251,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    getPapers();
+    // getPapers();
     AwesomeNotifications().setListeners(
         onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
         onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
@@ -260,13 +260,13 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     );
 
 
-    getUserState();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const LoginPage()));
-      }
-    });
+    // getUserState();
+    // FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    //   if (user == null) {
+    //     Navigator.pushReplacement(context,
+    //         MaterialPageRoute(builder: (context) => const LoginPage()));
+    //   }
+    // });
   }
 
 

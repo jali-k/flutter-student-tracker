@@ -9,6 +9,8 @@ import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/model.dart';
 import 'package:spt/services/auth_services.dart';
 import 'package:spt/services/authenticationService.dart';
+import 'package:spt/util/toast_util.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../model/Admin.dart';
 import '../../model/Student.dart';
@@ -206,10 +208,40 @@ class _LoginPageState extends State<LoginPage> {
       loading = true;
     });
     try {
-      UserCredential? userCredential = await AuthService.signInWithGoogle();
-      String? accessToken = userCredential.credential?.accessToken;
-
+      AuthCredential? authCredential = await AuthService.signInWithGoogle();
+      String? accessToken = "";
+      if(authCredential==null){
+        ToastUtil.showErrorToast(context, "Error", "Something Went Wrong !");
+        setState(() {
+          loading = false;
+        });
+        return;
+      }
+      accessToken = authCredential.accessToken;
       bool isLoggedIn = await AuthenticationService.login(accessToken!);
+      if(isLoggedIn){
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if (prefs.containsKey('role')) {
+          String role = prefs.getString('role')!;
+          if (role == 'role_student') {
+            return MainLayout();
+          }
+          else if (role == 'instructor') {
+            return const InstructorEntryScreen();
+            return const InstructorEntryScreen();
+          }
+          else if (role == 'admin') {
+            return const BottomBarScreen(
+              isEntryScreen: false,
+              isInstructorScreen: false,
+              isAddFolderScreen: false,
+            );
+          }
+          return MainLayout();
+        }
+      }else{
+        ToastUtil.showErrorToast(context, "Error", "Something Went Wrong !");
+      }
 
       setState(() {
         loading = false;

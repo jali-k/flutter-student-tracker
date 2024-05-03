@@ -120,10 +120,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     // TODO: implement initState
-    getUserState();
-    getMarks();
+    // getUserState();
+    // getMarks();
     super.initState();
-    getSubjectFocus();
+    // getSubjectFocus();
     // getPaperLeaderBoard();
   }
 
