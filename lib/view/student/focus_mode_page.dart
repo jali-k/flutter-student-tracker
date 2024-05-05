@@ -6,16 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
+import 'package:spt/model/created_focus_session_data_model.dart';
+import 'package:spt/model/focus_session_in_week_stat_data_model.dart';
 import 'package:spt/model/student_details.dart';
 import 'package:spt/services/focusService.dart';
+import 'package:spt/services/focus_service.dart';
 import 'package:spt/util/SubjectColorUtil.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
+import '../../model/subject_response_model.dart';
 import '../../widgets/circle_progressbar_painter.dart';
 
 class FocusMode extends StatefulWidget {
-  final QueryDocumentSnapshot<Object?> lesson;
+  final Lessons lesson;
   final String lessonContent;
   final String subject;
   final bool enableFocus;
@@ -47,7 +52,7 @@ class _FocusModeState extends State<FocusMode> {
   bool isPaused = false;
   bool isStarted = false;
   final List<int> _timeDuration = [25, 30, 35, 40, 45, 50, 55, 60];
-  late Map<String,Map<String,int>> focusData = {};
+  late Map<String, Map<String, int>> focusData = {};
   List<ChartData> dailyChartData = [];
   List<ChartData> weeklyChartData = [];
   List<ChartData> monthlyChartData = [];
@@ -61,6 +66,20 @@ class _FocusModeState extends State<FocusMode> {
   late Color primaryColor;
   late Color borderColor;
   double percentage = 1;
+  List<String> monthsShort = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+  ];
 
   @override
   void initState() {
@@ -68,15 +87,95 @@ class _FocusModeState extends State<FocusMode> {
     super.initState();
     primaryColor = SubjectColor.getPrimaryColor(widget.subject);
     borderColor = SubjectColor.getBorderColor(widget.subject);
-    lessonId = widget.lesson.id;
+    lessonId = widget.lesson.lessonId!;
     lessonContent = widget.lessonContent;
-    checkEnabledFocus();
-    getRecentData();
-    getFocusData();
+    getYearlyFocusSession();
+    getDailyFocusSession();
+    getWeeklyFocusSession();
+    // checkEnabledFocus();
+    // getRecentData();
+    // getFocusData();
+  }
+
+  getDailyFocusSession() async {
+    FocusSessionsInWeekStatsDataModel? inWeekStatsDataModel =
+        await FocusSessionService.getInWeekFocusSessionStat(context);
+    if (inWeekStatsDataModel != null) {
+      List<InWeekData> data = inWeekStatsDataModel.data!;
+      List<ChartData> chartData = [];
+      for (int i = 0; i < data.length; i++) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
+        chartData.add(ChartData(
+            "${monthsShort[date.month - 1]} ${date.day.toString().padLeft(2, '0')}",
+            data[i].totalDuration!.hours!.toDouble()));
+      }
+      setState(() {
+        monthlyChartData = chartData;
+        showStatistics(monthlyChartData);
+      });
+    }
+  }
+
+  getWeeklyFocusSession() async {
+    FocusSessionsInWeekStatsDataModel? inWeekStatsDataModel =
+        await FocusSessionService.getInMonthFocusSessionStat(context);
+    if (inWeekStatsDataModel != null) {
+      List<InWeekData> data = inWeekStatsDataModel.data!;
+      List<ChartData> chartData = [];
+      for (int i = 0; i < data.length; i++) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
+        int weekOfYear = date
+            .toUtc()
+            .difference(DateTime.utc(date.year, 1, 1))
+            .inDays ~/
+            7;
+        chartData.add(ChartData(
+            "Week ${i+1}",
+            data[i].totalDuration!.hours!.toDouble()));
+      }
+      setState(() {
+        weeklyChartData = chartData;
+        showStatistics(weeklyChartData);
+      });
+    }
+  }
+
+
+  getYearlyFocusSession() async {
+    FocusSessionsInWeekStatsDataModel? inWeekStatsDataModel =
+        await FocusSessionService.getInYearFocusSessionStat(context);
+    if (inWeekStatsDataModel != null) {
+      List<InWeekData> data = inWeekStatsDataModel.data!;
+      List<ChartData> chartData = [];
+      int currentMonth = DateTime.now().month;
+      for (int i = 0; i < currentMonth; i++) {
+        chartData.add(ChartData(
+            "${monthsShort[i]}",
+            0));
+      }
+      for (int i = 0; i < data.length; i++) {
+        DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
+        String month = monthsShort[date.month - 1];
+        // chartData.add(ChartData(
+        //     "${month}",
+        //     data[i].totalDuration!.hours!.toDouble()));
+        int monthIndex = chartData.indexWhere((element) => element.x == month);
+        if (monthIndex != -1) {
+          chartData[monthIndex].y += data[i].totalDuration!.hours!.toDouble();
+        }
+      }
+      // remove next months
+
+      setState(() {
+        monthlyChartData = chartData;
+        showStatistics(monthlyChartData);
+      });
+    }
   }
 
   getFocusData() async {
-    Map<String,Map<String,int>> _focusData = await FocusService.getFocusDataBySubjectAndLesson();
+    Map<String, Map<String, int>> _focusData =
+        await FocusService.getFocusDataBySubjectAndLesson();
     setState(() {
       focusData = _focusData;
     });
@@ -88,17 +187,17 @@ class _FocusModeState extends State<FocusMode> {
       initialStatIndex = index;
       switch (index) {
         case 0:
-          chartPrefix = "Day";
+          chartPrefix = "";
           chartData = dailyChartData;
           selectedStat = totalDailyStat;
           break;
         case 1:
-          chartPrefix = "Week";
+          chartPrefix = "";
           chartData = weeklyChartData;
           selectedStat = totalWeeklyStat;
           break;
         case 2:
-          chartPrefix = "Month";
+          chartPrefix = "";
           chartData = monthlyChartData;
           selectedStat = totalMonthlyStat;
           break;
@@ -315,8 +414,8 @@ class _FocusModeState extends State<FocusMode> {
           ButtonText = 'Start';
         });
       });
-      FocusService.focusOnLesson(
-          widget.lesson, lessonContent, selectedTime, widget.subject);
+      // FocusService.focusOnLesson(
+      //     widget.lesson, lessonContent, selectedTime, widget.subject);
     } else {
       setState(() {
         ButtonText = 'Start';
@@ -356,6 +455,74 @@ class _FocusModeState extends State<FocusMode> {
     });
 
     // Show the statistics
+  }
+
+  startFocusSession() async {
+    bool started = await FocusSessionService.startFocusSession(
+        context, widget.lesson, selectedTime, widget.lessonContent);
+    if (started) {
+      setState(() {
+        ButtonText = 'Stop';
+        isStarted = true;
+      });
+      timer = Timer(Duration(minutes: selectedTime), () {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Time is up!'),
+              content: const Text('Time to take a break'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        setState(() {
+          ButtonText = 'Start';
+        });
+      });
+    } else {
+      //Navigate to Subject Selection Page
+      return;
+    }
+
+    countDown = {
+      'minutes': selectedTime,
+      'seconds': 0,
+    };
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('countDown', jsonEncode(countDown));
+
+    // Show the timer
+    timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+      calculateRadialProgress();
+      setState(() {
+        if (countDown['seconds'] == 0) {
+          int? minutes = countDown['minutes'];
+          countDown = {
+            'minutes': minutes! - 1,
+            'seconds': 59,
+          };
+        } else {
+          int? seconds = countDown['seconds'];
+          countDown = {
+            'minutes': countDown['minutes']!,
+            'seconds': seconds! - 1,
+          };
+        }
+        prefs.setString('countDown', jsonEncode(countDown));
+        if (countDown['minutes'] == 0 && countDown['seconds'] == 0) {
+          timer2?.cancel();
+        }
+      });
+    });
   }
 
   endFocussingSession() {
@@ -404,9 +571,9 @@ class _FocusModeState extends State<FocusMode> {
     double percentage = (countDown['minutes']! * 60 + countDown['seconds']!) /
         (selectedTime * 60);
     print(percentage);
-     setState(() {
+    setState(() {
       this.percentage = percentage;
-     });
+    });
   }
 
   @override
@@ -486,7 +653,7 @@ class _FocusModeState extends State<FocusMode> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color:primaryColor.withOpacity(0.5),
+                  color: primaryColor.withOpacity(0.5),
                   spreadRadius: 5,
                   blurRadius: 7,
                   offset: const Offset(0, 3),
@@ -497,7 +664,7 @@ class _FocusModeState extends State<FocusMode> {
               foregroundPainter: CircleProgressBarPainter(
                 lineColor: Colors.grey,
                 completeColor: primaryColor,
-                completePercent: !isStarted ? 100 : (percentage)*100,
+                completePercent: !isStarted ? 100 : (percentage) * 100,
                 width: 15.0,
               ),
               child: Container(
@@ -533,7 +700,7 @@ class _FocusModeState extends State<FocusMode> {
               if (isStarted) {
                 stopFocussingSession();
               } else {
-                startFocusingSession();
+                startFocusSession();
               }
             },
             child: Text(
@@ -689,7 +856,7 @@ class _FocusModeState extends State<FocusMode> {
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.black,
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
                 child: const Row(
                   children: [
@@ -734,7 +901,6 @@ class _FocusModeState extends State<FocusMode> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
               ),
-
             ],
           )
 
@@ -919,7 +1085,7 @@ class _FocusModeState extends State<FocusMode> {
                       ColumnSeries<ChartData, String>(
                           dataSource: cData,
                           xValueMapper: (ChartData data, _) =>
-                              "$chartPrefix ${data.x}",
+                              "${data.x}",
                           yValueMapper: (ChartData data, _) => data.y,
                           color: Color(0xFFACE194),
                           borderRadius: BorderRadius.all(Radius.circular(3)))
@@ -941,24 +1107,24 @@ class _FocusModeState extends State<FocusMode> {
                           color: Colors.white,
                         ),
                       ),
-                      if(selectedStat["hour"]! >= 2)
-                      Text(
-                        'Good Job! Keep it up',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0XFFC3E2C2),
+                      if (selectedStat["hour"]! >= 2)
+                        Text(
+                          'Good Job! Keep it up',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0XFFC3E2C2),
+                          ),
                         ),
-                      ),
-                      if(selectedStat["hour"]! < 2)
-                      Text(
-                        'Focus more!',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0XFFC3E2C2),
+                      if (selectedStat["hour"]! < 2)
+                        Text(
+                          'Focus more!',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0XFFC3E2C2),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 )
@@ -995,93 +1161,99 @@ class _FocusModeState extends State<FocusMode> {
                 ),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Column(
-                  children: [
-                   //Title and List of Reports focusData by subject expansion and lessons
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "REPORT",
+              child: Column(children: [
+                //Title and List of Reports focusData by subject expansion and lessons
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "REPORT",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                //List of Reports
+                Container(
+                  height: 600,
+                  child: focusData.length == 0
+                      ? Center(
+                          child: Text(
+                            "No data available",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    //List of Reports
-                    Container(
-                      height: 600,
-                      child: focusData.length == 0 ? Center(
-                        child: Text(
-                          "No data available",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ) :
-                      ListView.builder(
-                        itemCount: focusData.length,
-                        itemBuilder: (context, index) {
-                          return ExpansionTile(
-                            title: Text(
-                              focusData.keys.elementAt(index)[0].toUpperCase() + focusData.keys.elementAt(index).substring(1),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            backgroundColor: Color(0xFF818181),
-                            collapsedBackgroundColor: Color(0xFF565656),
-                            children: [
-                              Container(
-                                height: 200,
-                                child: ListView.builder(
-                                  itemCount: focusData[focusData.keys.elementAt(index)]!.length,
-                                  itemBuilder: (context, i) {
-                                    return ListTile(
-                                      title: Text(
-                                        focusData[focusData.keys.elementAt(index)]!.keys.elementAt(i),
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      trailing: Text(
-                                        '${focusData[focusData.keys.elementAt(index)]!.values.elementAt(i)} mins',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                        )
+                      : ListView.builder(
+                          itemCount: focusData.length,
+                          itemBuilder: (context, index) {
+                            return ExpansionTile(
+                              title: Text(
+                                focusData.keys
+                                        .elementAt(index)[0]
+                                        .toUpperCase() +
+                                    focusData.keys
+                                        .elementAt(index)
+                                        .substring(1),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                  ]
-              )
-          );
-        }
-    );
+                              backgroundColor: Color(0xFF818181),
+                              collapsedBackgroundColor: Color(0xFF565656),
+                              children: [
+                                Container(
+                                  height: 200,
+                                  child: ListView.builder(
+                                    itemCount: focusData[
+                                            focusData.keys.elementAt(index)]!
+                                        .length,
+                                    itemBuilder: (context, i) {
+                                      return ListTile(
+                                        title: Text(
+                                          focusData[focusData.keys
+                                                  .elementAt(index)]!
+                                              .keys
+                                              .elementAt(i),
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        trailing: Text(
+                                          '${focusData[focusData.keys.elementAt(index)]!.values.elementAt(i)} mins',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                ),
+              ]));
+        });
   }
-
-
 }
 
 class ChartData {

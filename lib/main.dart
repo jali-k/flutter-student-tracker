@@ -116,8 +116,7 @@ class _MyAppState extends State<MyApp> {
         if (role == 'role_student') {
           return MainLayout();
         }
-        else if (role == 'instructor') {
-          return const InstructorEntryScreen();
+        else if (role == 'role_instructor') {
           return const InstructorEntryScreen();
         }
         else if (role == 'admin') {

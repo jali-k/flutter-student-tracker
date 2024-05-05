@@ -224,13 +224,16 @@ class _LoginPageState extends State<LoginPage> {
         if (prefs.containsKey('role')) {
           String role = prefs.getString('role')!;
           if (role == 'role_student') {
-            return MainLayout();
+            ToastUtil.showSuccessToast(context, "Success", "Logged in Successfully !");
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainLayout()));
+            return;
           }
-          else if (role == 'instructor') {
-            return const InstructorEntryScreen();
-            return const InstructorEntryScreen();
+          else if (role == 'role_instructor') {
+            ToastUtil.showSuccessToast(context, "Success", "Logged in Successfully !");
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InstructorEntryScreen()));
+            return;
           }
-          else if (role == 'admin') {
+          else if (role == 'role_admin') {
             return const BottomBarScreen(
               isEntryScreen: false,
               isInstructorScreen: false,

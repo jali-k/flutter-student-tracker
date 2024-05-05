@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:spt/services/auth_services.dart';
+import 'package:spt/services/paper_service.dart';
 import 'package:spt/view/student/login_page.dart';
 
+import '../../model/all_papers_data_model.dart';
 import '../../model/model.dart';
 import '../entry_screen/add_marks.dart';
 import '../res/app_colors.dart';
@@ -18,7 +20,7 @@ class InstructorEntryScreen extends StatefulWidget {
 }
 
 class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
-  List<DocumentSnapshot> papers = [];
+  List<PaperInfo> papers = [];
   bool isLoading = false;
 
   @override
@@ -27,16 +29,28 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
     fetchPapers();
   }
 
+  // Future<void> fetchPapers() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+  //   QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+  //       .collection('papers')
+  //       .orderBy('id', descending: false)
+  //       .get();
+  //   setState(() {
+  //     papers.addAll(querySnapshot.docs);
+  //     isLoading = false;
+  //   });
+  // }
+
   Future<void> fetchPapers() async {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('papers')
-        .orderBy('id', descending: false)
-        .get();
+    AllPapersDataModel allPapersDataModel = await PaperService.getAllPaperList(context);
+    List<PaperInfo>? p = allPapersDataModel.data;
     setState(() {
-      papers.addAll(querySnapshot.docs);
+      papers.addAll(p!);
       isLoading = false;
     });
   }
@@ -101,13 +115,12 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
                     : ListView.builder(
                     itemCount: papers.length,
                     itemBuilder: (BuildContext context, int index) {
-                      Map<String, dynamic> data =
-                      papers[index].data()! as Map<String, dynamic>;
-                      String paperName = data['paperName'];
-                      String paperId = data['paperId'];
-                      bool mcq = data['isMcq'];
-                      bool structure = data['isStructured'];
-                      bool essay = data['isEssay'];
+                      PaperInfo paperInfo = papers[index];
+                      String paperName = paperInfo.paperName!;
+                      String paperId = paperInfo.paperId!;
+                      bool mcq = paperInfo.mcq!;
+                      bool structure = paperInfo.structured!;
+                      bool essay = paperInfo.essay!;
                       return Column(
                         children: [
                           Container(
@@ -128,7 +141,7 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
                                     CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        data['paperName'],
+                                        paperName,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.black),
@@ -181,14 +194,13 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
                                               builder: (context) =>
                                                   AddMarks(
                                                     paper: Paper(
-                                                        paperId:
-                                                        paperId,
-                                                        paperName:
-                                                        paperName,
+                                                        paperId: paperId,
+                                                        paperName: paperName,
                                                         isMcq: mcq,
-                                                        isStructure:
-                                                        structure,
-                                                        isEssay: essay, paperDocId: ''),
+                                                        isStructure: structure,
+                                                        isEssay: essay,
+                                                        paperDocId: '',
+                                                    ),
                                                   )));
                                     },
                                     icon: const Icon(

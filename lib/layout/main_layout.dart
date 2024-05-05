@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/services/SubjectLessonService.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/view/student/focus_mode_page.dart';
@@ -48,7 +49,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   StreamController<int> indexController = StreamController<int>.broadcast();
   StreamController<int> subjectSelectionController =
       StreamController<int>.broadcast();
-  QueryDocumentSnapshot? lesson;
+  Lessons? lesson;
   String lessonContent = '';
   String subjectName = '';
   bool enabledFocus = false;
@@ -67,7 +68,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     Provider.of<paperProvider>(context, listen: false).setPapers(p);
   }
 
-  selectSubject(int index, QueryDocumentSnapshot lesson, String lessonContent,
+  selectSubject(int index, Lessons lesson, String lessonContent,
       String subjectName) {
     setState(() {
       this.lesson = lesson;
@@ -111,9 +112,10 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
         int duration = endAt.difference(startAt).inSeconds;
         QueryDocumentSnapshot _lesson =
             await SubjectLessonService.getLessonById(_subjectName, lessonId);
+        Lessons l = Lessons();
         subjectSelectionController.add(1);
         setState(() {
-          lesson = _lesson;
+          lesson = l;
           lessonContent = _lessonContent;
           subjectName = _subjectName;
           enabledFocus = true;

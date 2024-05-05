@@ -48,6 +48,11 @@ class FocusService{
 
   }
 
+  //TODO: New API Service
+  static StartFocusSession(){
+
+  }
+
   static endFocusOnLesson() async {
     String userID = _auth.currentUser!.uid;
     String? lessonId;

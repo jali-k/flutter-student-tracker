@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../globals.dart';
+import '../../model/authenticated_instructor_model.dart';
 import '../../model/model.dart';
 import '../../popups/loading_popup.dart';
 import '../res/app_colors.dart';
@@ -108,19 +111,18 @@ class _AddMarksState extends State<AddMarks> {
     fetchPaperMarks();
   }
 
-  getInstructorAssignedStudentIds() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('Instructors')
-        .where('email', isEqualTo: FirebaseAuth.instance.currentUser!.email)
-        .get();
-    List<QueryDocumentSnapshot> m = querySnapshot.docs;
-    //get student ids array
-    var element = m[0];
-      Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
-      setState(() {
-        instructorAssignedStudentIds = data['students'].cast<int>();
-      });
 
+  getInstructorAssignedStudentIds() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if(prefs.containsKey('userInfo')){
+      Map<String, dynamic> userInfoMap = jsonDecode(prefs.getString('userInfo')!);
+      UserInfo userInfo = UserInfo.fromJson(userInfoMap);
+      if(userInfo.students != null) {
+        instructorAssignedStudentIds = userInfo.students!.map((e) => e.registrationNumber!).toList();
+      }else{
+        instructorAssignedStudentIds = [];
+      }
+    }
   }
 
   showMarksEditDialog(
