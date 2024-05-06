@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/all_mark_data_model.dart';
 
 import '../../globals.dart';
 import '../../model/authenticated_instructor_model.dart';
 import '../../model/model.dart';
 import '../../popups/loading_popup.dart';
+import '../../services/paper_mark_service.dart';
 import '../res/app_colors.dart';
 
 class AddMarks extends StatefulWidget {
@@ -35,7 +37,7 @@ class _AddMarksState extends State<AddMarks> {
   final editEssayController = TextEditingController();
   final editTotalMarksController = TextEditingController();
   List<TableRow> rows = [];
-  List<DocumentSnapshot> marks = [];
+  List<MarkInfo> marks = [];
   int addCount = 0;
   bool isLoading = false;
   int totalValidationMarks = 0;
@@ -108,9 +110,103 @@ class _AddMarksState extends State<AddMarks> {
       ),
     );
     getInstructorAssignedStudentIds();
-    fetchPaperMarks();
+    fetchStudentMarks();
   }
 
+  fetchStudentMarks() async{
+    AllMarkDataModel allMarkDataModel = await PaperMarkService.getPaperMarks(widget.paper.paperId);
+    List<MarkInfo> paperMarks = allMarkDataModel.data!;
+    setState(() {
+      marks.addAll(paperMarks);
+      if (marks.isNotEmpty) {
+        marks.forEach((element) {
+          double? mcq = element.mcqMark;
+          double? structure = element.structuredMark;
+          double? essay = element.essayMark;
+          int studentId = element.student!.registrationNumber!;
+          double totalMarks = element.totalMark!;
+          studentIds.add(studentId);
+          rows.add(
+            TableRow(
+              children: [
+                TableCell(
+                    child: GestureDetector(
+                      onLongPress: () {
+                        setState(() {
+                          showMarksEditDialog(
+                              studentId: studentId,
+                              mcq: mcq,
+                              structure: structure,
+                              essay: essay,
+                              totalMarks: totalMarks);
+                        });
+                      },
+                      onDoubleTap: () {
+                        setState(() {
+                          showMarksEditDialog(
+                              studentId: studentId,
+                              mcq: mcq,
+                              structure: structure,
+                              essay: essay,
+                              totalMarks: totalMarks);
+                        });
+                      },
+                      child: Container(
+                          height: 40,
+                          color: AppColors.ligthWhite,
+                          child: Center(
+                              child: Text(
+                                studentId.toString(),
+                                style: const TextStyle(color: AppColors.black),
+                              ))),
+                    )),
+                TableCell(
+                    child: Container(
+                        height: 40,
+                        color: widget.paper.isMcq
+                            ? AppColors.ligthWhite
+                            : AppColors.grey,
+                        child: Center(
+                            child: Text(mcq != null ? mcq.toString() : '',
+                                style: const TextStyle(
+                                    color: AppColors.black))))),
+                TableCell(
+                    child: Container(
+                        height: 40,
+                        color: widget.paper.isStructure
+                            ? AppColors.ligthWhite
+                            : AppColors.grey,
+                        child: Center(
+                            child: Text(
+                                structure != null ? structure.toString() : '',
+                                style: const TextStyle(
+                                    color: AppColors.black))))),
+                TableCell(
+                    child: Container(
+                        height: 40,
+                        color: widget.paper.isEssay
+                            ? AppColors.ligthWhite
+                            : AppColors.grey,
+                        child: Center(
+                            child: Text(essay != null ? essay.toString() : '',
+                                style: const TextStyle(
+                                    color: AppColors.black))))),
+                TableCell(
+                    child: Container(
+                        height: 40,
+                        color: AppColors.ligthWhite,
+                        child: Center(
+                            child: Text(
+                              totalMarks.toString(),
+                              style: const TextStyle(color: AppColors.black),
+                            )))),
+              ],
+            ),
+          );
+        });
+      }
+    });
+  }
 
   getInstructorAssignedStudentIds() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -127,10 +223,10 @@ class _AddMarksState extends State<AddMarks> {
 
   showMarksEditDialog(
       {required int studentId,
-      required int? mcq,
-      required int? structure,
-      required int? essay,
-      required int totalMarks}) {
+      required double? mcq,
+      required double? structure,
+      required double? essay,
+      required double totalMarks}) {
     print('studentId: $studentId mcq: $mcq structure: $structure essay: $essay totalMarks: $totalMarks');
     editMcqController.text = mcq != null ? mcq.toString() : '';
     editStructureController.text = structure != null ? structure.toString() : '';
@@ -502,135 +598,14 @@ class _AddMarksState extends State<AddMarks> {
     );
   }
 
-  void fetchPaperMarks() async {
-    setState(() {
-      isLoading = true;
-    });
-    //check if the paper has marks
-    bool hasMarks = false;
-    QuerySnapshot q = await FirebaseFirestore.instance
-        .collection('marks')
-        .where('paperId', isEqualTo: widget.paper.paperId)
-        .get();
-    if (q.docs.isNotEmpty) {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('marks')
-          .where('paperId', isEqualTo: widget.paper.paperId)
-          .orderBy('studentId', descending: false)
-          .get();
-      List<QueryDocumentSnapshot> m = querySnapshot.docs;
-      //remove QueryDocumentSnapshot that does not have the student id in the instructor assigned student ids
-      m.removeWhere((element) => !instructorAssignedStudentIds.contains(element['studentId']));
-      //sort by student id
-      m.sort((a, b) => a['studentId'].compareTo(b['studentId']));
-      setState(() {
-        isLoading = false;
-      });
-      setState(() {
-        marks.addAll(m);
-        if (marks.isNotEmpty) {
-          marks.forEach((element) {
-            Map<String, dynamic> data = element.data()! as Map<String, dynamic>;
-            int? mcq = data['mcqMarks'];
-            int? structure = data['structuredMarks'];
-            int? essay = data['essayMarks'];
-            int studentId = data['studentId'];
-            int totalMarks = data['totalMarks'];
-            studentIds.add(studentId);
-            rows.add(
-              TableRow(
-                children: [
-                  TableCell(
-                      child: GestureDetector(
-                    onLongPress: () {
-                      setState(() {
-                        showMarksEditDialog(
-                            studentId: studentId,
-                            mcq: mcq,
-                            structure: structure,
-                            essay: essay,
-                            totalMarks: totalMarks);
-                      });
-                    },
-                        onDoubleTap: () {
-                          setState(() {
-                            showMarksEditDialog(
-                                studentId: studentId,
-                                mcq: mcq,
-                                structure: structure,
-                                essay: essay,
-                                totalMarks: totalMarks);
-                          });
-                        },
-                    child: Container(
-                        height: 40,
-                        color: AppColors.ligthWhite,
-                        child: Center(
-                            child: Text(
-                          studentId.toString(),
-                          style: const TextStyle(color: AppColors.black),
-                        ))),
-                  )),
-                  TableCell(
-                      child: Container(
-                          height: 40,
-                          color: widget.paper.isMcq
-                              ? AppColors.ligthWhite
-                              : AppColors.grey,
-                          child: Center(
-                              child: Text(mcq != null ? mcq.toString() : '',
-                                  style: const TextStyle(
-                                      color: AppColors.black))))),
-                  TableCell(
-                      child: Container(
-                          height: 40,
-                          color: widget.paper.isStructure
-                              ? AppColors.ligthWhite
-                              : AppColors.grey,
-                          child: Center(
-                              child: Text(
-                                  structure != null ? structure.toString() : '',
-                                  style: const TextStyle(
-                                      color: AppColors.black))))),
-                  TableCell(
-                      child: Container(
-                          height: 40,
-                          color: widget.paper.isEssay
-                              ? AppColors.ligthWhite
-                              : AppColors.grey,
-                          child: Center(
-                              child: Text(essay != null ? essay.toString() : '',
-                                  style: const TextStyle(
-                                      color: AppColors.black))))),
-                  TableCell(
-                      child: Container(
-                          height: 40,
-                          color: AppColors.ligthWhite,
-                          child: Center(
-                              child: Text(
-                            totalMarks.toString(),
-                            style: const TextStyle(color: AppColors.black),
-                          )))),
-                ],
-              ),
-            );
-          });
-        }
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
 
   Future<void> addMarks({
     required String paperId,
     required int studentId,
-    required int? mcq,
-    required int? structured,
-    required int? essay,
-    required int total,
+    required double? mcq,
+    required double? structured,
+    required double? essay,
+    required double total,
   }) async {
     try {
       final loading = LoadingPopup(context);
@@ -788,21 +763,15 @@ class _AddMarksState extends State<AddMarks> {
                                 hintText: 'Enter student id',
                               ),
                             ),
-                            decorationBuilder: (context, child) => Material(
-                              type: MaterialType.card,
-                              elevation: 4,
-                              borderRadius: BorderRadius.circular(4),
-                              child: child,
-                            ),
-                            itemBuilder: (context, product) => ListTile(
-                              title: Text(product.toString(),
+                            itemBuilder: (context, product) => Container(
+                              padding: const EdgeInsets.all(5),
+                              height: 25,
+                              child: Text(product.toString(),
                                   style: const TextStyle(
                                     color: AppColors.black,
-                                    fontSize: 10,
+                                    fontSize: 12,
                                   ),
-
                             ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 4)
                             ),
                             onSelected: (product) {
                               setState(() {
@@ -1233,15 +1202,15 @@ class _AddMarksState extends State<AddMarks> {
                       paperId: widget.paper.paperId,
                       studentId: int.parse(studentIdController.text.trim()),
                       mcq: mcqController.text.trim().isNotEmpty
-                          ? int.parse(mcqController.text.trim())
+                          ? double.parse(mcqController.text.trim())
                           : null,
                       structured: structureController.text.trim().isNotEmpty
-                          ? int.parse(structureController.text.trim())
+                          ? double.parse(structureController.text.trim())
                           : null,
                       essay: essayController.text.trim().isNotEmpty
-                          ? int.parse(essayController.text.trim())
+                          ? double.parse(essayController.text.trim())
                           : null,
-                      total: int.parse(totalMarksController.text.trim()),
+                      total: double.parse(totalMarksController.text.trim()),
                     );
                   },
                   child: const Center(
