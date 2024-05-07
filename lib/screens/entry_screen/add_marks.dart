@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gap/gap.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/add_mark_response_model.dart';
 import 'package:spt/model/all_mark_data_model.dart';
 
 import '../../globals.dart';
@@ -62,6 +63,7 @@ class _AddMarksState extends State<AddMarks> {
                       style: TextStyle(color: AppColors.black, fontSize: 10),
                     ),
                   )))),
+          if(widget.paper.isMcq)
           TableCell(
               child: Container(
                   height: 40,
@@ -73,6 +75,7 @@ class _AddMarksState extends State<AddMarks> {
                     child: Text('Mcq',
                         style: TextStyle(color: AppColors.black, fontSize: 10)),
                   )))),
+          if(widget.paper.isStructure)
           TableCell(
               child: Container(
                   height: 40,
@@ -84,6 +87,7 @@ class _AddMarksState extends State<AddMarks> {
                     child: Text('Structured',
                         style: TextStyle(color: AppColors.black, fontSize: 10)),
                   )))),
+          if(widget.paper.isEssay)
           TableCell(
               child: Container(
                   height: 40,
@@ -114,7 +118,10 @@ class _AddMarksState extends State<AddMarks> {
   }
 
   fetchStudentMarks() async{
-    AllMarkDataModel allMarkDataModel = await PaperMarkService.getPaperMarks(widget.paper.paperId);
+    AllMarkDataModel? allMarkDataModel = await PaperMarkService.getPaperMarks(widget.paper.paperId);
+    if(allMarkDataModel == null){
+      return;
+    }
     List<MarkInfo> paperMarks = allMarkDataModel.data!;
     setState(() {
       marks.addAll(paperMarks);
@@ -126,6 +133,7 @@ class _AddMarksState extends State<AddMarks> {
           int studentId = element.student!.registrationNumber!;
           double totalMarks = element.totalMark!;
           studentIds.add(studentId);
+          instructorAssignedStudentIds.remove(studentId);
           rows.add(
             TableRow(
               children: [
@@ -160,6 +168,7 @@ class _AddMarksState extends State<AddMarks> {
                                 style: const TextStyle(color: AppColors.black),
                               ))),
                     )),
+                if(widget.paper.isMcq)
                 TableCell(
                     child: Container(
                         height: 40,
@@ -167,10 +176,11 @@ class _AddMarksState extends State<AddMarks> {
                             ? AppColors.ligthWhite
                             : AppColors.grey,
                         child: Center(
-                            child: Text(mcq != null ? mcq.toString() : '',
+                            child: Text(mcq != null ? mcq.toStringAsFixed(0) : '',
                                 style: const TextStyle(
                                     color: AppColors.black))))),
-                TableCell(
+                if(widget.paper.isStructure)
+                  TableCell(
                     child: Container(
                         height: 40,
                         color: widget.paper.isStructure
@@ -178,17 +188,18 @@ class _AddMarksState extends State<AddMarks> {
                             : AppColors.grey,
                         child: Center(
                             child: Text(
-                                structure != null ? structure.toString() : '',
+                                structure != null ? structure.toStringAsFixed(0) : '',
                                 style: const TextStyle(
                                     color: AppColors.black))))),
-                TableCell(
+                if(widget.paper.isEssay)
+                  TableCell(
                     child: Container(
                         height: 40,
                         color: widget.paper.isEssay
                             ? AppColors.ligthWhite
                             : AppColors.grey,
                         child: Center(
-                            child: Text(essay != null ? essay.toString() : '',
+                            child: Text(essay != null ? essay.toStringAsFixed(0) : '',
                                 style: const TextStyle(
                                     color: AppColors.black))))),
                 TableCell(
@@ -197,7 +208,7 @@ class _AddMarksState extends State<AddMarks> {
                         color: AppColors.ligthWhite,
                         child: Center(
                             child: Text(
-                              totalMarks.toString(),
+                              totalMarks.toStringAsFixed(0),
                               style: const TextStyle(color: AppColors.black),
                             )))),
               ],
@@ -610,50 +621,49 @@ class _AddMarksState extends State<AddMarks> {
     try {
       final loading = LoadingPopup(context);
       loading.show();
-      await FirebaseFirestore.instance
-          .collection('marks') // Reference to the collection
-          .add({
-        'paperId': paperId,
-        'studentId': studentId,
-        'mcqMarks': mcq,
-        'structuredMarks': structured,
-        'essayMarks': essay,
-        'totalMarks': total
-      });
+      AddMarkResponseModel? allMarkDataModel = await PaperMarkService.addMarks(
+          paperID: paperId,
+          studentID: studentId,
+          mcq: mcq ?? 0,
+          structure: structured ?? 0,
+          essay: essay ?? 0,
+          totalMark: total);
+      if(allMarkDataModel == null){
+        loading.dismiss();
+        return;
+      }
       loading.dismiss();
 
       // ignore: use_build_context_synchronously
       Globals.showSnackBar(
           context: context, isSuccess: true, message: 'Success');
-      setState(() {
-        addCount = 0;
+      rows.removeLast();
+      rows.add(
+        TableRow(
+          children: [
+            TableCell(
+                child: GestureDetector(
+                  onLongPress: () {
+                    setState(() {
+                      showMarksEditDialog(
+                          studentId: studentId,
+                          mcq: mcq,
+                          structure: structured,
+                          essay: essay,
+                          totalMarks: total);
+                    });
+                  },
 
-        rows.removeLast();
-        rows.add(
-          TableRow(
-            children: [
-              TableCell(
-                  child: GestureDetector(
-                    onLongPress: () {
-                      setState(() {
-                        showMarksEditDialog(
-                            studentId: studentId,
-                            mcq: mcq,
-                            structure: structured,
-                            essay: essay,
-                            totalMarks: total);
-                      });
-                    },
-
-                    child: Container(
-                        height: 40,
-                        color: AppColors.ligthWhite,
-                        child: Center(
-                            child: Text(
-                          studentIdController.text,
-                          style: const TextStyle(color: AppColors.black),
-                        ))),
-                  )),
+                  child: Container(
+                      height: 40,
+                      color: AppColors.ligthWhite,
+                      child: Center(
+                          child: Text(
+                            studentIdController.text,
+                            style: const TextStyle(color: AppColors.black),
+                          ))),
+                )),
+            if(widget.paper.isMcq)
               TableCell(
                   child: Container(
                       height: 40,
@@ -663,7 +673,8 @@ class _AddMarksState extends State<AddMarks> {
                       child: Center(
                           child: Text(mcqController.text,
                               style:
-                                  const TextStyle(color: AppColors.black))))),
+                              const TextStyle(color: AppColors.black))))),
+            if(widget.paper.isStructure)
               TableCell(
                   child: Container(
                       height: 40,
@@ -673,7 +684,8 @@ class _AddMarksState extends State<AddMarks> {
                       child: Center(
                           child: Text(structureController.text,
                               style:
-                                  const TextStyle(color: AppColors.black))))),
+                              const TextStyle(color: AppColors.black))))),
+            if(widget.paper.isEssay)
               TableCell(
                   child: Container(
                       height: 40,
@@ -683,19 +695,25 @@ class _AddMarksState extends State<AddMarks> {
                       child: Center(
                           child: Text(essayController.text,
                               style:
-                                  const TextStyle(color: AppColors.black))))),
-              TableCell(
-                  child: Container(
-                      height: 40,
-                      color: AppColors.ligthWhite,
-                      child: Center(
-                          child: Text(
-                        totalMarksController.text,
-                        style: const TextStyle(color: AppColors.black),
-                      )))),
-            ],
-          ),
-        );
+                              const TextStyle(color: AppColors.black))))),
+
+            TableCell(
+                child: Container(
+                    height: 40,
+                    color: AppColors.ligthWhite,
+                    child: Center(
+                        child: Text(
+                          totalMarksController.text,
+                          style: const TextStyle(color: AppColors.black),
+                        )))),
+          ],
+        ),
+      );
+      print(rows.length);
+      setState(() {
+        addCount = 0;
+
+
         studentIds.add(int.parse(studentIdController.text));
         studentIdController.clear();
         mcqController.clear();
@@ -715,34 +733,6 @@ class _AddMarksState extends State<AddMarks> {
         rows.add(
           TableRow(
             children: [
-              // TableCell(
-              //     child: SizedBox(
-              //         height: 40,
-              //         child: Center(
-              //             child: TextFormField(
-              //           style: const TextStyle(
-              //               color: AppColors.black, fontSize: 12),
-              //           textAlign: TextAlign.center,
-              //           controller: studentIdController,
-              //           decoration: const InputDecoration(
-              //             filled: true,
-              //             fillColor: AppColors.ligthWhite,
-              //             hintStyle:
-              //                 TextStyle(color: AppColors.black, fontSize: 12),
-              //             hintText: 'Enter',
-              //             border: OutlineInputBorder(
-              //               borderSide: BorderSide(
-              //                 color: AppColors.black,
-              //                 // width: 1.5,
-              //               ),
-              //             ),
-              //             // Remove the default border
-              //             enabledBorder: UnderlineInputBorder(
-              //               // Add bottom line as enabled border
-              //               borderSide: BorderSide(color: AppColors.black),
-              //             ),
-              //           ),
-              //         )))),
               TableCell(
                   child: SizedBox(
                       height: 40,
@@ -787,6 +777,8 @@ class _AddMarksState extends State<AddMarks> {
                             },
 
                           )))),
+
+              if(widget.paper.isMcq)
               TableCell(
                   child: SizedBox(
                       height: 40,
@@ -818,6 +810,7 @@ class _AddMarksState extends State<AddMarks> {
                           ),
                         ),
                       )))),
+              if(widget.paper.isStructure)
               TableCell(
                   child: SizedBox(
                       height: 40,
@@ -849,6 +842,7 @@ class _AddMarksState extends State<AddMarks> {
                           ),
                         ),
                       )))),
+              if(widget.paper.isEssay)
               TableCell(
                   child: SizedBox(
                       height: 40,
@@ -880,6 +874,7 @@ class _AddMarksState extends State<AddMarks> {
                           ),
                         ),
                       )))),
+
               TableCell(
                   child: SizedBox(
                       height: 40,
