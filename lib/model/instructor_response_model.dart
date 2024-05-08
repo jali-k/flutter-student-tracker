@@ -1,64 +1,40 @@
-class AuthenticatedInstructorModel {
-  String? firstName;
-  String? lastName;
-  String? email;
-  String? role;
-  String? accessToken;
-  String? tokenType;
-  int? expiresIn;
-  String? refreshToken;
-  UserInfo? userInfo;
+class InstructorResponseModel {
+  String? status;
+  Null? message;
+  List<InstructorInfo>? data;
 
-  AuthenticatedInstructorModel(
-      {this.firstName,
-        this.lastName,
-        this.email,
-        this.role,
-        this.accessToken,
-        this.tokenType,
-        this.expiresIn,
-        this.refreshToken,
-        this.userInfo});
+  InstructorResponseModel({this.status, this.message, this.data});
 
-  AuthenticatedInstructorModel.fromJson(Map<String, dynamic> json) {
-    firstName = json['firstName'];
-    lastName = json['lastName'];
-    email = json['email'];
-    role = json['role'];
-    accessToken = json['accessToken'];
-    tokenType = json['tokenType'];
-    expiresIn = json['expiresIn'];
-    refreshToken = json['refreshToken'];
-    userInfo = json['userInfo'] != null
-        ? new UserInfo.fromJson(json['userInfo'])
-        : null;
+  InstructorResponseModel.fromJson(Map<String, dynamic> json) {
+    status = json['status'];
+    message = json['message'];
+    if (json['data'] != null) {
+      data = <InstructorInfo>[];
+      json['data'].forEach((v) {
+        data!.add(new InstructorInfo.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['firstName'] = this.firstName;
-    data['lastName'] = this.lastName;
-    data['email'] = this.email;
-    data['role'] = this.role;
-    data['accessToken'] = this.accessToken;
-    data['tokenType'] = this.tokenType;
-    data['expiresIn'] = this.expiresIn;
-    data['refreshToken'] = this.refreshToken;
-    if (this.userInfo != null) {
-      data['userInfo'] = this.userInfo!.toJson();
+    data['status'] = this.status;
+    data['message'] = this.message;
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
     return data;
   }
 }
 
-class UserInfo {
+class InstructorInfo {
   String? instructorId;
   String? instructorGroup;
   List<Students>? students;
 
-  UserInfo({this.instructorId, this.instructorGroup, this.students});
+  InstructorInfo({this.instructorId, this.instructorGroup, this.students});
 
-  UserInfo.fromJson(Map<String, dynamic> json) {
+  InstructorInfo.fromJson(Map<String, dynamic> json) {
     instructorId = json['instructorId'];
     instructorGroup = json['instructorGroup'];
     if (json['students'] != null) {

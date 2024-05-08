@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/model/authenticated_instructor_model.dart';
 import 'package:spt/model/authenticated_user_model.dart';
 
+import '../model/authenticated_admin_model.dart';
 import '../model/authenticated_student_model.dart';
 import '../model/user_role_model.dart';
 import 'api_provider.dart';
@@ -43,16 +44,16 @@ class AuthenticationService{
           prefs.setString('userInfo', jsonEncode(authenticatedInstructorModel.userInfo!));
         }else if(authenticatedUserModel.role == UserRole.ADMIN){
           //get response data as AuthenticatedAdminModel
-          // AuthenticatedAdminModel authenticatedAdminModel = AuthenticatedAdminModel.fromJson(response.data);
-          // prefs.setString('firstName', authenticatedAdminModel.firstName!);
-          // prefs.setString('lastName', authenticatedAdminModel.lastName!);
-          // prefs.setString('email', authenticatedAdminModel.email!);
-          // prefs.setString('role', authenticatedAdminModel.role!);
-          // prefs.setString('accessToken', authenticatedAdminModel.accessToken!);
-          // prefs.setString('tokenType', authenticatedAdminModel.tokenType!);
-          // prefs.setInt('expiresIn', authenticatedAdminModel.expiresIn!);
-          // prefs.setString('refreshToken', authenticatedAdminModel.refreshToken!);
-          // prefs.setString('userInfo', authenticatedAdminModel.userInfo!.toJson().toString());
+          AuthenticatedAdminModel authenticatedAdminModel = AuthenticatedAdminModel.fromJson(response.data);
+          prefs.setString('firstName', authenticatedAdminModel.firstName!);
+          prefs.setString('lastName', authenticatedAdminModel.lastName!);
+          prefs.setString('email', authenticatedAdminModel.email!);
+          prefs.setString('role', authenticatedAdminModel.role!);
+          prefs.setString('accessToken', authenticatedAdminModel.accessToken!);
+          prefs.setString('tokenType', authenticatedAdminModel.tokenType!);
+          prefs.setInt('expiresIn', authenticatedAdminModel.expiresIn!);
+          prefs.setString('refreshToken', authenticatedAdminModel.refreshToken!);
+          prefs.setString('userInfo', authenticatedAdminModel.userInfo!.toJson().toString());
 
         }
         APIProvider.instance.reInitializeAPIProvider();

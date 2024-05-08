@@ -234,11 +234,13 @@ class _LoginPageState extends State<LoginPage> {
             return;
           }
           else if (role == 'role_admin') {
-            return const BottomBarScreen(
+            ToastUtil.showSuccessToast(context, "Success", "Logged in Successfully !");
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BottomBarScreen(
               isEntryScreen: false,
               isInstructorScreen: false,
               isAddFolderScreen: false,
-            );
+            ),));
+            return;
           }
           return MainLayout();
         }

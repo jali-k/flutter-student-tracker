@@ -95,5 +95,25 @@ class APIProvider {
     }
   }
 
+  Future<Response> put(String path, dynamic data) async {
+    try {
+      final response = await dio.put(_baseUrl + path, data: data);
+      return response;
+    } catch (e) {
+      print('Error: $e');
+      throw e;
+    }
+  }
+
+  delete(String path, dynamic data) async {
+    try {
+      final response = await dio.delete(_baseUrl + path, data: data);
+      return response;
+    } catch (e) {
+      print('Error: $e');
+      throw e;
+    }
+  }
+
 // Add other HTTP methods as needed
 }

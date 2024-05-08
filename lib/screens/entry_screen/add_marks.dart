@@ -63,42 +63,45 @@ class _AddMarksState extends State<AddMarks> {
                       style: TextStyle(color: AppColors.black, fontSize: 10),
                     ),
                   )))),
-          if(widget.paper.isMcq)
-          TableCell(
-              child: Container(
-                  height: 40,
-                  color: widget.paper.isMcq
-                      ? AppColors.ligthWhite
-                      : AppColors.grey,
-                  child: const Center(
-                      child: FittedBox(
-                    child: Text('Mcq',
-                        style: TextStyle(color: AppColors.black, fontSize: 10)),
-                  )))),
-          if(widget.paper.isStructure)
-          TableCell(
-              child: Container(
-                  height: 40,
-                  color: widget.paper.isStructure
-                      ? AppColors.ligthWhite
-                      : AppColors.grey,
-                  child: const Center(
-                      child: FittedBox(
-                    child: Text('Structured',
-                        style: TextStyle(color: AppColors.black, fontSize: 10)),
-                  )))),
-          if(widget.paper.isEssay)
-          TableCell(
-              child: Container(
-                  height: 40,
-                  color: widget.paper.isEssay
-                      ? AppColors.ligthWhite
-                      : AppColors.grey,
-                  child: const Center(
-                      child: FittedBox(
-                    child: Text('Essay',
-                        style: TextStyle(color: AppColors.black, fontSize: 10)),
-                  )))),
+          if (widget.paper.isMcq)
+            TableCell(
+                child: Container(
+                    height: 40,
+                    color: widget.paper.isMcq
+                        ? AppColors.ligthWhite
+                        : AppColors.grey,
+                    child: const Center(
+                        child: FittedBox(
+                      child: Text('Mcq',
+                          style:
+                              TextStyle(color: AppColors.black, fontSize: 10)),
+                    )))),
+          if (widget.paper.isStructure)
+            TableCell(
+                child: Container(
+                    height: 40,
+                    color: widget.paper.isStructure
+                        ? AppColors.ligthWhite
+                        : AppColors.grey,
+                    child: const Center(
+                        child: FittedBox(
+                      child: Text('Structured',
+                          style:
+                              TextStyle(color: AppColors.black, fontSize: 10)),
+                    )))),
+          if (widget.paper.isEssay)
+            TableCell(
+                child: Container(
+                    height: 40,
+                    color: widget.paper.isEssay
+                        ? AppColors.ligthWhite
+                        : AppColors.grey,
+                    child: const Center(
+                        child: FittedBox(
+                      child: Text('Essay',
+                          style:
+                              TextStyle(color: AppColors.black, fontSize: 10)),
+                    )))),
           TableCell(
               child: Container(
                   height: 40,
@@ -117,9 +120,10 @@ class _AddMarksState extends State<AddMarks> {
     fetchStudentMarks();
   }
 
-  fetchStudentMarks() async{
-    AllMarkDataModel? allMarkDataModel = await PaperMarkService.getPaperMarks(widget.paper.paperId);
-    if(allMarkDataModel == null){
+  fetchStudentMarks() async {
+    AllMarkDataModel? allMarkDataModel =
+        await PaperMarkService.getPaperMarks(widget.paper.paperId);
+    if (allMarkDataModel == null) {
       return;
     }
     List<MarkInfo> paperMarks = allMarkDataModel.data!;
@@ -132,6 +136,7 @@ class _AddMarksState extends State<AddMarks> {
           double? essay = element.essayMark;
           int studentId = element.student!.registrationNumber!;
           double totalMarks = element.totalMark!;
+          String markID = element.markId!;
           studentIds.add(studentId);
           instructorAssignedStudentIds.remove(studentId);
           rows.add(
@@ -139,78 +144,84 @@ class _AddMarksState extends State<AddMarks> {
               children: [
                 TableCell(
                     child: GestureDetector(
-                      onLongPress: () {
-                        setState(() {
-                          showMarksEditDialog(
-                              studentId: studentId,
-                              mcq: mcq,
-                              structure: structure,
-                              essay: essay,
-                              totalMarks: totalMarks);
-                        });
-                      },
-                      onDoubleTap: () {
-                        setState(() {
-                          showMarksEditDialog(
-                              studentId: studentId,
-                              mcq: mcq,
-                              structure: structure,
-                              essay: essay,
-                              totalMarks: totalMarks);
-                        });
-                      },
+                  onLongPress: () {
+                    setState(() {
+                      showMarksEditDialog(
+                        markID: markID,
+                          studentId: studentId,
+                          mcq: mcq,
+                          structure: structure,
+                          essay: essay,
+                          totalMarks: totalMarks);
+                    });
+                  },
+                  onDoubleTap: () {
+                    setState(() {
+                      showMarksEditDialog(
+                        markID: markID,
+                          studentId: studentId,
+                          mcq: mcq,
+                          structure: structure,
+                          essay: essay,
+                          totalMarks: totalMarks);
+                    });
+                  },
+                  child: Container(
+                      height: 40,
+                      color: AppColors.ligthWhite,
+                      child: Center(
+                          child: Text(
+                        studentId.toString(),
+                        style: const TextStyle(color: AppColors.black),
+                      ))),
+                )),
+                if (widget.paper.isMcq)
+                  TableCell(
                       child: Container(
                           height: 40,
-                          color: AppColors.ligthWhite,
+                          color: widget.paper.isMcq
+                              ? AppColors.ligthWhite
+                              : AppColors.grey,
                           child: Center(
                               child: Text(
-                                studentId.toString(),
-                                style: const TextStyle(color: AppColors.black),
-                              ))),
-                    )),
-                if(widget.paper.isMcq)
-                TableCell(
-                    child: Container(
-                        height: 40,
-                        color: widget.paper.isMcq
-                            ? AppColors.ligthWhite
-                            : AppColors.grey,
-                        child: Center(
-                            child: Text(mcq != null ? mcq.toStringAsFixed(0) : '',
-                                style: const TextStyle(
-                                    color: AppColors.black))))),
-                if(widget.paper.isStructure)
+                                  mcq != null ? mcq.toStringAsFixed(0) : '',
+                                  style: const TextStyle(
+                                      color: AppColors.black))))),
+                if (widget.paper.isStructure)
                   TableCell(
-                    child: Container(
-                        height: 40,
-                        color: widget.paper.isStructure
-                            ? AppColors.ligthWhite
-                            : AppColors.grey,
-                        child: Center(
-                            child: Text(
-                                structure != null ? structure.toStringAsFixed(0) : '',
-                                style: const TextStyle(
-                                    color: AppColors.black))))),
-                if(widget.paper.isEssay)
+                      child: Container(
+                          height: 40,
+                          color: widget.paper.isStructure
+                              ? AppColors.ligthWhite
+                              : AppColors.grey,
+                          child: Center(
+                              child: Text(
+                                  structure != null
+                                      ? structure.toStringAsFixed(0)
+                                      : '',
+                                  style: const TextStyle(
+                                      color: AppColors.black))))),
+                if (widget.paper.isEssay)
                   TableCell(
-                    child: Container(
-                        height: 40,
-                        color: widget.paper.isEssay
-                            ? AppColors.ligthWhite
-                            : AppColors.grey,
-                        child: Center(
-                            child: Text(essay != null ? essay.toStringAsFixed(0) : '',
-                                style: const TextStyle(
-                                    color: AppColors.black))))),
+                      child: Container(
+                          height: 40,
+                          color: widget.paper.isEssay
+                              ? AppColors.ligthWhite
+                              : AppColors.grey,
+                          child: Center(
+                              child: Text(
+                                  essay != null ? essay.toStringAsFixed(0) : '',
+                                  style: const TextStyle(
+                                      color: AppColors.black))))),
                 TableCell(
                     child: Container(
                         height: 40,
                         color: AppColors.ligthWhite,
                         child: Center(
                             child: Text(
-                              totalMarks.toStringAsFixed(0),
-                              style: const TextStyle(color: AppColors.black),
-                            )))),
+                          totalMarks.toStringAsFixed(0),
+                          style: const TextStyle(color: AppColors.black),
+                        )))),
               ],
             ),
           );
@@ -221,26 +232,32 @@ class _AddMarksState extends State<AddMarks> {
 
   getInstructorAssignedStudentIds() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    if(prefs.containsKey('userInfo')){
-      Map<String, dynamic> userInfoMap = jsonDecode(prefs.getString('userInfo')!);
+    if (prefs.containsKey('userInfo')) {
+      Map<String, dynamic> userInfoMap =
+          jsonDecode(prefs.getString('userInfo')!);
       UserInfo userInfo = UserInfo.fromJson(userInfoMap);
-      if(userInfo.students != null) {
-        instructorAssignedStudentIds = userInfo.students!.map((e) => e.registrationNumber!).toList();
-      }else{
+      if (userInfo.students != null) {
+        instructorAssignedStudentIds =
+            userInfo.students!.map((e) => e.registrationNumber!).toList();
+      } else {
         instructorAssignedStudentIds = [];
       }
     }
   }
 
   showMarksEditDialog(
-      {required int studentId,
+      {
+        required String markID,
+        required int studentId,
       required double? mcq,
       required double? structure,
       required double? essay,
       required double totalMarks}) {
-    print('studentId: $studentId mcq: $mcq structure: $structure essay: $essay totalMarks: $totalMarks');
+    print(
+        'studentId: $studentId mcq: $mcq structure: $structure essay: $essay totalMarks: $totalMarks');
     editMcqController.text = mcq != null ? mcq.toString() : '';
-    editStructureController.text = structure != null ? structure.toString() : '';
+    editStructureController.text =
+        structure != null ? structure.toString() : '';
     editEssayController.text = essay != null ? essay.toString() : '';
     editTotalMarksController.text = totalMarks.toString();
     showDialog(
@@ -267,13 +284,14 @@ class _AddMarksState extends State<AddMarks> {
                         ),
                         enabled: false,
                       ),
-                      if(widget.paper.isMcq)
+                      if (widget.paper.isMcq)
                         TextFormField(
                           controller: editMcqController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             alignLabelWithHint: true,
-                            floatingLabelAlignment: FloatingLabelAlignment.start,
+                            floatingLabelAlignment:
+                                FloatingLabelAlignment.start,
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             floatingLabelStyle: TextStyle(
                               color: AppColors.black,
@@ -287,12 +305,13 @@ class _AddMarksState extends State<AddMarks> {
                           ),
                           enabled: widget.paper.isMcq,
                         ),
-                      if(widget.paper.isStructure)
+                      if (widget.paper.isStructure)
                         TextFormField(
                           controller: editStructureController,
                           decoration: const InputDecoration(
                             alignLabelWithHint: true,
-                            floatingLabelAlignment: FloatingLabelAlignment.start,
+                            floatingLabelAlignment:
+                                FloatingLabelAlignment.start,
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             floatingLabelStyle: TextStyle(
                               color: AppColors.black,
@@ -307,12 +326,13 @@ class _AddMarksState extends State<AddMarks> {
                           keyboardType: TextInputType.number,
                           enabled: widget.paper.isStructure,
                         ),
-                      if(widget.paper.isEssay)
+                      if (widget.paper.isEssay)
                         TextFormField(
                           controller: editEssayController,
                           decoration: const InputDecoration(
                             alignLabelWithHint: true,
-                            floatingLabelAlignment: FloatingLabelAlignment.start,
+                            floatingLabelAlignment:
+                                FloatingLabelAlignment.start,
                             floatingLabelBehavior: FloatingLabelBehavior.auto,
                             floatingLabelStyle: TextStyle(
                               color: AppColors.black,
@@ -366,7 +386,7 @@ class _AddMarksState extends State<AddMarks> {
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.green,
                 ),
-                onPressed: () async{
+                onPressed: () async {
                   if (editMcqController.text.trim().isNotEmpty) {
                     if (int.tryParse(editMcqController.text.trim()) == null) {
                       Globals.showSnackBar(
@@ -386,7 +406,8 @@ class _AddMarksState extends State<AddMarks> {
                     }
                   }
                   if (editStructureController.text.trim().isNotEmpty) {
-                    if (int.tryParse(editStructureController.text.trim()) == null) {
+                    if (int.tryParse(editStructureController.text.trim()) ==
+                        null) {
                       Globals.showSnackBar(
                           context: context,
                           message: 'Please enter valid structure marks',
@@ -429,27 +450,22 @@ class _AddMarksState extends State<AddMarks> {
                     return;
                   }
 
-                  await FirebaseFirestore.instance
-                      .collection('marks')
-                      .where('paperId', isEqualTo: widget.paper.paperId)
-                      .where('studentId', isEqualTo: studentId)
-                      .get()
-                      .then((value) {
-                    value.docs.forEach((element) {
-                      element.reference.update({
-                        'mcqMarks': editMcqController.text.trim().isNotEmpty
-                            ? int.parse(editMcqController.text.trim())
-                            : null,
-                        'structuredMarks': editStructureController.text.trim().isNotEmpty
-                            ? int.parse(editStructureController.text.trim())
-                            : null,
-                        'essayMarks': editEssayController.text.trim().isNotEmpty
-                            ? int.parse(editEssayController.text.trim())
-                            : null,
-                        'totalMarks': int.parse(editTotalMarksController.text.trim())
-                      });
-                    });
-                  });
+                  AddMarkResponseModel? updatedResponse = await
+                      PaperMarkService.updateMarks(
+                          markID: markID,
+                          paperID: widget.paper.paperId,
+                          studentID: studentId,
+                          mcq: editMcqController.text.trim().isNotEmpty
+                              ? double.parse(editMcqController.text.trim())
+                              : 0,
+                          structure: editStructureController.text.trim().isNotEmpty
+                              ? double.parse(editStructureController.text.trim())
+                              : 0,
+                          essay: editEssayController.text.trim().isNotEmpty
+                              ? double.parse(editEssayController.text.trim())
+                              : 0,
+                          totalMark: double.parse(editTotalMarksController.text)
+                      );
 
                   //edit row in table
                   int index = studentIds.indexOf(studentId);
@@ -467,6 +483,7 @@ class _AddMarksState extends State<AddMarks> {
                             onLongPress: () {
                               setState(() {
                                 showMarksEditDialog(
+                                  markID: updatedResponse!.data!.markId!,
                                     studentId: studentId,
                                     mcq: mcq,
                                     structure: structure,
@@ -481,7 +498,8 @@ class _AddMarksState extends State<AddMarks> {
                                     child: Center(
                                         child: Text(
                                       studentId.toString(),
-                                      style: const TextStyle(color: AppColors.black),
+                                      style: const TextStyle(
+                                          color: AppColors.black),
                                     )))),
                           ),
                           TableCell(
@@ -495,7 +513,8 @@ class _AddMarksState extends State<AddMarks> {
                                     editMcqController.text.trim().isNotEmpty
                                         ? editMcqController.text.trim()
                                         : '',
-                                    style: const TextStyle(color: AppColors.black),
+                                    style:
+                                        const TextStyle(color: AppColors.black),
                                   )))),
                           TableCell(
                               child: Container(
@@ -505,10 +524,13 @@ class _AddMarksState extends State<AddMarks> {
                                       : AppColors.grey,
                                   child: Center(
                                       child: Text(
-                                    editStructureController.text.trim().isNotEmpty
+                                    editStructureController.text
+                                            .trim()
+                                            .isNotEmpty
                                         ? editStructureController.text.trim()
                                         : '',
-                                    style: const TextStyle(color: AppColors.black),
+                                    style:
+                                        const TextStyle(color: AppColors.black),
                                   )))),
                           TableCell(
                               child: Container(
@@ -521,7 +543,8 @@ class _AddMarksState extends State<AddMarks> {
                                     editEssayController.text.trim().isNotEmpty
                                         ? editEssayController.text.trim()
                                         : '',
-                                    style: const TextStyle(color: AppColors.black),
+                                    style:
+                                        const TextStyle(color: AppColors.black),
                                   )))),
                           TableCell(
                               child: Container(
@@ -530,7 +553,8 @@ class _AddMarksState extends State<AddMarks> {
                                   child: Center(
                                       child: Text(
                                     editTotalMarksController.text.trim(),
-                                    style: const TextStyle(color: AppColors.black),
+                                    style:
+                                        const TextStyle(color: AppColors.black),
                                   )))),
                         ],
                       ),
@@ -544,8 +568,6 @@ class _AddMarksState extends State<AddMarks> {
                   );
 
                   Navigator.of(context).pop();
-
-
                 },
                 child: Text('Edit')),
             //DELETE BUTTON
@@ -554,13 +576,14 @@ class _AddMarksState extends State<AddMarks> {
                 backgroundColor: AppColors.red,
               ),
               onPressed: () async {
-               //confirmation dialog
+                //confirmation dialog
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
                       title: const Text('Delete Marks'),
-                      content: const Text('Are you sure you want to delete the marks?'),
+                      content: const Text(
+                          'Are you sure you want to delete the marks?'),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
@@ -572,7 +595,8 @@ class _AddMarksState extends State<AddMarks> {
                           onPressed: () async {
                             await FirebaseFirestore.instance
                                 .collection('marks')
-                                .where('paperId', isEqualTo: widget.paper.paperId)
+                                .where('paperId',
+                                    isEqualTo: widget.paper.paperId)
                                 .where('studentId', isEqualTo: studentId)
                                 .get()
                                 .then((value) {
@@ -609,7 +633,6 @@ class _AddMarksState extends State<AddMarks> {
     );
   }
 
-
   Future<void> addMarks({
     required String paperId,
     required int studentId,
@@ -628,7 +651,7 @@ class _AddMarksState extends State<AddMarks> {
           structure: structured ?? 0,
           essay: essay ?? 0,
           totalMark: total);
-      if(allMarkDataModel == null){
+      if (allMarkDataModel == null) {
         loading.dismiss();
         return;
       }
@@ -643,27 +666,27 @@ class _AddMarksState extends State<AddMarks> {
           children: [
             TableCell(
                 child: GestureDetector(
-                  onLongPress: () {
-                    setState(() {
-                      showMarksEditDialog(
-                          studentId: studentId,
-                          mcq: mcq,
-                          structure: structured,
-                          essay: essay,
-                          totalMarks: total);
-                    });
-                  },
-
-                  child: Container(
-                      height: 40,
-                      color: AppColors.ligthWhite,
-                      child: Center(
-                          child: Text(
-                            studentIdController.text,
-                            style: const TextStyle(color: AppColors.black),
-                          ))),
-                )),
-            if(widget.paper.isMcq)
+              onLongPress: () {
+                setState(() {
+                  showMarksEditDialog(
+                    markID: allMarkDataModel.data!.markId!,
+                      studentId: studentId,
+                      mcq: mcq,
+                      structure: structured,
+                      essay: essay,
+                      totalMarks: total);
+                });
+              },
+              child: Container(
+                  height: 40,
+                  color: AppColors.ligthWhite,
+                  child: Center(
+                      child: Text(
+                    studentIdController.text,
+                    style: const TextStyle(color: AppColors.black),
+                  ))),
+            )),
+            if (widget.paper.isMcq)
               TableCell(
                   child: Container(
                       height: 40,
@@ -673,8 +696,8 @@ class _AddMarksState extends State<AddMarks> {
                       child: Center(
                           child: Text(mcqController.text,
                               style:
-                              const TextStyle(color: AppColors.black))))),
-            if(widget.paper.isStructure)
+                                  const TextStyle(color: AppColors.black))))),
+            if (widget.paper.isStructure)
               TableCell(
                   child: Container(
                       height: 40,
@@ -684,8 +707,8 @@ class _AddMarksState extends State<AddMarks> {
                       child: Center(
                           child: Text(structureController.text,
                               style:
-                              const TextStyle(color: AppColors.black))))),
-            if(widget.paper.isEssay)
+                                  const TextStyle(color: AppColors.black))))),
+            if (widget.paper.isEssay)
               TableCell(
                   child: Container(
                       height: 40,
@@ -695,24 +718,22 @@ class _AddMarksState extends State<AddMarks> {
                       child: Center(
                           child: Text(essayController.text,
                               style:
-                              const TextStyle(color: AppColors.black))))),
-
+                                  const TextStyle(color: AppColors.black))))),
             TableCell(
                 child: Container(
                     height: 40,
                     color: AppColors.ligthWhite,
                     child: Center(
                         child: Text(
-                          totalMarksController.text,
-                          style: const TextStyle(color: AppColors.black),
-                        )))),
+                      totalMarksController.text,
+                      style: const TextStyle(color: AppColors.black),
+                    )))),
           ],
         ),
       );
       print(rows.length);
       setState(() {
         addCount = 0;
-
 
         studentIds.add(int.parse(studentIdController.text));
         studentIdController.clear();
@@ -738,143 +759,139 @@ class _AddMarksState extends State<AddMarks> {
                       height: 40,
                       child: Center(
                           child: TypeAheadField(
-                            controller: studentIdController,
-                            builder: (context, controller, focusNode) => TextField(
-                              controller: controller,
-                              focusNode: focusNode,
-                              autofocus: true,
-                              style: DefaultTextStyle.of(context)
-                                  .style
-                                  .copyWith(
+                        controller: studentIdController,
+                        builder: (context, controller, focusNode) => TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          autofocus: true,
+                          style: DefaultTextStyle.of(context).style.copyWith(
                                 fontSize: 12,
                               ),
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
-                                hintText: 'Enter student id',
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            hintText: 'Enter student id',
+                          ),
+                        ),
+                        itemBuilder: (context, product) => Container(
+                          padding: const EdgeInsets.all(5),
+                          height: 25,
+                          child: Text(
+                            product.toString(),
+                            style: const TextStyle(
+                              color: AppColors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        onSelected: (product) {
+                          setState(() {
+                            selectedStudentId = int.parse(product.toString());
+                            studentIdController.text = product.toString();
+                          });
+                        },
+                        suggestionsCallback: (pattern) async {
+                          return instructorAssignedStudentIds
+                              .where((element) =>
+                                  element.toString().contains(pattern))
+                              .toList();
+                        },
+                      )))),
+              if (widget.paper.isMcq)
+                TableCell(
+                    child: SizedBox(
+                        height: 40,
+                        child: Center(
+                            child: TextFormField(
+                          style: const TextStyle(
+                              color: AppColors.black, fontSize: 12),
+                          textAlign: TextAlign.center,
+                          enabled: widget.paper.isMcq,
+                          controller: mcqController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: widget.paper.isMcq
+                                ? AppColors.ligthWhite
+                                : AppColors.grey,
+                            hintStyle: const TextStyle(
+                                color: AppColors.black, fontSize: 12),
+                            hintText: widget.paper.isMcq ? 'Enter' : '',
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.black,
+                                // width: 1.5,
                               ),
                             ),
-                            itemBuilder: (context, product) => Container(
-                              padding: const EdgeInsets.all(5),
-                              height: 25,
-                              child: Text(product.toString(),
-                                  style: const TextStyle(
-                                    color: AppColors.black,
-                                    fontSize: 12,
-                                  ),
+                            // Remove the default border
+                            enabledBorder: const UnderlineInputBorder(
+                              // Add bottom line as enabled border
+                              borderSide: BorderSide(color: AppColors.black),
                             ),
-                            ),
-                            onSelected: (product) {
-                              setState(() {
-                                selectedStudentId = int.parse(product.toString());
-                                studentIdController.text = product.toString();
-                              });
-                            },
-                            suggestionsCallback: (pattern) async {
-                              return instructorAssignedStudentIds
-                                  .where((element) =>
-                                  element.toString().contains(pattern))
-                                  .toList();
-                            },
-
-                          )))),
-
-              if(widget.paper.isMcq)
-              TableCell(
-                  child: SizedBox(
-                      height: 40,
-                      child: Center(
-                          child: TextFormField(
-                        style: const TextStyle(
-                            color: AppColors.black, fontSize: 12),
-                        textAlign: TextAlign.center,
-                        enabled: widget.paper.isMcq,
-                        controller: mcqController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: widget.paper.isMcq
-                              ? AppColors.ligthWhite
-                              : AppColors.grey,
-                          hintStyle: const TextStyle(
+                          ),
+                        )))),
+              if (widget.paper.isStructure)
+                TableCell(
+                    child: SizedBox(
+                        height: 40,
+                        child: Center(
+                            child: TextFormField(
+                          style: const TextStyle(
                               color: AppColors.black, fontSize: 12),
-                          hintText: widget.paper.isMcq ? 'Enter' : '',
-                          border: const OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.black,
-                              // width: 1.5,
+                          textAlign: TextAlign.center,
+                          enabled: widget.paper.isStructure,
+                          controller: structureController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: widget.paper.isStructure
+                                ? AppColors.ligthWhite
+                                : AppColors.grey,
+                            hintStyle: const TextStyle(
+                                color: AppColors.black, fontSize: 12),
+                            hintText: widget.paper.isStructure ? 'Enter' : '',
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.black,
+                                // width: 1.5,
+                              ),
+                            ),
+                            // Remove the default border
+                            enabledBorder: const UnderlineInputBorder(
+                              // Add bottom line as enabled border
+                              borderSide: BorderSide(color: AppColors.black),
                             ),
                           ),
-                          // Remove the default border
-                          enabledBorder: const UnderlineInputBorder(
-                            // Add bottom line as enabled border
-                            borderSide: BorderSide(color: AppColors.black),
-                          ),
-                        ),
-                      )))),
-              if(widget.paper.isStructure)
-              TableCell(
-                  child: SizedBox(
-                      height: 40,
-                      child: Center(
-                          child: TextFormField(
-                        style: const TextStyle(
-                            color: AppColors.black, fontSize: 12),
-                        textAlign: TextAlign.center,
-                        enabled: widget.paper.isStructure,
-                        controller: structureController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: widget.paper.isStructure
-                              ? AppColors.ligthWhite
-                              : AppColors.grey,
-                          hintStyle: const TextStyle(
+                        )))),
+              if (widget.paper.isEssay)
+                TableCell(
+                    child: SizedBox(
+                        height: 40,
+                        child: Center(
+                            child: TextFormField(
+                          style: const TextStyle(
                               color: AppColors.black, fontSize: 12),
-                          hintText: widget.paper.isStructure ? 'Enter' : '',
-                          border: const OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.black,
-                              // width: 1.5,
+                          textAlign: TextAlign.center,
+                          enabled: widget.paper.isEssay,
+                          controller: essayController,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: widget.paper.isEssay
+                                ? AppColors.ligthWhite
+                                : AppColors.grey,
+                            hintStyle: const TextStyle(
+                                color: AppColors.black, fontSize: 12),
+                            hintText: widget.paper.isEssay ? 'Enter' : '',
+                            border: const OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.black,
+                                // width: 1.5,
+                              ),
+                            ),
+                            // Remove the default border
+                            enabledBorder: const UnderlineInputBorder(
+                              // Add bottom line as enabled border
+                              borderSide: BorderSide(color: AppColors.black),
                             ),
                           ),
-                          // Remove the default border
-                          enabledBorder: const UnderlineInputBorder(
-                            // Add bottom line as enabled border
-                            borderSide: BorderSide(color: AppColors.black),
-                          ),
-                        ),
-                      )))),
-              if(widget.paper.isEssay)
-              TableCell(
-                  child: SizedBox(
-                      height: 40,
-                      child: Center(
-                          child: TextFormField(
-                        style: const TextStyle(
-                            color: AppColors.black, fontSize: 12),
-                        textAlign: TextAlign.center,
-                        enabled: widget.paper.isEssay,
-                        controller: essayController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: widget.paper.isEssay
-                              ? AppColors.ligthWhite
-                              : AppColors.grey,
-                          hintStyle: const TextStyle(
-                              color: AppColors.black, fontSize: 12),
-                          hintText: widget.paper.isEssay ? 'Enter' : '',
-                          border: const OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.black,
-                              // width: 1.5,
-                            ),
-                          ),
-                          // Remove the default border
-                          enabledBorder: const UnderlineInputBorder(
-                            // Add bottom line as enabled border
-                            borderSide: BorderSide(color: AppColors.black),
-                          ),
-                        ),
-                      )))),
-
+                        )))),
               TableCell(
                   child: SizedBox(
                       height: 40,
@@ -1130,7 +1147,8 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isStructure &&
                           widget.paper.isEssay) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 2000) {
+                            int.parse(totalMarksController.text.trim()) >
+                                2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1143,7 +1161,8 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isStructure &&
                           !widget.paper.isEssay) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 2000) {
+                            int.parse(totalMarksController.text.trim()) >
+                                2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1156,7 +1175,8 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isEssay &&
                           !widget.paper.isStructure) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 2000) {
+                            int.parse(totalMarksController.text.trim()) >
+                                2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1169,7 +1189,8 @@ class _AddMarksState extends State<AddMarks> {
                           widget.paper.isEssay &&
                           !widget.paper.isMcq) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 2000) {
+                            int.parse(totalMarksController.text.trim()) >
+                                2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:
@@ -1183,7 +1204,8 @@ class _AddMarksState extends State<AddMarks> {
                           !widget.paper.isStructure &&
                           !widget.paper.isEssay) {
                         if (0 > int.parse(totalMarksController.text.trim()) ||
-                            int.parse(totalMarksController.text.trim()) > 2000) {
+                            int.parse(totalMarksController.text.trim()) >
+                                2000) {
                           Globals.showSnackBar(
                               context: context,
                               message:

@@ -119,7 +119,7 @@ class _MyAppState extends State<MyApp> {
         else if (role == 'role_instructor') {
           return const InstructorEntryScreen();
         }
-        else if (role == 'admin') {
+        else if (role == 'role_admin') {
           return const BottomBarScreen(
             isEntryScreen: false,
             isInstructorScreen: false,
