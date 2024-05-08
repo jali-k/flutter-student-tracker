@@ -55,52 +55,6 @@ class _InstructorScreenState extends State<InstructorScreen> {
     });
   }
 
-  // Future<void> addData(
-  //     {required String instructorEmail, required String password}) async {
-  //   try {
-  //     final loading = LoadingPopup(context);
-  //     loading.show();
-  //     String instructorId = const Uuid().v1();
-  //     DocumentReference documentReference = await FirebaseFirestore.instance
-  //         .collection('instructor') // Reference to the collection
-  //         .add({
-  //       'id': instructor.length,
-  //       'instructorId': instructorId,
-  //       'email': instructorEmail,
-  //       'password': password
-  //     });
-  //     loading.dismiss();
-  //     setState(() {
-  //       instructor.insert(
-  //           0,
-  //           Instructor(
-  //               instructorId: instructorId,
-  //               email: instructorEmail,
-  //               docId: documentReference.id));
-  //       entryController.clear();
-  //       passwordController.clear();
-  //     });
-  //     final Email email = Email(
-  //       body: 'Instructor password is $password',
-  //       subject: 'Instructor\'s password',
-  //       recipients: [instructorEmail],
-  //       // cc: ['cc@example.com'],
-  //       // bcc: ['bcc@example.com'],
-  //       // attachmentPaths: ['/path/to/attachment.zip'],
-  //       isHTML: false,
-  //     );
-  //
-  //     await FlutterEmailSender.send(email);
-  //
-  //     // ignore: use_build_context_synchronously
-  //     Globals.showSnackBar(
-  //         context: context, isSuccess: true, message: 'Success');
-  //   } catch (error) {
-  //     // ignore: avoid_print
-  //     print("Failed to add user: $error");
-  //   }
-  // }
-  //
     Future<void> addData(
       {
         required String instructorEmail,
@@ -118,11 +72,13 @@ class _InstructorScreenState extends State<InstructorScreen> {
           lastName: lastName,
           group: group
       );
-      // instructor.add(Instructor(
-      //     instructorId: response.data!.instructorId!,
-      //     email: instructorEmail,
-      //     docId: response.data['uid']
-      // ));
+      instructor.add(InstructorInfo(
+          instructorId: response?.data!.instructorId,
+          instructorGroup: response?.data!.instructorGroup,
+          firstName: firstName,
+          lastName: lastName,
+          email: instructorEmail
+      ));
       loading.dismiss();
       emailController.clear();
       firstNameController.clear();
@@ -464,7 +420,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
                                     CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        instructor[index].instructorId!,
+                                        instructor[index].email!,
                                         style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.black),

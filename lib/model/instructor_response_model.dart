@@ -1,6 +1,6 @@
 class InstructorResponseModel {
   String? status;
-  Null? message;
+  String? message;
   List<InstructorInfo>? data;
 
   InstructorResponseModel({this.status, this.message, this.data});
@@ -30,13 +30,25 @@ class InstructorResponseModel {
 class InstructorInfo {
   String? instructorId;
   String? instructorGroup;
+  String? firstName;
+  String? lastName;
+  String? email;
   List<Students>? students;
 
-  InstructorInfo({this.instructorId, this.instructorGroup, this.students});
+  InstructorInfo(
+      {this.instructorId,
+        this.instructorGroup,
+        this.firstName,
+        this.lastName,
+        this.email,
+        this.students});
 
   InstructorInfo.fromJson(Map<String, dynamic> json) {
     instructorId = json['instructorId'];
     instructorGroup = json['instructorGroup'];
+    firstName = json['firstName'];
+    lastName = json['lastName'];
+    email = json['email'];
     if (json['students'] != null) {
       students = <Students>[];
       json['students'].forEach((v) {
@@ -49,6 +61,9 @@ class InstructorInfo {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['instructorId'] = this.instructorId;
     data['instructorGroup'] = this.instructorGroup;
+    data['firstName'] = this.firstName;
+    data['lastName'] = this.lastName;
+    data['email'] = this.email;
     if (this.students != null) {
       data['students'] = this.students!.map((v) => v.toJson()).toList();
     }
