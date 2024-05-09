@@ -2,26 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:spt/services/admin_service.dart';
+import 'package:spt/model/all_lecture_video_response_model.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../globals.dart';
 import '../../model/all_folder_response_model.dart';
-import '../../model/all_student_response_model.dart';
 import '../../model/model.dart';
 import '../../popups/confirmation_popup.dart';
 import '../../popups/loading_popup.dart';
 import '../../popups/progress_popup.dart';
+import '../../services/lecture_folder_service.dart';
 import '../res/app_colors.dart';
 import 'add_video.dart';
 
 
-class AddFolder extends StatefulWidget {
+class EditFolder extends StatefulWidget {
   final bool isUpdate;
   final FolderInfo? folderDetails;
   final void Function() callBack;
   final List<String> folderNames;
-  const AddFolder(
+  const EditFolder(
       {super.key,
         required this.isUpdate,
         required this.folderDetails,
@@ -29,10 +29,10 @@ class AddFolder extends StatefulWidget {
         required this.folderNames});
 
   @override
-  State<AddFolder> createState() => _AddFolderState();
+  State<EditFolder> createState() => _EditFolderState();
 }
 
-class _AddFolderState extends State<AddFolder> {
+class _EditFolderState extends State<EditFolder> {
   final double _fieldBorderRadius = 30;
   final double _fieldBorderLineWidth = 1.5;
   final double _fieldFontSizeValue = 12;
@@ -41,68 +41,44 @@ class _AddFolderState extends State<AddFolder> {
   final emailListController = TextEditingController();
   Video? videoDetail;
   bool isVideo = false;
-  List<VideoDetail> videoList = [];
+  List<LectureVideoInfo> videoList = [];
   bool isLoading = false;
-  List<DocumentSnapshot> data = [];
+  List<LectureVideoInfo> data = [];
   List<String> emailList = [];
-  List<String> allEmailList = [];
 
   @override
   void initState() {
     super.initState();
-    fetchEmail();
     if (widget.isUpdate) {
       assignTheData();
-
+      fetchVideo();
       // fetch();
     }
-  }
-
-  fetchEmail() async{
-    AllStudentResponseModel? allStudentResponseModel = await AdminService.getAllStudent();
-    List<StudentInfo> studentInfo = allStudentResponseModel!.data!;
-    setState(() {
-      allEmailList.addAll(studentInfo.map((e) => e.user!.username!).toList());
-    });
-  }
-
-  void showEmailAddDialog(){
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Add email'),
-            content: TextFormField(
-              controller: emailListController,
-              decoration: const InputDecoration(
-                  hintText: 'Enter email'),
-            ),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    setState(() {
-                      emailList.add(emailListController.text);
-                      emailListController.clear();
-                      Navigator.of(context).pop();
-                    });
-                  },
-                  child: const Text('Add')),
-              TextButton(
-                  onPressed: () {
-                    setState(() {
-                      Navigator.of(context).pop();
-                    });
-                  },
-                  child: const Text('Cancel'))
-            ],
-          );
-        });
   }
 
   void assignTheData() {
     setState(() {
       folderNameController.text = widget.folderDetails!.folderName!;
       // emailListController.text = widget.folderDetails!.allowedStudents..join('\n');
+    });
+  }
+
+  fetchVideo() async{
+    data.clear();
+    videoList.clear();
+    setState(() {
+      isLoading = true;
+    });
+    AllLectureVideoResponseModel? allLectureVideoResponseModel = await LectureFolderService.getAllLectureVideo(context, widget.folderDetails!.folderId!);
+    if(allLectureVideoResponseModel == null){
+      return;
+    }
+    List<LectureVideoInfo> lectureVideoInfo = allLectureVideoResponseModel.data!;
+    setState(() {
+      data.addAll(lectureVideoInfo);
+      videoList.addAll(lectureVideoInfo);
+      isLoading = false;
+      emailList = widget.folderDetails!.allowedStudents!.map((e) => e.user!.username!).toList();
     });
   }
 
@@ -468,7 +444,7 @@ class _AddFolderState extends State<AddFolder> {
                       child: ListView.builder(
                           itemCount: videoList.length,
                           itemBuilder: (context, index) {
-                            VideoDetail video = videoList[index];
+                            LectureVideoInfo video = videoList[index];
                             return Container(
                               margin: const EdgeInsets.all(8.0),
                               decoration: BoxDecoration(
@@ -478,8 +454,11 @@ class _AddFolderState extends State<AddFolder> {
                                       color: AppColors.black,
                                       width: 1.5)),
                               child: Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(2.0),
                                 child: ListTile(
+                                  leading: Image.network(
+                                    video.videoThumbnailUrl!,
+                                  ),
                                   dense: true,
                                   trailing: IconButton(
                                       onPressed: () {
@@ -488,14 +467,14 @@ class _AddFolderState extends State<AddFolder> {
                                             'Are you sure you want to delete the file?',
                                             callbackOnYesPressed: () {
                                               try{
-                                                deleteVideoFile(
-                                                    videoDocId:
-                                                    video.videoDocId,
-                                                    docId: video.docId,
-                                                    videoId: video.videoId);
-                                                setState(() {
-                                                  videoList.removeAt(index);
-                                                });
+                                                // deleteVideoFile(
+                                                //     videoDocId:
+                                                //     video.videoDocId,
+                                                //     docId: video.docId,
+                                                //     videoId: video.videoId);
+                                                // setState(() {
+                                                //   videoList.removeAt(index);
+                                                // });
                                               }catch(e){
                                                 ScaffoldMessenger.of(context).showSnackBar(
                                                     SnackBar(
@@ -508,11 +487,11 @@ class _AddFolderState extends State<AddFolder> {
 
                                       },
                                       icon: const Icon(
-                                        Icons.cancel_outlined,
+                                        Icons.delete,
                                         color: Colors.red,
                                       )),
                                   title: Text(
-                                    video.videoPath,
+                                    video.videoName!,
                                     style: const TextStyle(
                                         color: Colors.black),
                                   ),
@@ -531,7 +510,38 @@ class _AddFolderState extends State<AddFolder> {
                     const Gap(10),
                     IconButton(
                         onPressed: () {
-                          showEmailAddDialog();
+                          setState(() {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text('Add email'),
+                                    content: TextFormField(
+                                      controller: emailListController,
+                                      decoration: const InputDecoration(
+                                          hintText: 'Enter email'),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              emailList.add(emailListController.text);
+                                              emailListController.clear();
+                                              Navigator.of(context).pop();
+                                            });
+                                          },
+                                          child: const Text('Add')),
+                                      TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              Navigator.of(context).pop();
+                                            });
+                                          },
+                                          child: const Text('Cancel'))
+                                    ],
+                                  );
+                                });
+                          });
                         },
                         icon: const Icon(
                           Icons.add,
@@ -547,9 +557,9 @@ class _AddFolderState extends State<AddFolder> {
                       itemCount: emailList.length,
                       itemBuilder: (context, index) {
                         return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4,vertical: 4),
+                          margin: const EdgeInsets.all(8.0),
                           decoration: BoxDecoration(
-                              color: AppColors.ligthWhite,
+                              color: AppColors.backGround,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                   color: AppColors.black, width: 1.5)),
@@ -557,6 +567,7 @@ class _AddFolderState extends State<AddFolder> {
                             padding: const EdgeInsets.all(2.0),
                             child: ListTile(
                               dense: true,
+                              contentPadding: const EdgeInsets.all(5),
                               trailing: IconButton(
                                   onPressed: () {
                                     setState(() {
@@ -564,7 +575,7 @@ class _AddFolderState extends State<AddFolder> {
                                     });
                                   },
                                   icon: const Icon(
-                                    Icons.cancel_outlined,
+                                    Icons.delete,
                                     color: Colors.red,
                                   )),
                               title: Text(
@@ -575,7 +586,7 @@ class _AddFolderState extends State<AddFolder> {
                           ),
                         );
                       }),
-                ),
+                  ),
                 const Gap(10),
                 Align(
                   alignment: Alignment.bottomRight,

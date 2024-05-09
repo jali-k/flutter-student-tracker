@@ -2,9 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/material.dart';
 
+import '../../model/all_folder_response_model.dart';
 import '../../model/model.dart';
+import '../../services/lecture_folder_service.dart';
 import '../res/app_colors.dart';
 import 'add_folder.dart';
+import 'edit_folder.dart';
 
 
 class FolderListScreen extends StatefulWidget {
@@ -15,8 +18,8 @@ class FolderListScreen extends StatefulWidget {
 }
 
 class _FolderListScreenState extends State<FolderListScreen> {
-  List<DocumentSnapshot> data = [];
-  List<Folder> folderList = [];
+  List<FolderInfo> data = [];
+  List<FolderInfo> folderList = [];
   List<String> folderName = [];
   bool isLoading = false;
   @override
@@ -31,23 +34,12 @@ class _FolderListScreenState extends State<FolderListScreen> {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('folders')
-        .orderBy('videoUploadedDate', descending: false)
-        .get();
+    AllFolderResponseModel allFolderResponseModel = await LectureFolderService.getAllFolder(context);
+    List<FolderInfo> folderInfo = allFolderResponseModel.data!;
+
     setState(() {
-      data.addAll(querySnapshot.docs);
-      for (var folder in data) {
-        folderList.add(
-          Folder(
-            folderName: folder['folderName'],
-            emailList: folder['emailList'],
-            uploadedDate: folder['videoUploadedDate'],
-            docId: folder.id,
-          ),
-        );
-        folderName.add(folder['folderName'].toString().toLowerCase());
-      }
+      data.addAll(folderInfo);
+      folderList.addAll(folderInfo);
       isLoading = false;
     });
   }
@@ -104,7 +96,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
           ),
           itemCount: folderList.length, // Number of items in the grid
           itemBuilder: (BuildContext context, int index) {
-            Folder folder = folderList[index];
+            FolderInfo folder = folderList[index];
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -116,7 +108,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                     iconSize: 120,
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => AddFolder(
+                          builder: (context) => EditFolder(
                             isUpdate: true,
                             callBack: () {
                               fetch();
@@ -128,7 +120,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                     icon: const Icon(Icons.folder)),
                 // const Gap(8),
                 Text(
-                  folder.folderName,
+                  folder.folderName!,
                   style: const TextStyle(color: AppColors.black),
                 )
               ],

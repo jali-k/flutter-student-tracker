@@ -442,7 +442,8 @@ class _InstructorScreenState extends State<InstructorScreen> {
                                     icon: const Icon(
                                       Icons.delete,
                                       color: AppColors.red,
-                                    ))
+                                    )
+                                )
                               ],
                             ),
                           ),
