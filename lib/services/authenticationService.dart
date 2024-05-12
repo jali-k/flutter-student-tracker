@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/model/authenticated_instructor_model.dart';
 import 'package:spt/model/authenticated_user_model.dart';
@@ -14,7 +15,10 @@ class AuthenticationService{
   static Future<bool> login(String accessToken) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      final response = await APIProvider.instance.post('/auth/login', {'accessToken': accessToken});
+      prefs.clear();
+      final response = await Dio(BaseOptions(
+        baseUrl: APIProvider.BASE_URL,
+      )).post('/auth/login', data: {'accessToken': accessToken});
       if (response.statusCode == 200) {
         //get response data as AuthenticatedStudentModel
         AuthenticatedUserModel authenticatedUserModel = AuthenticatedUserModel.fromJson(response.data);
@@ -67,6 +71,12 @@ class AuthenticationService{
       print('Error: $e');
       return false;
     }
+  }
+
+  static void logout() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+    APIProvider.instance.reInitializeAPIProvider();
   }
 
 

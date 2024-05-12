@@ -1,19 +1,14 @@
-class AllFolderResponseModel {
+class FolderCreateResponseModel {
   String? status;
-  Null? message;
-  List<FolderInfo>? data;
+  String? message;
+  Data? data;
 
-  AllFolderResponseModel({this.status, this.message, this.data});
+  FolderCreateResponseModel({this.status, this.message, this.data});
 
-  AllFolderResponseModel.fromJson(Map<String, dynamic> json) {
+  FolderCreateResponseModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     message = json['message'];
-    if (json['data'] != null) {
-      data = <FolderInfo>[];
-      json['data'].forEach((v) {
-        data!.add(new FolderInfo.fromJson(v));
-      });
-    }
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -21,24 +16,24 @@ class AllFolderResponseModel {
     data['status'] = this.status;
     data['message'] = this.message;
     if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
+      data['data'] = this.data!.toJson();
     }
     return data;
   }
 }
 
-class FolderInfo {
+class Data {
   String? folderId;
   String? folderName;
   String? folderDescription;
-  String? folderThumbnailUrl;
+  Null? folderThumbnailUrl;
   int? dateCreated;
   int? dateModified;
   List<AllowedStudents>? allowedStudents;
   List<Null>? videos;
   bool? enabled;
 
-  FolderInfo(
+  Data(
       {this.folderId,
         this.folderName,
         this.folderDescription,
@@ -49,7 +44,7 @@ class FolderInfo {
         this.videos,
         this.enabled});
 
-  FolderInfo.fromJson(Map<String, dynamic> json) {
+  Data.fromJson(Map<String, dynamic> json) {
     folderId = json['folderId'];
     folderName = json['folderName'];
     folderDescription = json['folderDescription'];
@@ -121,9 +116,10 @@ class User {
   String? id;
   String? firstName;
   String? lastName;
-  String? phoneNumber;
+  Null? phoneNumber;
   String? username;
   bool? verified;
+  List<Null>? roles;
 
   User(
       {this.id,
@@ -132,7 +128,7 @@ class User {
         this.phoneNumber,
         this.username,
         this.verified,
-        });
+        this.roles});
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];

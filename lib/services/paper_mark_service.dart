@@ -3,6 +3,7 @@ import 'package:spt/model/add_paper_response_model.dart';
 
 import '../model/all_mark_data_model.dart';
 import '../model/response_model.dart';
+import '../model/student_all_mark_response_model.dart';
 import 'api_provider.dart';
 
 class PaperMarkService{
@@ -129,4 +130,20 @@ class PaperMarkService{
     }
   }
 
+  static Future<StudentAllMarkResponseModel?> getStudentAllMarks() async{
+    try{
+      final response = await APIProvider.instance.get('/mark/student');
+      if(response.statusCode == 200){
+        //get response data as StudentAllMarkResponseModel
+        StudentAllMarkResponseModel studentAllMarkResponseModel = StudentAllMarkResponseModel.fromJson(response.data);
+        return studentAllMarkResponseModel;
+      }else{
+        return null;
+      }
+
+    }catch(e){
+      print('Error: $e');
+      return null;
+    }
+  }
 }

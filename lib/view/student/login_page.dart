@@ -291,22 +291,21 @@ class _LoginPageState extends State<LoginPage> {
                 child: Image.asset(
                   'assets/images/login_background.gif',
                   fit: BoxFit.fitWidth,
-                  height: MediaQuery.of(context).size.height * 0.5,
+                  height: MediaQuery.of(context).size.height * 0.55,
                   width: MediaQuery.of(context).size.width,
                   alignment: Alignment.center,
                 ),
               ),
               Positioned(
-                  bottom: 0,
+                  bottom: 10,
                   left: 0,
                   child: Container(
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    width: MediaQuery.of(context).size.width,
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 20,horizontal: 10),
+                    width: MediaQuery.of(context).size.width - 20,
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(50),
-                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(20))
                     ),
                     child: SingleChildScrollView(
                       child: Column(
@@ -320,41 +319,41 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          if(kDebugMode && !kIsWeb)
-                            Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: TextField(
-                              controller: emailController,
-                              decoration: InputDecoration(
-                                hintText: 'Email Address',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                prefixIcon: const Icon(Icons.email),
-                                prefixIconColor: Color(0xFF00C897).withOpacity(0.4),
-                              ),
-                            ),
-                          ),
-                          if(kDebugMode && !kIsWeb)
-                          const SizedBox(height: 20),
-                          if(kDebugMode && !kIsWeb)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: TextField(
-                              controller: passwordController,
-                              obscureText: true,
-                              decoration: InputDecoration(
-                                hintText: 'Password',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                prefixIcon: const Icon(Icons.lock),
-                                prefixIconColor: Color(0xFF00C897).withOpacity(0.4)
-                              ),
-                            ),
-                          ),
-                          if(kDebugMode && !kIsWeb)
-                          const SizedBox(height: 20),
+                          // if(kDebugMode && !kIsWeb)
+                          //   Padding(
+                          //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                          //   child: TextField(
+                          //     controller: emailController,
+                          //     decoration: InputDecoration(
+                          //       hintText: 'Email Address',
+                          //       border: OutlineInputBorder(
+                          //         borderRadius: BorderRadius.circular(10),
+                          //       ),
+                          //       prefixIcon: const Icon(Icons.email),
+                          //       prefixIconColor: Color(0xFF00C897).withOpacity(0.4),
+                          //     ),
+                          //   ),
+                          // ),
+                          // if(kDebugMode && !kIsWeb)
+                          // const SizedBox(height: 20),
+                          // if(kDebugMode && !kIsWeb)
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(horizontal: 20),
+                          //   child: TextField(
+                          //     controller: passwordController,
+                          //     obscureText: true,
+                          //     decoration: InputDecoration(
+                          //       hintText: 'Password',
+                          //       border: OutlineInputBorder(
+                          //         borderRadius: BorderRadius.circular(10),
+                          //       ),
+                          //       prefixIcon: const Icon(Icons.lock),
+                          //       prefixIconColor: Color(0xFF00C897).withOpacity(0.4)
+                          //     ),
+                          //   ),
+                          // ),
+                          // if(kDebugMode && !kIsWeb)
+                          // const SizedBox(height: 20),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             margin: const EdgeInsets.symmetric(vertical: 20),
@@ -401,25 +400,25 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           if (!kIsWeb) const SizedBox(height: 20),
-                          if(kDebugMode)
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                _login();
-                              },
-                              child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                          // if(kDebugMode)
+                          // SizedBox(
+                          //   width: MediaQuery.of(context).size.width * 0.8,
+                          //   height: 50,
+                          //   child: ElevatedButton(
+                          //     onPressed: () {
+                          //       _login();
+                          //     },
+                          //     child: const Text('LOGIN', style: TextStyle(fontSize: 18,color: Colors.white)),
+                          //     style: ElevatedButton.styleFrom(
+                          //       backgroundColor: Colors.black,
+                          //       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                          //       shape: RoundedRectangleBorder(
+                          //         borderRadius: BorderRadius.circular(20),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 20),
                           // Row(
                           //   mainAxisAlignment: MainAxisAlignment.center,
                           //   children: [

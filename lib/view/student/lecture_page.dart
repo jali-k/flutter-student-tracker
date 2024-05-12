@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:spt/model/folder.dart';
+import 'package:spt/services/lecture_folder_service.dart';
 import 'package:spt/services/lecture_service.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:spt/view/student/video_page.dart';
+
+import '../../model/student_allowed_folder_response_model.dart';
 
 class LecturesPage extends StatefulWidget {
   const LecturesPage({super.key});
@@ -12,10 +16,15 @@ class LecturesPage extends StatefulWidget {
 
 class _LecturesPageState extends State<LecturesPage> {
   bool isLoaded = false;
-  List<Folder> folders = [];
+  List<FolderData> folders = [];
 
   getLectures() async {
-    List<Folder> _folders =await LectureService.getLectures();
+    StudentAllowedFolderResponseModel? folderResponseModel =await LectureFolderService.getLectures();
+    if(folderResponseModel == null) {
+      ToastUtil.showErrorToast(context, "Error", "Failed to get lectures");
+      return;
+    }
+    List<FolderData> _folders = folderResponseModel!.data!;
     setState(() {
       folders = _folders;
       isLoaded = true;
@@ -96,40 +105,31 @@ class _LecturesPageState extends State<LecturesPage> {
                       ListView.builder(
                         itemCount: folders.length,
                         itemBuilder: (context, index) {
+                          FolderData folder = folders[index];
                           // ExpansionTile
-                          if(folders[index].isUserInFolder()) {
                             return ExpansionTile(
                             title: Row(
                               children: [
-                                Text(folders[index].folderName),
+                                Text(folder.folderName!),
                               ],
                             ),
                             // disable expansion tile if user is not in the folder
                             onExpansionChanged: (value) {
-                              if(!folders[index].isUserInFolder()){
                                 // close the expansion tile
-                                if(value){
-                                  setState(() {
-                                    folders[index].isUserInFolder();
-                                  });
+                                if(!folder.enabled!) {
+                                  // setState(() {
+                                  //   folders[index].enabled = false;
+                                  // });
                                 }
-                                //remove other snackbar
-                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                                // show snackbar
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('You are not allowed to access this folder'),
-                                  ),
-                                );
-                              }
                             },
                             children: [
                               ListView.builder(
                                 shrinkWrap: true,
-                                itemCount: folders[index].videoList.length,
+                                itemCount: folder.videos!.length,
                                 itemBuilder: (context, i) {
+                                  Videos video = folder.videos![i];
                                   return ListTile(
-                                    title: Text(folders[index].videoList[i].title),
+                                    title: Text(video.videoName!),
                                     onTap: () {
                                       // Navigate to video page
                                     },
@@ -142,7 +142,7 @@ class _LecturesPageState extends State<LecturesPage> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => VideoPage(
-                                              videoId: folders[index].videoList[i].videoId,
+                                              videoId: video.videoId!,
                                             ),
                                           ),
                                         );
@@ -151,32 +151,11 @@ class _LecturesPageState extends State<LecturesPage> {
                                   );
                                 },
                               ),
-                              if(folders[index].videoList.length == 0)
+                              if(folder.videos!.isEmpty)
                                 Text('No videos found'),
                             ],
                           );
-                          } else {
-                            return ExpansionTile(
-                              trailing: const Icon(Icons.lock, color: Colors.red,),
-                              title: Row(
-                                children: [
-                                  Text(folders[index].folderName),
-                                ],
-                              ),
-                              // disable expansion tile if user is not in the folder
-                              onExpansionChanged: (value) {
-                                ScaffoldMessenger.of(context).removeCurrentSnackBar();
-                                // show snackbar
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('You are not allowed to access this folder'),
-                                  ),
-                                );
-                              },
-                              children: [
-                              ],
-                            );
-                          }
+
                         },
                       ),
                     ),

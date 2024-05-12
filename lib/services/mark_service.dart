@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:spt/model/Paper.dart';
 
 import '../model/paper_attempt.dart';
+import '../model/student_all_mark_response_model.dart';
 
 class PaperMarksService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -108,5 +109,7 @@ class PaperMarksService {
 
     return await _firestore.collection('papers').where('paperId',isEqualTo: id).get();
   }
+
+
 
 }

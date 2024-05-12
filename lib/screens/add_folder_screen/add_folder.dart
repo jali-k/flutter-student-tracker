@@ -1,624 +1,728 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:spt/model/lecture_video_upload_response_model.dart';
 import 'package:spt/services/admin_service.dart';
+import 'package:spt/services/lecture_folder_service.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../globals.dart';
 import '../../model/all_folder_response_model.dart';
 import '../../model/all_student_response_model.dart';
+import '../../model/folder_create_response_model.dart';
 import '../../model/model.dart';
+import '../../model/upload_resource.dart';
 import '../../popups/confirmation_popup.dart';
 import '../../popups/loading_popup.dart';
 import '../../popups/progress_popup.dart';
 import '../res/app_colors.dart';
 import 'add_video.dart';
 
-
 class AddFolder extends StatefulWidget {
-  final bool isUpdate;
-  final FolderInfo? folderDetails;
-  final void Function() callBack;
-  final List<String> folderNames;
-  const AddFolder(
-      {super.key,
-        required this.isUpdate,
-        required this.folderDetails,
-        required this.callBack,
-        required this.folderNames});
+  const AddFolder({super.key});
 
   @override
   State<AddFolder> createState() => _AddFolderState();
 }
 
 class _AddFolderState extends State<AddFolder> {
-  final double _fieldBorderRadius = 30;
-  final double _fieldBorderLineWidth = 1.5;
-  final double _fieldFontSizeValue = 12;
   final formKey = GlobalKey<FormState>();
-  final folderNameController = TextEditingController();
-  final emailListController = TextEditingController();
+  bool isUploading = false;
+
+  //Folder Name, Folder Description, Folder Video, Allow Type (either all or specific), if specific then email list
   Video? videoDetail;
-  bool isVideo = false;
   List<VideoDetail> videoList = [];
-  bool isLoading = false;
   List<DocumentSnapshot> data = [];
   List<String> emailList = [];
   List<String> allEmailList = [];
+  List<UploadResource> uploadLectureVideos = [
+    UploadResource(
+      File(''),
+      File(''),
+      '',
+      '',
+      0.0,
+    )
+  ];
 
   @override
   void initState() {
     super.initState();
     fetchEmail();
-    if (widget.isUpdate) {
-      assignTheData();
-
-      // fetch();
-    }
   }
 
-  fetchEmail() async{
-    AllStudentResponseModel? allStudentResponseModel = await AdminService.getAllStudent();
+  fetchEmail() async {
+    AllStudentResponseModel? allStudentResponseModel =
+        await AdminService.getAllStudent();
     List<StudentInfo> studentInfo = allStudentResponseModel!.data!;
     setState(() {
       allEmailList.addAll(studentInfo.map((e) => e.user!.username!).toList());
     });
   }
 
-  void showEmailAddDialog(){
+  final TextEditingController _folderNameController = TextEditingController();
+  final TextEditingController _folderDescriptionController =
+      TextEditingController();
+  final TextEditingController _folderVideoController = TextEditingController();
+  final TextEditingController _emailListController = TextEditingController();
+  String _allowType = 'Specific';
+
+  //_videoTitleController, _videoDescriptionController, _videoDurationController
+  final TextEditingController _videoTitleController = TextEditingController();
+  final TextEditingController _videoDescriptionController =
+      TextEditingController();
+  final TextEditingController _videoDurationController =
+      TextEditingController();
+  final StreamController<double> uploadProgressController =
+      StreamController<double>.broadcast();
+
+  //add Video popup to enter Video Name Description
+  addVideo(BuildContext context) async {
     showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) {
+          final StreamController<File> pickedVideoThumbnailFileController =
+              StreamController<File>();
+          final StreamController<File> pickedVideoFileController =
+              StreamController<File>();
+          String? pickedVideoFile = null;
+          String? pickedVideoThumbnailFile = null;
+          double? pickedVideoDuration = null;
+          String? pickedVideoTitle = null;
+          String? pickedVideoDescription = null;
+
           return AlertDialog(
-            title: const Text('Add email'),
-            content: TextFormField(
-              controller: emailListController,
-              decoration: const InputDecoration(
-                  hintText: 'Enter email'),
+            title: Text('Add Video'),
+            backgroundColor: Colors.white,
+            content: SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _videoTitleController,
+                      decoration: InputDecoration(
+                        labelText: 'Video Title',
+                        labelStyle: TextStyle(color: AppColors.black),
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      controller: _videoDescriptionController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Video Description',
+                        labelStyle: TextStyle(color: AppColors.black),
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      controller: _videoDurationController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Video Duration',
+                        labelStyle: TextStyle(color: AppColors.black),
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      height: 300,
+                      width: 300,
+                      decoration: BoxDecoration(
+                          color: Color(0xFFE5E5E5),
+                          borderRadius: BorderRadius.all(Radius.circular(5))),
+                      child: StreamBuilder<File>(
+                          stream: pickedVideoThumbnailFileController.stream,
+                          builder: (context, snapshot) {
+                            return pickedVideoThumbnailFile == null
+                                ? Center(
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        //upload video
+                                        final picker = ImagePicker();
+                                        XFile? pickedFile =
+                                            await picker.pickImage(
+                                                source: ImageSource.gallery,
+                                                maxHeight: 300,
+                                                maxWidth: 300);
+                                        if (pickedFile != null) {
+                                          pickedVideoThumbnailFile =
+                                              pickedFile.path;
+                                          pickedVideoThumbnailFileController
+                                              .add(File(pickedFile.path));
+                                        }
+                                      },
+                                      child: Text('Upload Video Thumbnail'),
+                                    ),
+                                  )
+                                : Stack(
+                                    children: [
+                                      Image.file(
+                                        snapshot.data!,
+                                        width: 300,
+                                        height: 300,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      Positioned(
+                                        top: 2,
+                                        right: 2,
+                                        child: IconButton(
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.white),
+                                          ),
+                                          onPressed: () async {
+                                            final picker = ImagePicker();
+                                            XFile? pickedFile =
+                                                await picker.pickImage(
+                                                    source: ImageSource.gallery,
+                                                    maxHeight: 300,
+                                                    maxWidth: 300);
+                                            if (pickedFile != null) {
+                                              pickedVideoFile = pickedFile.path;
+                                              pickedVideoThumbnailFileController
+                                                  .add(File(pickedFile.path));
+                                            }
+                                          },
+                                          icon: Icon(Icons.edit),
+                                        ),
+                                      )
+                                    ],
+                                  );
+                          }),
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                      width: 300,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(5))),
+                      child: StreamBuilder<File>(
+                          stream: pickedVideoFileController.stream,
+                          builder: (context, snapshot) {
+                            return pickedVideoFile == null
+                                ? Center(
+                                    child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                AppColors.primary),
+                                      ),
+                                      onPressed: () async {
+                                        //upload video
+                                        final picker = ImagePicker();
+                                        XFile? pickedFile =
+                                            await picker.pickVideo(
+                                                source: ImageSource.gallery);
+                                        if (pickedFile != null) {
+                                          pickedVideoFile = pickedFile.path;
+                                          pickedVideoFileController
+                                              .add(File(pickedFile.path));
+                                        }
+                                      },
+                                      child: Text(
+                                        'Upload Video',
+                                        style: TextStyle(
+                                            color: AppColors.onPrimary),
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                        color: Color(0xff55a576),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        //Badge with Video Uploaded
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(10))),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 5, vertical: 2),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle,
+                                                color: Colors.white,
+                                              ),
+                                              Gap(5),
+                                              Text(
+                                                'Video Ready To Upload',
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 30,
+                                          height: 30,
+                                          child: IconButton(
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateProperty.all(
+                                                      Colors.white),
+                                            ),
+                                            onPressed: () async {
+                                              final picker = ImagePicker();
+                                              XFile? pickedFile =
+                                                  await picker.pickVideo(
+                                                      source:
+                                                          ImageSource.gallery);
+                                              if (pickedFile != null) {
+                                                pickedVideoFile =
+                                                    pickedFile.path;
+                                                pickedVideoFileController
+                                                    .add(File(pickedFile.path));
+                                              }
+                                            },
+                                            iconSize: 14,
+                                            icon: Icon(Icons.edit),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                          }),
+                    ),
+                  ],
+                ),
+              ),
             ),
             actions: [
-              TextButton(
-                  onPressed: () {
-                    setState(() {
-                      emailList.add(emailListController.text);
-                      emailListController.clear();
-                      Navigator.of(context).pop();
-                    });
-                  },
-                  child: const Text('Add')),
-              TextButton(
-                  onPressed: () {
-                    setState(() {
-                      Navigator.of(context).pop();
-                    });
-                  },
-                  child: const Text('Cancel'))
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  //Add Video to List
+                  UploadResource uploadResource = UploadResource(
+                    File(pickedVideoFile!),
+                    File(pickedVideoThumbnailFile!),
+                    _videoTitleController.text,
+                    _videoDescriptionController.text,
+                    double.parse(_videoDurationController.text),
+                  );
+                  setState(() {
+                    uploadLectureVideos.add(uploadResource);
+                    _videoTitleController.clear();
+                    _videoDescriptionController.clear();
+                    _videoDurationController.clear();
+                  });
+                  Navigator.of(context).pop();
+                },
+                child: Text('Add Video'),
+              ),
             ],
           );
         });
   }
 
-  void assignTheData() {
-    setState(() {
-      folderNameController.text = widget.folderDetails!.folderName!;
-      // emailListController.text = widget.folderDetails!.allowedStudents..join('\n');
-    });
-  }
-
-  // Future<void> fetch() async {
-  //   data.clear();
-  //   videoList.clear();
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-  //   QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-  //       .collection('folders')
-  //       .doc(widget.folderDetails!.docId)
-  //       .collection('videoDetails')
-  //       .orderBy('videoUploadedDate', descending: false)
-  //       .get();
-  //   setState(() {
-  //     data.addAll(querySnapshot.docs);
-  //     for (var video in data) {
-  //       videoList.add(
-  //         VideoDetail(
-  //             docId: widget.folderDetails!.docId,
-  //             videoId: video['videoId'],
-  //             videoPath: video['videoPath'],
-  //             videoDocId: video.id),
-  //       );
-  //     }
-  //     isLoading = false;
-  //   });
-  // }
-
-  Future<void> addData() async {
-    try {
-      final emailList = emailListController.text.split('\n');
-      String videoId = const Uuid().v1();
-
-      await FirebaseFirestore.instance.collection('folders').add({
-        'folderName': folderNameController.text,
-        'emailList': emailList,
-        'videoUploadedDate': DateTime.now()
-      }).then((folderDoc) {
-        ProgressPopup(context, videoDetail!.videoFile, videoDetail!.thumbnail,
-            videoId, folderDoc.id)
-            .show();
-        // Add video details to videoDetails subcollection
-        FirebaseFirestore.instance
-            .collection('folders')
-            .doc(folderDoc.id)
-            .collection('videoDetails')
-            .add({
-          'videoId': videoId,
-          'docId': folderDoc.id,
-          'title': videoDetail!.title,
-          'description': videoDetail!.description,
-          'lessons': videoDetail!.lesson,
-          'date': videoDetail!.date,
-          'videoUploadedDate': DateTime.now(),
-          'videoPath': videoDetail!.videoFileName,
-        });
-      });
-
-      setState(() {
-        folderNameController.clear();
-        emailListController.clear();
-        isVideo = false;
-      });
-
-      widget.callBack();
-
-      // ignore: use_build_context_synchronously
-    } catch (error) {
-      // ignore: avoid_print
-      print("Failed to add user: $error");
-    }
-  }
-
-  // Future<void> updateData() async {
-  //   try {
-  //     final emailList = emailListController.text.split('\n');
-  //     String videoId = const Uuid().v1();
-  //     ProgressPopup(context, videoDetail!.videoFile, videoDetail!.thumbnail,
-  //         videoId, widget.folderDetails!.docId)
-  //         .show();
-  //     await FirebaseFirestore.instance
-  //         .collection('folders')
-  //         .doc(widget.folderDetails!.docId) // Reference to the collection
-  //         .set({
-  //       'folderName': folderNameController.text,
-  //       'emailList': emailList,
-  //       'videoUploadedDate': widget.folderDetails!.uploadedDate
-  //     });
-  //     await FirebaseFirestore.instance
-  //         .collection('folders')
-  //         .doc(widget.folderDetails!.docId)
-  //         .collection('videoDetails')
-  //         .add({
-  //       'videoId': videoId,
-  //       'docId': widget.folderDetails!.docId,
-  //       'title': videoDetail!.title,
-  //       'description': videoDetail!.description,
-  //       'lessons': videoDetail!.lesson,
-  //       'date': videoDetail!.date,
-  //       'videoUploadedDate': DateTime.now(),
-  //       'videoPath': videoDetail!.videoFileName,
-  //     });
-  //
-  //     setState(() {
-  //       folderNameController.clear();
-  //       emailListController.clear();
-  //       isVideo = false;
-  //     });
-  //     widget.callBack();
-  //
-  //     // ignore: use_build_context_synchronously
-  //   } catch (error) {
-  //     // ignore: avoid_print
-  //     print("Failed to add user: $error");
-  //   }
-  // }
-
-  Future<void> deleteVideoFile(
-      {required String videoDocId,
-        required String docId,
-        required String videoId}) async {
-    try {
-      final loading = LoadingPopup(context);
-      loading.show();
-      FirebaseStorage storage = FirebaseStorage.instance;
-      Reference storageRef = storage
-          .ref()
-          .child('videos')
-          .child('$videoId.mp4');
-      Reference thumbnailRef = storage
-          .ref()
-          .child('thumbnail')
-          .child('$videoId.jpg');
-      await storageRef.delete();
-      await thumbnailRef.delete();
-      await FirebaseFirestore.instance
-          .collection('folders')
-          .doc(docId)
-          .collection('videoDetails')
-          .doc(videoDocId)
-          .delete();
-      loading.dismiss();
-      // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context, message: 'Deleted successfully', isSuccess: true);
-      print('Video file deleted successfully');
-    } catch (e) {
-      print('Error deleting video file: $e');
-    }
-  }
-
-  // Future<void> deleteFolder() async {
-  //   try {
-  //     final loading = LoadingPopup(context);
-  //     loading.show();
-  //     FirebaseStorage storage = FirebaseStorage.instance;
-  //     if(videoList.isNotEmpty){
-  //       for (var element in videoList) {
-  //         Reference storageRef = storage
-  //             .ref()
-  //             .child('videos')
-  //             .child('${element.videoId}.mp4');
-  //         Reference thumbnailRef = storage
-  //             .ref()
-  //             .child('thumbnail')
-  //             .child('${element.videoId}.jpg');
-  //         await storageRef.delete();
-  //         await thumbnailRef.delete();
-  //         await FirebaseFirestore.instance
-  //             .collection('folders')
-  //             .doc(element.docId)
-  //             .collection('videoDetails')
-  //             .doc(element.videoDocId)
-  //             .delete();
-  //               }
-  //     }
-  //
-  //     await FirebaseFirestore.instance
-  //         .collection('folders')
-  //         .doc(widget.folderDetails!.docId)
-  //         .delete();
-  //
-  //     loading.dismiss();
-  //     widget.callBack();
-  //     // ignore: use_build_context_synchronously
-  //     Navigator.of(context).pop();
-  //     // ignore: use_build_context_synchronously
-  //     Globals.showSnackBar(
-  //         context: context, message: 'Deleted successfully', isSuccess: true);
-  //     print('Folder deleted successfully');
-  //   } catch (e) {
-  //     print('Error deleting video file: $e');
-  //     // ignore: use_build_context_synchronously
-  //     Globals.showSnackBar(
-  //         context: context, message: e.toString(), isSuccess: false);
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
-    final focusedBorder = OutlineInputBorder(
-      borderSide: BorderSide(
-        color: AppColors.black,
-        width: _fieldBorderLineWidth,
-      ),
-      borderRadius: BorderRadius.all(Radius.circular(5)),
-    );
-
-    final enabledBorder = OutlineInputBorder(
-      borderSide: BorderSide(
-        color: AppColors.black,
-        width: _fieldBorderLineWidth,
-      ),
-      borderRadius: BorderRadius.all(Radius.circular(5)),
-    );
-
-    final valueStyle = TextStyle(
-      color: AppColors.black,
-      fontSize: _fieldFontSizeValue,
-    );
-
-    final errorBorder = OutlineInputBorder(
-      borderSide: BorderSide(
-        color: AppColors.red,
-        width: _fieldBorderLineWidth,
-      ),
-      borderRadius: const BorderRadius.all(Radius.circular(30)),
-    );
-
-    const errorStyle = TextStyle(
-      color: AppColors.red,
-    );
-
-    const cursorColor = AppColors.black;
+    // setState(() {
+    //   isUploading = false;
+    // });
     return Scaffold(
-      backgroundColor: AppColors.backGround,
-      appBar: AppBar(
-        backgroundColor: AppColors.backGround,
-        title: const Text('Add a new folder'),
-        centerTitle: true,
-        actions: [
-          Visibility(
-            visible: widget.isUpdate,
-            child: IconButton(
-                onPressed: () {
-                  ConfirmationPopup(context).show(
-                      message: 'Are you sure you want to delete the folder?',
-                      callbackOnYesPressed: () {
-                        // deleteFolder();
-                      });
-                },
-                icon: const Icon(
-                  Icons.delete,
-                  color: AppColors.red,
-                )),
-          )
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: SingleChildScrollView(
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Gap(30),
-                const Text(
-                  'Folder name',
-                  style: TextStyle(color: AppColors.black),
-                ),
-                const Gap(10),
-                TextFormField(
-                  style: valueStyle,
-                  controller: folderNameController,
-                  cursorColor: cursorColor,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    filled: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5
-                    ),
-                    fillColor: AppColors.ligthWhite,
-                    labelText: 'Enter folder name',
-                    labelStyle: const TextStyle(fontSize: 10),
-                    focusedBorder: focusedBorder,
-                    enabledBorder: enabledBorder,
-                    border: focusedBorder,
-                    errorBorder: errorBorder,
-                    errorStyle: errorStyle,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the folder name';
-                    }
-                    if (!widget.isUpdate) {
-                      if (widget.folderNames.contains(value.toLowerCase())) {
-                        return 'Folder name is already exists';
-                      }
-                    }
+        appBar: AppBar(
+          title: Text('Add Folder'),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: isUploading
+              ? Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: StreamBuilder<double>(
+                      stream: uploadProgressController.stream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          if(snapshot.data == 100.0){
+                            //Timer
+                            return Center(
+                                child:Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.check_circle, color: AppColors.green, size: 50,),
+                                    Gap(10),
+                                    Text('Uploading Completed', style: TextStyle(color: Colors.white,fontSize: 18),),
+                                  ],
+                                )
 
-                    return null;
-                  },
-                ),
-                const Gap(20),
-                GestureDetector(
-                  onTap: () {
-                    if (!isVideo) {
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => AddVideo(
-                            callBackVideo: (Video video) {
-                              setState(() {
-                                videoDetail = video;
-                                isVideo = videoDetail!.isVideo;
-                              });
-                            },
-                            isUpdate: widget.isUpdate,
-                          )));
-                    }
-                  },
+                            );
+                          }
+                          return Center(
+                            child:Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                Gap(10),
+                                Text('Uploading ${snapshot.data} %', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold),),
+                              ],
+                            )
+
+                          );
+                        }
+                        return Center(child: CircularProgressIndicator(color: AppColors.primary,));
+                      }
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
                   child: Container(
-                    decoration: BoxDecoration(
-                        color: AppColors.ligthWhite,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: AppColors.black, width: 1.5)),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Center(
-                          child: Text(
-                            'Upload videos',
-                            style: TextStyle(color: AppColors.black),
+                        TextField(
+                          controller: _folderNameController,
+                          decoration: InputDecoration(
+                            labelText: 'Folder Name',
+                            labelStyle: TextStyle(color: AppColors.black),
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 2, horizontal: 5),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.primary),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                        Center(
-                            child: isVideo
-                                ? const Icon(
-                              Icons.done_all_sharp,
-                              size: 40,
-                              color: AppColors.green,
-                            )
-                                : const Icon(
-                              Icons.cloud_upload,
-                              size: 40,
-                              color: AppColors.blue,
-                            )),
-                      ],
-                    ),
-                  ),
-                ),
-                Visibility(
-                    visible: videoList.isNotEmpty,
-                    child: isLoading
-                        ? const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.blue,
-                        ))
-                        : SizedBox(
-                      height: 150,
-                      child: ListView.builder(
-                          itemCount: videoList.length,
-                          itemBuilder: (context, index) {
-                            VideoDetail video = videoList[index];
-                            return Container(
-                              margin: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                  color: AppColors.backGround,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                      color: AppColors.black,
-                                      width: 1.5)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ListTile(
-                                  dense: true,
-                                  trailing: IconButton(
-                                      onPressed: () {
-                                        ConfirmationPopup(context).show(
-                                            message:
-                                            'Are you sure you want to delete the file?',
-                                            callbackOnYesPressed: () {
-                                              try{
-                                                deleteVideoFile(
-                                                    videoDocId:
-                                                    video.videoDocId,
-                                                    docId: video.docId,
-                                                    videoId: video.videoId);
-                                                setState(() {
-                                                  videoList.removeAt(index);
-                                                });
-                                              }catch(e){
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text("Error Occured!"),
-                                                      backgroundColor: AppColors.red,
-                                                    ));
-                                              }
-                                            });
-
-
-                                      },
-                                      icon: const Icon(
-                                        Icons.cancel_outlined,
-                                        color: Colors.red,
-                                      )),
-                                  title: Text(
-                                    video.videoPath,
-                                    style: const TextStyle(
-                                        color: Colors.black),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                    )),
-                const Gap(20),
-                Row(
-                  children: [
-                    const Text(
-                      'Email list',
-                      style: TextStyle(color: AppColors.black),
-                    ),
-                    const Gap(10),
-                    IconButton(
-                        onPressed: () {
-                          showEmailAddDialog();
-                        },
-                        icon: const Icon(
-                          Icons.add,
-                          color: AppColors.black,
-                        ))
-                    ,
-                  ],
-                ),
-                const Gap(10),
-                SizedBox(
-                  height: 300,
-                  child: ListView.builder(
-                      itemCount: emailList.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4,vertical: 4),
-                          decoration: BoxDecoration(
-                              color: AppColors.ligthWhite,
+                        Gap(20),
+                        TextField(
+                          controller: _folderDescriptionController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            labelText: 'Folder Description',
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 2, horizontal: 5),
+                            enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                  color: AppColors.black, width: 1.5)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(2.0),
-                            child: ListTile(
-                              dense: true,
-                              trailing: IconButton(
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.primary),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        //Uploaded Video List
+                        Container(
+                          width: MediaQuery.sizeOf(context).width,
+                          height: 220,
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5))),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: uploadLectureVideos.length,
+                            itemBuilder: (context, index) {
+                              if (index == 0) {
+                                return DottedBorder(
+                                  strokeWidth: 1,
+                                  dashPattern: [5, 5],
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      addVideo(context);
+                                    },
+                                    child: Container(
+                                        width: 150,
+                                        height: 200,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(5)),
+                                          color: Colors.white,
+                                        ),
+                                        child: Center(
+                                          // Upload Video Card Button
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.ondemand_video_sharp,
+                                                  size: 50,
+                                                  color: AppColors.primary),
+                                              Gap(10),
+                                              Text('Add Video'),
+                                            ],
+                                          ),
+                                        )),
+                                  ),
+                                );
+                              }
+                              return Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(5)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 1,
+                                      blurRadius: 1,
+                                      offset: Offset(
+                                          0, 1), // changes position of shadow
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(5),
+                                child: Stack(
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Image.file(
+                                          uploadLectureVideos[index]
+                                              .videoThumbnailFile,
+                                          width: 150,
+                                          height: 150,
+                                          fit: BoxFit.cover,
+                                        ),
+                                        Gap(5),
+                                        Text(
+                                          uploadLectureVideos[index].videoTitle,
+                                          style:
+                                              TextStyle(color: AppColors.black),
+                                        ),
+                                      ],
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: Container(
+                                        child: IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              uploadLectureVideos
+                                                  .removeAt(index);
+                                            });
+                                          },
+                                          style: ButtonStyle(
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            padding: MaterialStateProperty.all(
+                                                EdgeInsets.all(2)),
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.white),
+                                            shape: MaterialStateProperty.all(
+                                                CircleBorder()),
+                                          ),
+                                          iconSize: 16,
+                                          icon: Icon(
+                                            Icons.delete,
+                                            color: AppColors.error,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          value: _allowType,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _allowType = newValue!;
+                            });
+                          },
+                          items: <String>['All', 'Specific']
+                              .map<DropdownMenuItem<String>>(
+                                (String value) => DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                ),
+                              )
+                              .toList(),
+                          decoration: InputDecoration(
+                              labelText: 'Allow Type',
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 2, horizontal: 5),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: AppColors.primary),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              labelStyle: TextStyle(color: AppColors.black),
+                              hintStyle: TextStyle(color: AppColors.grey)),
+                        ),
+                        if (_allowType == 'Specific') ...[
+                          SizedBox(height: 10),
+                          // email list and add new email button
+                          ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: emailList.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                title: Text(emailList[index]),
+                                trailing: IconButton(
                                   onPressed: () {
                                     setState(() {
                                       emailList.removeAt(index);
                                     });
                                   },
-                                  icon: const Icon(
-                                    Icons.cancel_outlined,
-                                    color: Colors.red,
-                                  )),
-                              title: Text(
-                                emailList[index],
-                                style: const TextStyle(color: Colors.black),
-                              ),
-                            ),
+                                  icon: Icon(Icons.delete),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      }),
-                ),
-                const Gap(10),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Container(
-                    height: 35,
-                    width: 60,
-                    decoration: BoxDecoration(
-                        color: AppColors.black,
-                        borderRadius: BorderRadius.circular(29)),
-                    child: TextButton(
-                      onPressed: () {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        if (!formKey.currentState!.validate()) return;
-                        if (videoDetail == null) {
-                          Globals.showSnackBar(
-                              context: context,
-                              message: 'Please upload the file',
-                              isSuccess: false);
-                          return;
-                        }
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _emailListController,
+                                  decoration:
+                                      InputDecoration(labelText: 'Email List'),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  if (_emailListController.text.isNotEmpty) {
+                                    setState(() {
+                                      emailList.add(_emailListController.text);
+                                      _emailListController.clear();
+                                    });
+                                  }
+                                },
+                                icon: Icon(Icons.add),
+                              ),
+                            ],
+                          ),
+                        ],
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Send your request here
+                            // Create Folder
+                            try {
+                              setState(() {
+                                isUploading = true;
+                              });
+                              uploadProgressController.add(0.0);
+                              FolderCreateResponseModel?
+                                  folderCreateResponseModel =
+                                  await LectureFolderService.addFolder(
+                                      context,
+                                      _folderNameController.text,
+                                      _folderDescriptionController.text,
+                                      _allowType,
+                                      emailList);
+                              if(folderCreateResponseModel == null){
+                                setState(() {
+                                  isUploading = false;
+                                });
+                                return;
+                              }
+                              String folderId =
+                                  folderCreateResponseModel.data!.folderId!;
+                              int count =0;
+                              uploadProgressController.add(0.0);
+                              // Upload Videos
+                              uploadLectureVideos
+                                  .sublist(1)
+                                  .forEach((element) async {
+                                LectureVideoUploadResponseModel?
+                                    lectureVideoUploadResponseModel =
+                                    await LectureFolderService.uploadLectureVideo(
+                                        context, folderId, element);
+                                if(lectureVideoUploadResponseModel != null){
+                                  count++;
+                                }
+                                if(count == uploadLectureVideos.sublist(1).length - 1){
+                                  uploadProgressController.add(100.0);
+                                  Future.delayed(Duration(seconds: 5), (){
+                                    setState(() {
+                                      isUploading = false;
+                                    });
+                                    // Navigator.of(context).pop();
+                                  });
+                                }
+                                double value = (count)/uploadLectureVideos.sublist(1).length*100;
+                                uploadProgressController.add(value);
+                              });
 
-                        if (widget.isUpdate) {
-                          // updateData();
-                        } else {
-                          addData();
-                        }
-                      },
-                      child: const Center(
-                          child: Text(
-                            'Save',
-                            style: TextStyle(
-                              color: AppColors.ligthWhite,
-                            ),
-                          )),
+                            } on Exception catch (e) {
+                              print('Error: $e');
+                              setState(() {
+                                isUploading = false;
+                              });
+                            }
+                          },
+                          child: Text('Create Folder'),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const Gap(20)
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+        ));
+  }
+
+  @override
+  void dispose() {
+    _folderNameController.dispose();
+    _folderDescriptionController.dispose();
+    _folderVideoController.dispose();
+    _emailListController.dispose();
+    super.dispose();
   }
 }

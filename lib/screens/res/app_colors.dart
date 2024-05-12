@@ -11,4 +11,11 @@ class AppColors {
   static const Color grey = Colors.grey;
   static const Color greyUnSelected = Color.fromARGB(255, 225, 224, 224);
 
+  static const Color primary = Color(0xFF9747FF);
+  static const Color secondary = Color(0xFF00C897);
+  static const Color error = Color(0xFFE5256A);
+
+  static const Color onPrimary = Colors.white;
+  static const Color onError = Colors.white;
+
 }

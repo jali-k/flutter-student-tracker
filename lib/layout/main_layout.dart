@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/services/SubjectLessonService.dart';
+import 'package:spt/services/authenticationService.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/view/student/focus_mode_page.dart';
 import 'package:spt/view/student/home_page.dart';
@@ -129,10 +130,10 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     return false;
   }
 
-  changeIndex(int index) {
+  changeIndex(int index) async {
     if(unknown && index ==4){
       //Logout
-      FirebaseAuth.instance.signOut();
+      AuthenticationService.logout();
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const LoginPage()));
       //logged out successfully scaffold

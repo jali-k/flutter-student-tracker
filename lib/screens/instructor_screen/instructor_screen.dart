@@ -6,6 +6,7 @@ import 'package:spt/services/api_provider.dart';
 import 'dart:math' as math;
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:spt/services/instructor_service.dart';
+import 'package:spt/util/toast_util.dart';
 
 import '../../globals.dart';
 import '../../model/instructor_create_response_model.dart';
@@ -48,6 +49,9 @@ class _InstructorScreenState extends State<InstructorScreen> {
       isLoading = true;
     });
     InstructorResponseModel? response = await InstructorService.getAllInstructor();
+    if(response == null) {
+      ToastUtil.showErrorToast(context, "Network Error", "Failed to fetch data");
+    }
     List<InstructorInfo> instructors = response!.data!;
     setState(() {
       instructor.addAll(instructors);

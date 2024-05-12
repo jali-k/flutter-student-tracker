@@ -1,6 +1,6 @@
 class FocusSessionsInWeekStatsDataModel {
   String? status;
-  Null? message;
+  String? message;
   List<InWeekData>? data;
 
   FocusSessionsInWeekStatsDataModel({this.status, this.message, this.data});

@@ -1,6 +1,7 @@
 import 'package:spt/model/students_of_instructor_model.dart';
 
 import '../model/authenticated_student_model.dart';
+import '../model/focus_session_in_week_stat_data_model.dart';
 import '../model/instructor_create_response_model.dart';
 import '../model/instructor_response_model.dart';
 import '../model/response_model.dart';
@@ -59,6 +60,23 @@ class InstructorService{
         //get response data as ResponseModel
         InstructorResponseModel responseModel = InstructorResponseModel.fromJson(response.data);
         return responseModel;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error: $e');
+      return null;
+    }
+  }
+
+
+  static Future<FocusSessionsInWeekStatsDataModel?> getFocusSessionsInWeekStats(String studentID) async {
+    try {
+      final response = await APIProvider.instance.get('/student/focus-session/$studentID');
+      if (response.statusCode == 200) {
+        //get response data as FocusSessionsInWeekStatsDataModel
+        FocusSessionsInWeekStatsDataModel focusSessionsInWeekStatsDataModel = FocusSessionsInWeekStatsDataModel.fromJson(response.data);
+        return focusSessionsInWeekStatsDataModel;
       } else {
         return null;
       }

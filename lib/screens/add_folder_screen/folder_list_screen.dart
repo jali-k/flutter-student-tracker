@@ -54,14 +54,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
         onPressed: () {
           // Navigator.of(context).pop();
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => AddFolder(
-                isUpdate: false,
-                callBack: () {
-                  fetch();
-                },
-                folderDetails: null,
-                folderNames: folderName,
-              )));
+              builder: (context) => AddFolder()));
         },
         child: const Icon(
           Icons.add,
@@ -101,7 +94,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                    color: Colors.yellow,
+                    color: Colors.purple,
                     splashColor: AppColors.grey,
                     focusColor: AppColors.grey,
                     hoverColor: AppColors.grey,
