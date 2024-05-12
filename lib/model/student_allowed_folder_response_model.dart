@@ -87,7 +87,7 @@ class Videos {
   String? videoId;
   String? videoName;
   String? videoDescription;
-  int? videoDuration;
+  double? videoDuration;
   String? videoThumbnailUrl;
   int? uploadDate;
   String? folderId;

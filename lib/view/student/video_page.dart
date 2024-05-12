@@ -33,17 +33,10 @@ class _VideoPageState extends State<VideoPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _videoId = widget.videoId;
-    //check whether _videoId ends with .mp4 or not
-    if(!_videoId.endsWith('.mp4')){
-      _videoId = '$_videoId.mp4';
-    }
-    _userEmail = FirebaseAuth.instance.currentUser!.email!;
-
     getVideoFromFirebaseStorage();
-
-
   }
+
+
 
   //dispose the stream controllers and stop the video player
   @override
@@ -127,26 +120,20 @@ class _VideoPageState extends State<VideoPage> {
   }
 
   void getVideoFromFirebaseStorage() {
-    LectureService.getVideoUrl(_videoId).then((value) {
-      print(value);
-      setState(() {
-        _videoId = value;
-      });
-      // FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
-      Uri uri = Uri.parse(value);
-      _controller = VideoPlayerController.networkUrl(uri)
-        ..initialize().then((_) {
-          animateWatermark();
-          setState(() {
-            _loading = false;
-          });
+    String url = "https://dopamine-storage.s3.ap-southeast-1.amazonaws.com/${widget.videoId}";
+    Uri uri = Uri.parse(url);
+    _controller = VideoPlayerController.networkUrl(uri)
+      ..initialize().then((_) {
+        animateWatermark();
+        setState(() {
+          _loading = false;
         });
-      _customController = CustomVideoPlayerController(
-        context: context,
-        videoPlayerController: _controller,
-        customVideoPlayerSettings: _customVideoPlayerSettings,
-      );
-    });
+      });
+    _customController = CustomVideoPlayerController(
+      context: context,
+      videoPlayerController: _controller,
+      customVideoPlayerSettings: _customVideoPlayerSettings,
+    );
   }
 }
 

@@ -142,24 +142,6 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
       ));
       return;
     }
-    if(unknown && index != 0){
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('You are not allowed to access this page'),
-      ));
-      setState(() {
-        widget.mainIndex = 0;
-      });
-      return;
-    }
-    if(unknown && index != 1){
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('You are not allowed to access this page'),
-      ));
-      setState(() {
-        widget.mainIndex = 0;
-      });
-      return;
-    }
 
     indexController.sink.add(index);
 

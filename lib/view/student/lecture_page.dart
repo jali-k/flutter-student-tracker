@@ -62,7 +62,7 @@ class _LecturesPageState extends State<LecturesPage> {
               bottom: 10,
               height: MediaQuery.of(context).size.height * 0.8,
               child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   // Title : What’s catching your interest today?
                   children: [
@@ -94,7 +94,7 @@ class _LecturesPageState extends State<LecturesPage> {
                     SizedBox(height: 10),
                     Container(
                       height: MediaQuery.of(context).size.height * 0.6,
-                      width: MediaQuery.of(context).size.width,
+                      width: MediaQuery.of(context).size.width - 10,
                       padding: EdgeInsets.all(10),
                       margin: EdgeInsets.all(10),
                       child: !isLoaded
@@ -107,54 +107,93 @@ class _LecturesPageState extends State<LecturesPage> {
                         itemBuilder: (context, index) {
                           FolderData folder = folders[index];
                           // ExpansionTile
-                            return ExpansionTile(
-                            title: Row(
-                              children: [
-                                Text(folder.folderName!),
-                              ],
-                            ),
-                            // disable expansion tile if user is not in the folder
-                            onExpansionChanged: (value) {
-                                // close the expansion tile
-                                if(!folder.enabled!) {
-                                  // setState(() {
-                                  //   folders[index].enabled = false;
-                                  // });
-                                }
-                            },
-                            children: [
-                              ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: folder.videos!.length,
-                                itemBuilder: (context, i) {
-                                  Videos video = folder.videos![i];
-                                  return ListTile(
-                                    title: Text(video.videoName!),
-                                    onTap: () {
-                                      // Navigate to video page
-                                    },
-                                    //play video button at the end of the list
-                                    trailing: IconButton(
-                                      icon: Icon(Icons.play_arrow),
-                                      onPressed: () {
-                                        // Navigate to video page
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => VideoPage(
-                                              videoId: video.videoId!,
+                            return Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.all(5),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(folder.folderName!, style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),textAlign: TextAlign.start,),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10),
+                                  Container(
+                                    width: 400,
+                                    height: 160,
+                                    padding: EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: folder.videos!.isNotEmpty ?
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: folder.videos!.length,
+                                      itemBuilder: (context, i) {
+                                        Videos video = folder.videos![i];
+                                        return GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => VideoPage(videoId: video.videoResourceKey!,)));
+                                          },
+                                          child: Container(
+                                            margin: EdgeInsets.all(5),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Colors.white,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey.withOpacity(0.5),
+                                                  spreadRadius: 2,
+                                                  blurRadius: 2,
+                                                  offset: Offset(0, 3), // changes position of shadow
+                                                ),
+                                              ],
+                                            ),
+                                            width: 120,
+                                            height: 140,
+                                            child: Stack(
+                                              children: [
+                                                Column(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      padding: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+                                                      child: Image.network("https://dopamine-storage.s3.ap-southeast-1.amazonaws.com/${video.videoThumbnailUrl!}",
+                                                      width: 100,
+                                                      height: 100,
+                                                        fit: BoxFit.fill,
+                                                      ),
+                                                    ),
+                                                    Text(video.videoName!, style: TextStyle(fontSize: 12),),
+                                                  ],
+                                                ),
+                                                Align(
+                                                  alignment: Alignment.center,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black.withOpacity(0.5),
+                                                      borderRadius: BorderRadius.circular(50),
+                                                    ),
+                                                    child: Icon(Icons.play_arrow,color: Colors.white,)
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         );
                                       },
+                                    ) :
+                                    const Center(
+                                      child: Text("No videos Uploaded yet!"),
                                     ),
-                                  );
-                                },
+                                  ),
+                                ],
                               ),
-                              if(folder.videos!.isEmpty)
-                                Text('No videos found'),
-                            ],
-                          );
+                            );
 
                         },
                       ),

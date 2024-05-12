@@ -3,7 +3,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/model/Subject.dart';
+import 'package:spt/model/focus_session_leaderboard_response_model.dart';
 import 'package:spt/services/focusService.dart';
+import 'package:spt/services/student_leaderboard_service.dart';
 
 import '../../model/leaderboard_entries.dart';
 
@@ -22,59 +24,63 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
   bool isloding = true;
   //scroll key
   final ScrollController _scrollController = ScrollController();
-  List<LeaderBoardEntries> leaderBoardEntries = [];
-  List<LeaderBoardEntries> overallEntries = [];
-  List<LeaderBoardEntries> biologyEntries = [];
-  List<LeaderBoardEntries> chemistryEntries = [];
-  List<LeaderBoardEntries> physicsEntries = [];
-  List<LeaderBoardEntries> agricultureEntries = [];
+  // List<LeaderBoardEntries> leaderBoardEntries = [];
+  // List<LeaderBoardEntries> overallEntries = [];
+  // List<LeaderBoardEntries> biologyEntries = [];
+  // List<LeaderBoardEntries> chemistryEntries = [];
+  // List<LeaderBoardEntries> physicsEntries = [];
+  // List<LeaderBoardEntries> agricultureEntries = [];
+
+  List<FSLeaderboardPosition> overallPositions=[];
+  List<FSLeaderboardPosition> leaderBoardEntries = [];
+
 
   Future<void> handleSelected(int i) async {
-    for (int j = 0; j < isSelected.length; j++) {
-      if (j == i) {
-        isSelected[j] = true;
-      } else {
-        isSelected[j] = false;
-      }
-    }
-    if(selected == i){
-      return;
-    }
-      setState(() {
-        isloding = true;
-        leaderBoardEntries = [];
-      });
-      selected = i;
-      if (i == 0) {
-        leaderBoardEntries = overallEntries;
-      } else if (i == 1) {
-        List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
-        setState(() {
-          leaderBoardEntries = biologyEntries;
-        });
-      } else if (i == 2) {
-        List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
-        setState(() {
-          leaderBoardEntries = chemistryEntries;
-        });
-      } else if (i == 3) {
-        List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
-        setState(() {
-          leaderBoardEntries = physicsEntries;
-        });
-      } else if (i == 4) {
-        List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
-        setState(() {
-          leaderBoardEntries = agricultureEntries;
-        });
-      }else{
-        setState(() {
-          leaderBoardEntries = overallEntries;
-        });
-      }
-      setState(() {
-        isloding = false;
-      });
+    // for (int j = 0; j < isSelected.length; j++) {
+    //   if (j == i) {
+    //     isSelected[j] = true;
+    //   } else {
+    //     isSelected[j] = false;
+    //   }
+    // }
+    // if(selected == i){
+    //   return;
+    // }
+    //   setState(() {
+    //     isloding = true;
+    //     leaderBoardEntries = [];
+    //   });
+    //   selected = i;
+    //   if (i == 0) {
+    //     leaderBoardEntries = overallEntries;
+    //   } else if (i == 1) {
+    //     List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
+    //     setState(() {
+    //       leaderBoardEntries = biologyEntries;
+    //     });
+    //   } else if (i == 2) {
+    //     List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
+    //     setState(() {
+    //       leaderBoardEntries = chemistryEntries;
+    //     });
+    //   } else if (i == 3) {
+    //     List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
+    //     setState(() {
+    //       leaderBoardEntries = physicsEntries;
+    //     });
+    //   } else if (i == 4) {
+    //     List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
+    //     setState(() {
+    //       leaderBoardEntries = agricultureEntries;
+    //     });
+    //   }else{
+    //     setState(() {
+    //       leaderBoardEntries = overallEntries;
+    //     });
+    //   }
+    //   setState(() {
+    //     isloding = false;
+    //   });
   }
 
   void navigateToPosition(int position) {
@@ -89,9 +95,19 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getStudentLeaderBoard();
-    myID = FirebaseAuth.instance.currentUser!.uid;
+  getLeaderboard();
 
+  }
+
+  getLeaderboard() async{
+    FocusSessionLeaderboardResponseModel? focusSessionLeaderboardResponseModel = await StudentLeaderboardService.getFocusSessionOverallLeaderBoard();
+    if(focusSessionLeaderboardResponseModel != null){
+      setState(() {
+        overallPositions = focusSessionLeaderboardResponseModel.data!;
+        leaderBoardEntries = overallPositions;
+        isloding = false;
+      });
+    }
   }
 
 
@@ -282,7 +298,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
             child: leaderBoardEntries.isNotEmpty ? ListView.builder(
               controller: _scrollController,
               itemBuilder: (context, index) {
-              if(leaderBoardEntries[index].uid == myID)
+              if(leaderBoardEntries[index].currentUser!)
                 {
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
                     navigateToPosition(index);
@@ -303,7 +319,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                           flex: 1,
                           child: Container(
                             alignment: Alignment.center,
-                            child: Text(leaderBoardEntries[index].position.toString(), style: TextStyle(
+                            child: Text(leaderBoardEntries[index].leaderBoardRank.toString(), style: TextStyle(
                               fontSize: 14,
                             ),),
                           ),
@@ -311,7 +327,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                         Expanded(child: SizedBox(), flex: 1,),
                         Expanded(
                           flex: 3,
-                          child: Text(leaderBoardEntries[index].name, style: TextStyle(
+                          child: Text(leaderBoardEntries[index].studentName!, style: TextStyle(
                             fontSize: 14,
                             overflow: TextOverflow.ellipsis,
                           ),),
@@ -319,7 +335,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                         Expanded(child: SizedBox(), flex: 1,),
                         Expanded(
                           flex: 2,
-                          child: Text(leaderBoardEntries[index].marks.toString(), style: TextStyle(
+                          child: Text(leaderBoardEntries[index].totalFocusTime.toString(), style: TextStyle(
                             fontSize: 14,
                           ),
                             textAlign: TextAlign.right,
@@ -339,7 +355,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                       flex: 1,
                       child: Container(
                         alignment: Alignment.center,
-                        child: Text('${leaderBoardEntries[index].position}', style: TextStyle(
+                        child: Text('${leaderBoardEntries[index].leaderBoardRank}', style: TextStyle(
                           fontSize: 14,
                           overflow: TextOverflow.ellipsis,
                         ),),
@@ -349,7 +365,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                     Expanded(
                       flex: 4,
                       child: Text(
-                        leaderBoardEntries[index].name,
+                        leaderBoardEntries[index].studentName!,
                         style: TextStyle(
                         fontSize: 14,
                         overflow: TextOverflow.ellipsis,
@@ -359,7 +375,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                     Expanded(child: SizedBox(), flex: 1,),
                     Expanded(
                       flex: 2,
-                      child: Text(leaderBoardEntries[index].marks.toString(), style: TextStyle(
+                      child: Text(leaderBoardEntries[index].totalFocusTime!.toString(), style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),textAlign: TextAlign.right,),
@@ -390,21 +406,5 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
     );
   }
 
-  Future<void> getStudentLeaderBoard() async {
-    List<LeaderBoardEntries> overallEntries =await FocusService.getOverallLeaderBoardEntries();
-    // List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
-    // List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
-    // List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
-    // List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
-    setState(() {
-      leaderBoardEntries = overallEntries;
-      this.overallEntries = overallEntries;
-      // this.biologyEntries = biologyEntries;
-      // this.chemistryEntries = chemistryEntries;
-      // this.physicsEntries = physicsEntries;
-      // this.agricultureEntries = agricultureEntries;
-      isloding = false;
-    });
-  }
 
 }
