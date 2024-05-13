@@ -8,6 +8,7 @@ import 'package:spt/services/focusService.dart';
 import 'package:spt/services/student_leaderboard_service.dart';
 
 import '../../model/leaderboard_entries.dart';
+import '../../model/subject_focus_session_leaderboard_response.dart';
 
 class LeaderBoardPage extends StatefulWidget {
   const LeaderBoardPage({super.key});
@@ -32,55 +33,55 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
   // List<LeaderBoardEntries> agricultureEntries = [];
 
   List<FSLeaderboardPosition> overallPositions=[];
+  List<FSLeaderboardPosition> biologyEntries=[];
+  List<FSLeaderboardPosition> chemistryEntries=[];
+  List<FSLeaderboardPosition> physicsEntries=[];
+  List<FSLeaderboardPosition> agricultureEntries=[];
   List<FSLeaderboardPosition> leaderBoardEntries = [];
 
 
   Future<void> handleSelected(int i) async {
-    // for (int j = 0; j < isSelected.length; j++) {
-    //   if (j == i) {
-    //     isSelected[j] = true;
-    //   } else {
-    //     isSelected[j] = false;
-    //   }
-    // }
-    // if(selected == i){
-    //   return;
-    // }
-    //   setState(() {
-    //     isloding = true;
-    //     leaderBoardEntries = [];
-    //   });
-    //   selected = i;
-    //   if (i == 0) {
-    //     leaderBoardEntries = overallEntries;
-    //   } else if (i == 1) {
-    //     List<LeaderBoardEntries> biologyEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.BIOLOGY);
-    //     setState(() {
-    //       leaderBoardEntries = biologyEntries;
-    //     });
-    //   } else if (i == 2) {
-    //     List<LeaderBoardEntries> chemistryEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.CHEMISTRY);
-    //     setState(() {
-    //       leaderBoardEntries = chemistryEntries;
-    //     });
-    //   } else if (i == 3) {
-    //     List<LeaderBoardEntries> physicsEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.PHYSICS);
-    //     setState(() {
-    //       leaderBoardEntries = physicsEntries;
-    //     });
-    //   } else if (i == 4) {
-    //     List<LeaderBoardEntries> agricultureEntries =await FocusService.getSubjectLeaderBoardEntries(Subject.AGRICULTURE);
-    //     setState(() {
-    //       leaderBoardEntries = agricultureEntries;
-    //     });
-    //   }else{
-    //     setState(() {
-    //       leaderBoardEntries = overallEntries;
-    //     });
-    //   }
-    //   setState(() {
-    //     isloding = false;
-    //   });
+    for (int j = 0; j < isSelected.length; j++) {
+      if (j == i) {
+        isSelected[j] = true;
+      } else {
+        isSelected[j] = false;
+      }
+    }
+    if(selected == i){
+      return;
+    }
+      setState(() {
+        isloding = true;
+        leaderBoardEntries = [];
+      });
+      selected = i;
+      if (i == 0) {
+        leaderBoardEntries = overallPositions;
+      } else if (i == 1) {
+        setState(() {
+          leaderBoardEntries = biologyEntries;
+        });
+      } else if (i == 2) {
+        setState(() {
+          leaderBoardEntries = chemistryEntries;
+        });
+      } else if (i == 3) {
+        setState(() {
+          leaderBoardEntries = physicsEntries;
+        });
+      } else if (i == 4) {
+        setState(() {
+          leaderBoardEntries = agricultureEntries;
+        });
+      }else{
+        setState(() {
+          leaderBoardEntries = overallPositions;
+        });
+      }
+      setState(() {
+        isloding = false;
+      });
   }
 
   void navigateToPosition(int position) {
@@ -96,6 +97,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
     // TODO: implement initState
     super.initState();
   getLeaderboard();
+    getSubjectLeaderboard();
 
   }
 
@@ -105,6 +107,18 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
       setState(() {
         overallPositions = focusSessionLeaderboardResponseModel.data!;
         leaderBoardEntries = overallPositions;
+        isloding = false;
+      });
+    }
+  }
+  getSubjectLeaderboard() async{
+    SubjectFocusSessionLeaderboardResponse? focusSessionLeaderboardResponseModel = await StudentLeaderboardService.getSubjectFocusSessionOverallLeaderBoard();
+    if(focusSessionLeaderboardResponseModel != null){
+      setState(() {
+        biologyEntries = focusSessionLeaderboardResponseModel.data!.biology!;
+        chemistryEntries = focusSessionLeaderboardResponseModel.data!.chemistry!;
+        physicsEntries = focusSessionLeaderboardResponseModel.data!.physics!;
+        agricultureEntries = focusSessionLeaderboardResponseModel.data!.agriculture!;
         isloding = false;
       });
     }
@@ -295,7 +309,8 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
             padding: const EdgeInsets.all(10),
             height: MediaQuery.of(context).size.height - 300,
             // Leaderboard
-            child: leaderBoardEntries.isNotEmpty ? ListView.builder(
+            child: leaderBoardEntries.isNotEmpty ?
+            ListView.builder(
               controller: _scrollController,
               itemBuilder: (context, index) {
               if(leaderBoardEntries[index].currentUser!)
