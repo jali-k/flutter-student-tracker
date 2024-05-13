@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:spt/model/add_paper_response_model.dart';
 import 'package:spt/model/response_model.dart';
 import 'package:spt/services/paper_mark_service.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../globals.dart';
@@ -114,10 +115,7 @@ class _EntryScreenState extends State<EntryScreen> {
       ResponseModel? deletePaperResponseModel = await PaperMarkService.deletePaper(paperID: paperID);
       if(deletePaperResponseModel == null) {
         loading.dismiss();
-        Globals.showSnackBar(
-            context: context,
-            message: 'Failed to delete paper',
-            isSuccess: false);
+        ToastUtil.showSuccessToast(context, "Error", "Paper Deletion Unsuccessful");
         return;
       }
       loading.dismiss();
@@ -126,10 +124,7 @@ class _EntryScreenState extends State<EntryScreen> {
       });
 
       // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context,
-          message: 'Paper deleted successfully',
-          isSuccess: true);
+      ToastUtil.showSuccessToast(context, "Success", "Paper Deleted Successfully");
     } catch (e) {
       // ignore: avoid_print
       print('Error deleting instructor: $e');

@@ -10,10 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/current_focus_session_response.dart';
 import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/services/SubjectLessonService.dart';
 import 'package:spt/services/authenticationService.dart';
 import 'package:spt/services/focusService.dart';
+import 'package:spt/services/focus_service.dart';
 import 'package:spt/view/student/focus_mode_page.dart';
 import 'package:spt/view/student/home_page.dart';
 import 'package:spt/view/student/leaderboard_page.dart';
@@ -24,6 +26,7 @@ import 'package:spt/view/student/student_paper_position_view.dart';
 import 'package:spt/view/student/subject_select_page.dart';
 import 'package:spt/view/student/view_paper.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+
 //import math
 import 'dart:math' as math;
 
@@ -35,7 +38,6 @@ import '../util/notification_controller.dart';
 import '../view/student/show_profile.dart';
 
 class MainLayout extends StatefulWidget {
-
   int mainIndex = 0;
   int subIndex = 0;
 
@@ -45,8 +47,8 @@ class MainLayout extends StatefulWidget {
   State<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
-  Timer? countTimer, focusTimer,reminderTimer;
+class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
+  Timer? countTimer, focusTimer, reminderTimer;
   StreamController<int> indexController = StreamController<int>.broadcast();
   StreamController<int> subjectSelectionController =
       StreamController<int>.broadcast();
@@ -61,16 +63,17 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   getPapers() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String role = prefs.getString('role')!;
-    if(role == 'unknown'){
+    if (role == 'unknown') {
       return;
     }
-    Map<ExamPaper,AttemptPaper?> p = await PaperMarksService.getStudentPapers();
+    Map<ExamPaper, AttemptPaper?> p =
+        await PaperMarksService.getStudentPapers();
     if (!mounted) return;
     Provider.of<paperProvider>(context, listen: false).setPapers(p);
   }
 
-  selectSubject(int index, Lessons lesson, String lessonContent,
-      String subjectName) {
+  selectSubject(
+      int index, Lessons lesson, String lessonContent, String subjectName) {
     setState(() {
       this.lesson = lesson;
       this.lessonContent = lessonContent;
@@ -96,42 +99,36 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   }
 
   Future<bool> checkAndSetFocusMode() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    // prefs.clear();
-    if (prefs.containsKey('enabledFocus')) {
-      bool enabledFocus = prefs.getBool('enabledFocus')!;
-      if (enabledFocus) {
-        Map<String, dynamic> focusData =
-            jsonDecode(prefs.getString('focusData')!);
-        String focusID = focusData['focusID'];
-        String lessonId = focusData['lessonID'];
-        String _lessonContent = focusData['lessonContent'];
-        String _subjectName = focusData['subjectName'];
-        DateTime startAt = DateTime.parse(focusData['startAt']);
-        DateTime endAt = DateTime.now();
-        //duration in minutes
-        int duration = endAt.difference(startAt).inSeconds;
-        QueryDocumentSnapshot _lesson =
-            await SubjectLessonService.getLessonById(_subjectName, lessonId);
-        Lessons l = Lessons();
+    CurrentFocusSessionResponseModel? isFocusSession =
+        await FocusSessionService.isFocusSession(context);
+    if (isFocusSession != null) {
+      DateTime startTime =
+          DateTime.fromMillisecondsSinceEpoch(isFocusSession.data!.startTime!);
+      DateTime now = DateTime.now();
+      if (now.isAfter(startTime)) {
+        Lessons l = Lessons(
+          enabled: true,
+          lessonId: isFocusSession.data!.lesson!.lessonId!,
+          lessonName: isFocusSession.data!.lesson!.lessonName!,
+          lessonDescription: isFocusSession.data!.lesson!.lessonDescription!,
+        );
         subjectSelectionController.add(1);
         setState(() {
           lesson = l;
-          lessonContent = _lessonContent;
-          subjectName = _subjectName;
+          lessonContent = isFocusSession.data!.remarks!;
+          subjectName = isFocusSession.data!.subject!.subjectName!;
           enabledFocus = true;
           widget.mainIndex = 1;
         });
-        return true;
       }
-
-      return false;
+      return true;
     }
+
     return false;
   }
 
   changeIndex(int index) async {
-    if(unknown && index ==4){
+    if (unknown && index == 4) {
       //Logout
       AuthenticationService.logout();
       Navigator.pushReplacement(
@@ -144,7 +141,6 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     }
 
     indexController.sink.add(index);
-
   }
 
   showOverlay() async {
@@ -165,12 +161,12 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     String? role = prefs.getString('role');
     if (role == null) {
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) =>  LoginPage()));
-    }else if(role == 'unknown'){
+          context, MaterialPageRoute(builder: (context) => LoginPage()));
+    } else if (role == 'unknown') {
       setState(() {
         unknown = true;
       });
-    }else{
+    } else {
       setState(() {
         unknown = false;
       });
@@ -181,40 +177,38 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
     print("State: $state");
-    if(state == AppLifecycleState.detached || state == AppLifecycleState.inactive){
+    if (state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
       return;
     }
     final bool isBackground = state == AppLifecycleState.paused;
     if (isBackground) {
-      SharedPreferences prefs =await  SharedPreferences.getInstance();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.containsKey('focusData')) {
         AwesomeNotifications().createNotification(
             content: NotificationContent(
-              id: 10,
-              channelKey: 'basic_channel',
-              actionType: ActionType.KeepOnTop,
-              title: 'Focus Mode',
-              body: 'You have a focus mode running',
-            )
-        );
+          id: 10,
+          channelKey: 'basic_channel',
+          actionType: ActionType.KeepOnTop,
+          title: 'Focus Mode',
+          body: 'You have a focus mode running',
+        ));
         reminderTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
-          if(!prefs.containsKey('focusData')){
+          if (!prefs.containsKey('focusData')) {
             reminderTimer?.cancel();
             AwesomeNotifications().cancelAll();
           }
           AwesomeNotifications().createNotification(
               content: NotificationContent(
-                id: math.Random().nextInt(1000),
-                channelKey: 'basic_channel',
-                actionType: ActionType.KeepOnTop,
-                title: 'Focus Mode',
-                body: 'You have a focus mode running',
-              )
-          );
+            id: math.Random().nextInt(1000),
+            channelKey: 'basic_channel',
+            actionType: ActionType.KeepOnTop,
+            title: 'Focus Mode',
+            body: 'You have a focus mode running',
+          ));
         });
-
       }
-    }else{
+    } else {
       AwesomeNotifications().cancelAll();
       reminderTimer?.cancel();
     }
@@ -238,12 +232,13 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     WidgetsBinding.instance.addObserver(this);
     // getPapers();
     AwesomeNotifications().setListeners(
-        onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
-        onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
-        onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
-        onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
-    );
-
+        onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+        onNotificationCreatedMethod:
+            NotificationController.onNotificationCreatedMethod,
+        onNotificationDisplayedMethod:
+            NotificationController.onNotificationDisplayedMethod,
+        onDismissActionReceivedMethod:
+            NotificationController.onDismissActionReceivedMethod);
 
     // getUserState();
     // FirebaseAuth.instance.authStateChanges().listen((User? user) {
@@ -254,15 +249,12 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
     // });
   }
 
-
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
     WidgetsBinding.instance.removeObserver(this);
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -273,6 +265,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver{
           children: [
             Positioned(
                 bottom: 70,
+                width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height - 70,
                 child: StreamBuilder<int>(
                   stream: indexController.stream,

@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/model/current_focus_session_response.dart';
+import 'package:spt/model/response_model.dart';
 import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/util/toast_util.dart';
 
@@ -18,14 +22,14 @@ class FocusSessionService{
       "lessonId": lesson.lessonId,
       "remark": remark,
       "duration": duration,
-      "startTime": DateTime.now().toIso8601String(),
+      "startTime": DateTime.now().subtract(Duration(hours:5,minutes: 30)).toIso8601String(),
     });
     if(response.statusCode == 200){
       CreatedFocusSessionDataModel focusSessionData = CreatedFocusSessionDataModel.fromJson(response.data);
-      if(focusSessionData.status == 'Success') {
+      if(focusSessionData.status == 'Successful') {
         ToastUtil.showSuccessToast(context, "Success", "Focus Session Started");
         prefs.setBool('enabledFocus', true);
-        prefs.setString('focusData', response.data.toString());
+        prefs.setString('focusData', jsonEncode(response.data));
         return true;
       }else{
         ToastUtil.showErrorToast(context, "Error", focusSessionData.message!);
@@ -76,19 +80,39 @@ class FocusSessionService{
   }
 
 
-  static Future<CreatedFocusSessionDataModel> getCurrentFocusSession(BuildContext context) async {
+  static Future<CurrentFocusSessionResponseModel?> getCurrentFocusSession(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     final response = await APIProvider.instance.get('/student/focus-session/current');
     if(response.statusCode == 200) {
-      CreatedFocusSessionDataModel focusSessionData = CreatedFocusSessionDataModel.fromJson(
+      CurrentFocusSessionResponseModel focusSessionData = CurrentFocusSessionResponseModel.fromJson(
           response.data);
-      if (focusSessionData.status == 'Success') {
+      if (focusSessionData.status == 'Successful') {
         return focusSessionData;
       } else {
-        ToastUtil.showErrorToast(context, "Error", focusSessionData.message!);
+        ToastUtil.showErrorToast(context, "Error", "Something Wrong");
       }
     }
-      return CreatedFocusSessionDataModel(status: 'Failed', message: 'Failed to get current focus session');
+      return null;
 
+  }
+
+
+  static Future<CurrentFocusSessionResponseModel?> isFocusSession(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isEnabled= prefs.getBool('enabledFocus') ?? false;
+    CurrentFocusSessionResponseModel? fs = await getCurrentFocusSession(context);
+    if(fs != null){
+      // prefs.setBool('enabledFocus', true);
+      return fs;
+    }
+    return null;
+  }
+
+  static Future<bool> stopFocusSession(BuildContext context) async{
+    final response = await APIProvider.instance.post('/student/focus-session/stop',{});
+    if(response.statusCode == 200) {
+        return true;
+    }
+    return false;
   }
 }

@@ -18,11 +18,14 @@ import 'package:spt/view/student/paper_detail.dart';
 
 import '../../model/Paper.dart';
 import '../../model/focus_session_in_week_stat_data_model.dart';
+import '../../model/focus_session_leaderboard_response_model.dart';
 import '../../model/leaderboard_entries.dart';
 import '../../model/model.dart';
 import '../../model/student_all_mark_response_model.dart';
+import '../../model/subject_focus_session_leaderboard_response.dart';
 import '../../services/focus_service.dart';
 import '../../services/leaderboard_service.dart';
+import '../../services/student_leaderboard_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -39,6 +42,13 @@ class _HomePageState extends State<HomePage> {
   int _overallFocus=-1;
   List<MarkData> paperMarks = [];
   bool unknown = true;
+
+  List<FSLeaderboardPosition> overallPositions=[];
+  List<FSLeaderboardPosition> biologyEntries=[];
+  List<FSLeaderboardPosition> chemistryEntries=[];
+  List<FSLeaderboardPosition> physicsEntries=[];
+  List<FSLeaderboardPosition> agricultureEntries=[];
+  List<FSLeaderboardPosition> leaderBoardEntries = [];
 
 
   getSubjectFocus() async {
@@ -68,7 +78,7 @@ class _HomePageState extends State<HomePage> {
         });
       }
     }catch(e){
-      ToastUtil.showErrorToast(context, "Error", "Error getting marks");
+      rethrow;
     }
   }
 
@@ -83,12 +93,48 @@ class _HomePageState extends State<HomePage> {
       }
 
     }catch(e){
-      ToastUtil.showErrorToast(context, "Error", "Error getting focus session summary");
+      ToastUtil.showErrorToast(context, "Error", "Error getting focus session summary + ${e.toString()}");
     }
   }
 
 
-
+  getLeaderboard() async{
+    FocusSessionLeaderboardResponseModel? focusSessionLeaderboardResponseModel = await StudentLeaderboardService.getFocusSessionOverallLeaderBoard();
+    if(focusSessionLeaderboardResponseModel != null){
+      setState(() {
+        overallPositions = focusSessionLeaderboardResponseModel.data!;
+        _overallFocus = focusSessionLeaderboardResponseModel.data!.firstWhere((element) => element.currentUser == true).leaderBoardRank!;
+        leaderBoardEntries = overallPositions;
+      });
+    }
+  }
+  getSubjectLeaderboard() async{
+    SubjectFocusSessionLeaderboardResponse? focusSessionLeaderboardResponseModel = await StudentLeaderboardService.getSubjectFocusSessionOverallLeaderBoard();
+    if(focusSessionLeaderboardResponseModel != null){
+      setState(() {
+        biologyEntries = focusSessionLeaderboardResponseModel.data!.biology!;
+        int BiologyFocus = focusSessionLeaderboardResponseModel.data!.biology!.indexWhere((element) => element.currentUser == true);
+        if(BiologyFocus != -1){
+          _BiologyFocus = focusSessionLeaderboardResponseModel.data!.biology![BiologyFocus].leaderBoardRank ?? -1;
+        }
+        chemistryEntries = focusSessionLeaderboardResponseModel.data!.chemistry!;
+        int ChemistryFocus = focusSessionLeaderboardResponseModel.data!.chemistry!.indexWhere((element) => element.currentUser == true);
+        if(ChemistryFocus != -1){
+          _ChemistryFocus = focusSessionLeaderboardResponseModel.data!.chemistry![ChemistryFocus].leaderBoardRank ?? -1;
+        }
+        physicsEntries = focusSessionLeaderboardResponseModel.data!.physics!;
+        int PhysicsFocus = focusSessionLeaderboardResponseModel.data!.physics!.indexWhere((element) => element.currentUser == true);
+        if(PhysicsFocus != -1){
+          _PhysicsFocus = focusSessionLeaderboardResponseModel.data!.physics![PhysicsFocus].leaderBoardRank ?? -1;
+        }
+        agricultureEntries = focusSessionLeaderboardResponseModel.data!.agriculture!;
+        int AgricultureFocus = focusSessionLeaderboardResponseModel.data!.agriculture!.indexWhere((element) => element.currentUser == true);
+        if(AgricultureFocus != -1){
+          _AgricultureFocus = focusSessionLeaderboardResponseModel.data!.agriculture![AgricultureFocus].leaderBoardRank ?? -1;
+        }
+      });
+    }
+  }
 
 
 
@@ -101,6 +147,8 @@ class _HomePageState extends State<HomePage> {
     getMarks();
     getFocusSessionSummary();
     super.initState();
+    getLeaderboard();
+    getSubjectLeaderboard();
     // getSubjectFocus();
     // getPaperLeaderBoard();
   }
@@ -365,12 +413,6 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  if(unknown){
-                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                      content: Text('You are not registered as a student in Class'),
-                                                      backgroundColor: Colors.red,
-                                                    ));
-                                                  }
 
                                                   Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1)));
                                                 },
@@ -434,7 +476,7 @@ class _HomePageState extends State<HomePage> {
                                                         size: 30,
                                                       ),
                                                       SizedBox(width: 5),
-                                                      Text(mark.totalMark.toString(),
+                                                      Text(mark.markId != null ?mark.totalMark.toString() : "__",
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight: FontWeight.bold,

@@ -24,6 +24,7 @@ class FocusMode extends StatefulWidget {
   final String lessonContent;
   final String subject;
   final bool enableFocus;
+
   final Function(Map<String, int> countDown) setCountDownTimer;
 
   const FocusMode(
@@ -41,6 +42,10 @@ class FocusMode extends StatefulWidget {
 class _FocusModeState extends State<FocusMode> {
   late String lessonId;
   late String lessonContent;
+  final TotalDuration dailyStat = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+  final TotalDuration weeklyStat = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+  final TotalDuration monthlyStat = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+
   int selectedTime = 25;
   Map<String, int> countDown = {
     'minutes': 25,
@@ -92,7 +97,7 @@ class _FocusModeState extends State<FocusMode> {
     getYearlyFocusSession();
     getDailyFocusSession();
     getWeeklyFocusSession();
-    // checkEnabledFocus();
+    checkEnabledFocus();
     // getRecentData();
     // getFocusData();
   }
@@ -103,15 +108,17 @@ class _FocusModeState extends State<FocusMode> {
     if (inWeekStatsDataModel != null) {
       List<InWeekData> data = inWeekStatsDataModel.data!;
       List<ChartData> chartData = [];
+      TotalDuration td = TotalDuration(hours: 0,minutes: 0,seconds: 0);
       for (int i = 0; i < data.length; i++) {
+        td = TotalDuration(hours: td.hours! + data[i].totalDuration!.hours!,minutes: td.minutes! + data[i].totalDuration!.minutes!,seconds: td.seconds! + data[i].totalDuration!.seconds!);
         DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
         chartData.add(ChartData(
             "${monthsShort[date.month - 1]} ${date.day.toString().padLeft(2, '0')}",
-            data[i].totalDuration!.hours!.toDouble()));
+            data[i].totalDuration!.hours!.toDouble() *60 + data[i].totalDuration!.minutes!.toDouble()));
       }
       setState(() {
-        monthlyChartData = chartData;
-        showStatistics(monthlyChartData);
+        dailyChartData = chartData;
+        totalDailyStat = {"hour": td.hours!, "minutes": td.minutes!};
       });
     }
   }
@@ -122,7 +129,9 @@ class _FocusModeState extends State<FocusMode> {
     if (inWeekStatsDataModel != null) {
       List<InWeekData> data = inWeekStatsDataModel.data!;
       List<ChartData> chartData = [];
+      TotalDuration td = TotalDuration(hours: 0,minutes: 0,seconds: 0);
       for (int i = 0; i < data.length; i++) {
+        td = TotalDuration(hours: td.hours! + data[i].totalDuration!.hours!,minutes: td.minutes! + data[i].totalDuration!.minutes!,seconds: td.seconds! + data[i].totalDuration!.seconds!);
         DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
         int weekOfYear = date
             .toUtc()
@@ -131,11 +140,11 @@ class _FocusModeState extends State<FocusMode> {
             7;
         chartData.add(ChartData(
             "Week ${i+1}",
-            data[i].totalDuration!.hours!.toDouble()));
+            data[i].totalDuration!.hours!.toDouble() *60 + data[i].totalDuration!.minutes!.toDouble()));
       }
       setState(() {
         weeklyChartData = chartData;
-        showStatistics(weeklyChartData);
+        totalWeeklyStat = {"hour": td.hours!, "minutes": td.minutes!};
       });
     }
   }
@@ -153,7 +162,9 @@ class _FocusModeState extends State<FocusMode> {
             "${monthsShort[i]}",
             0));
       }
+      TotalDuration td = TotalDuration(hours: 0,minutes: 0,seconds: 0);
       for (int i = 0; i < data.length; i++) {
+        td = TotalDuration(hours: td.hours! + data[i].totalDuration!.hours!,minutes: td.minutes! + data[i].totalDuration!.minutes!,seconds: td.seconds! + data[i].totalDuration!.seconds!);
         DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
         String month = monthsShort[date.month - 1];
         // chartData.add(ChartData(
@@ -168,7 +179,7 @@ class _FocusModeState extends State<FocusMode> {
 
       setState(() {
         monthlyChartData = chartData;
-        showStatistics(monthlyChartData);
+        totalMonthlyStat = {"hour": td.hours!, "minutes": td.minutes!};
       });
     }
   }
@@ -301,11 +312,12 @@ class _FocusModeState extends State<FocusMode> {
     if (prefs.containsKey('enabledFocus') &&
         prefs.getBool('enabledFocus')! &&
         prefs.containsKey('countDown')) {
-      Map<String, dynamic> focusData =
-          jsonDecode(prefs.getString('focusData')!);
-      DateTime startAt = DateTime.parse(focusData['startAt']);
+      CreatedFocusSessionDataModel focusData =
+          CreatedFocusSessionDataModel.fromJson(
+              jsonDecode(prefs.getString('focusData')!));
+      DateTime startAt = DateTime.fromMillisecondsSinceEpoch(focusData.data!.startTime!);
       DateTime currentTime = DateTime.now();
-      int setDuration = focusData['duration'];
+      int setDuration = focusData.data!.duration!;
       Duration duration = currentTime.difference(startAt);
       if (duration.inMinutes >= setDuration) {
         FocusService.endFocusOnLesson();
@@ -333,7 +345,7 @@ class _FocusModeState extends State<FocusMode> {
       }
 
       Map<String, dynamic> _countDown = {
-        'minutes': setDuration - duration.inMinutes,
+        'minutes': setDuration - duration.inMinutes -(duration.inSeconds % 60 == 0 ? 0 : 1),
         'seconds': duration.inSeconds % 60,
       };
       timer = Timer(
@@ -525,8 +537,19 @@ class _FocusModeState extends State<FocusMode> {
     });
   }
 
-  endFocussingSession() {
-    FocusService.endFocusOnLesson();
+  endFocussingSession() async {
+    bool stopped = await FocusSessionService.stopFocusSession(context);
+    if(stopped == false){
+      ToastUtil.showErrorToast(context, "Error", "Failed to stop focus session");
+      return;
+    }
+    timer?.cancel();
+    timer2?.cancel();
+    SharedPreferences prefs =await SharedPreferences.getInstance();
+    prefs.setBool('enabledFocus',false);
+    prefs.remove('countDown');
+    prefs.remove('focusData');
+    ToastUtil.showSuccessToast(context, "Success", "Focus Session Ended");
     showDialog(
       context: context,
       builder: (context) {
@@ -551,21 +574,6 @@ class _FocusModeState extends State<FocusMode> {
     });
   }
 
-  stopFocussingSession() async {
-    timer?.cancel();
-    timer2?.cancel();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Focusing session stopped'),
-      duration: Duration(seconds: 2),
-    ));
-    await FocusService.stopFocusOnLesson();
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => MainLayout(
-                  mainIndex: 1,
-                )));
-  }
 
   calculateRadialProgress() {
     double percentage = (countDown['minutes']! * 60 + countDown['seconds']!) /
@@ -698,7 +706,7 @@ class _FocusModeState extends State<FocusMode> {
           ElevatedButton(
             onPressed: () {
               if (isStarted) {
-                stopFocussingSession();
+                endFocussingSession();
               } else {
                 startFocusSession();
               }

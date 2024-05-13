@@ -7,6 +7,7 @@ class SubjectColor{
   static const Color CHEMISTRY = Color(0xFFCFE5FD);
   static const Color PHYSICS = Color(0xFFF6F7C4);
   static const Color AGRICULTURE = Color(0xFFD096EF);
+  static const Color PAPER_WRITING = Color(0xFFE7C8B2);
 
   static const Color BIOLOGY_DARK = Color(0xFF6C9263);
   static const Color CHEMISTRY_DARK = Color(0xFF6C9263);

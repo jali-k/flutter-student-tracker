@@ -281,6 +281,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 0),
           color: const Color(0xFF00C897),
           child: Stack(
             alignment: Alignment.topCenter,
@@ -288,12 +289,14 @@ class _LoginPageState extends State<LoginPage> {
               Positioned(
                 top: 0,
                 left: 0,
-                child: Image.asset(
-                  'assets/images/login_background.gif',
-                  fit: BoxFit.fitWidth,
-                  height: MediaQuery.of(context).size.height * 0.55,
-                  width: MediaQuery.of(context).size.width,
-                  alignment: Alignment.center,
+                child: Container(
+                  child: Image.asset(
+                    'assets/images/login_background.gif',
+                    fit: BoxFit.fitWidth,
+                    height: MediaQuery.of(context).size.height * 0.55,
+                    width: MediaQuery.of(context).size.width,
+                    alignment: Alignment.center,
+                  ),
                 ),
               ),
               Positioned(

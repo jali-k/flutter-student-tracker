@@ -1,16 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/services/focusService.dart';
-import 'package:spt/services/leaderboard_service.dart';
+import 'package:spt/services/focus_service.dart';
 import 'package:spt/services/subject_service.dart';
 import 'package:spt/util/SubjectColorUtil.dart';
-import 'package:spt/view/student/leaderboard_page.dart';
 
+import '../../model/current_focus_session_response.dart' as fsr;
 import 'focus_mode_page.dart';
 
 class SubjectSelectionPage extends StatefulWidget {
@@ -25,37 +27,18 @@ class SubjectSelectionPage extends StatefulWidget {
 class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
   int currentPosition = 0;
   StreamController<int> expandController = StreamController<int>();
-  List<Color> _subjectColors = [SubjectColor.BIOLOGY, SubjectColor.CHEMISTRY, SubjectColor.PHYSICS, SubjectColor.AGRICULTURE];
+  List<Color> _subjectColors = [SubjectColor.BIOLOGY, SubjectColor.CHEMISTRY, SubjectColor.PHYSICS, SubjectColor.AGRICULTURE, SubjectColor.PAPER_WRITING];
+  List<String> _images = ['assets/images/subjectImage.png','assets/icons/chemistry_icon.png','assets/icons/physics_icon.png','assets/icons/agriculture_icon.png','assets/icons/paper_writing.png'];
+  Timer? countTimer, focusTimer,reminderTimer;
 
-  CollectionReference biologyLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('biology')
-      .collection('lessons');
-  CollectionReference chemistryLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('chemistry')
-      .collection('lessons');
-  CollectionReference physicsLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('physics')
-      .collection('lessons');
-  CollectionReference agricultureLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('agriculture')
-      .collection('lessons');
+
+
 
   int noOfBiologyLessons = -1;
   int noOfChemistryLessons = -1;
   int noOfPhysicsLessons = -1;
   int noOfAgricultureLessons = -1;
 
-  late QuerySnapshot biologyLessonsSnapshot;
-
-  late QuerySnapshot chemistryLessonsSnapshot;
-
-  late QuerySnapshot physicsLessonsSnapshot;
-
-  late QuerySnapshot agricultureLessonsSnapshot;
 
   bool enableFocus = false;
 
@@ -128,39 +111,54 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
     );
   }
 
+  setCountDownTimer(Map<String, int> countDown) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('countDown', jsonEncode(countDown));
+    countTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (countDown['seconds']! > 0) {
+        countDown['seconds'] = countDown['seconds']! - 1;
+      } else if (countDown['minutes']! > 0) {
+        countDown['minutes'] = countDown['minutes']! - 1;
+        countDown['seconds'] = 59;
+      } else {
+        timer.cancel();
+      }
+      prefs.setString('countDown', jsonEncode(countDown));
+    });
+  }
+
+  checkFocusSession() async {
+    fsr.CurrentFocusSessionResponseModel? isFocusSession = await FocusSessionService.isFocusSession(context);
+    if(isFocusSession != null){
+      DateTime startTime = DateTime.fromMillisecondsSinceEpoch(isFocusSession.data!.startTime!);
+      DateTime now = DateTime.now();
+      if(now.isAfter(startTime)){
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FocusMode(
+              lesson: Lessons(
+                enabled: true,
+                lessonId: isFocusSession.data!.lesson!.lessonId!,
+                lessonName: isFocusSession.data!.lesson!.lessonName!,
+                lessonDescription: isFocusSession.data!.lesson!.lessonDescription!,
+              ),
+              lessonContent: isFocusSession.data!.remarks!,
+              subject: isFocusSession.data!.subject!.subjectName!,
+              enableFocus: true,
+              setCountDownTimer: setCountDownTimer,
+            ),
+          ),
+        );
+      }
+    }
+  }
 
 
   @override
   void initState() {
     super.initState();
-    // biologyLessons.get().then((value) {
-    //   setState(() {
-    //     noOfBiologyLessons = value.docs.length;
-    //     biologyLessonsSnapshot = value;
-    //   });
-    // });
-    //
-    // chemistryLessons.get().then((value) {
-    //   setState(() {
-    //     noOfChemistryLessons = value.docs.length;
-    //     chemistryLessonsSnapshot = value;
-    //   });
-    // });
-    //
-    // physicsLessons.get().then((value) {
-    //   setState(() {
-    //     noOfPhysicsLessons = value.docs.length;
-    //     physicsLessonsSnapshot = value;
-    //   });
-    // });
-    //
-    // agricultureLessons.get().then((value) {
-    //   setState(() {
-    //     noOfAgricultureLessons = value.docs.length;
-    //     agricultureLessonsSnapshot = value;
-    //   });
-    // });
-    // getLeaderBoardPosition();
+    checkFocusSession();
   }
 
   _selectExpand(int index) {
@@ -416,7 +414,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                               crossAxisAlignment: CrossAxisAlignment.center,
                                               children: [
                                                 Image.asset(
-                                                  'assets/images/subjectImage.png',
+                                                  _images[index % subjectSnapshot.data!.data!.length],
                                                   width: 72,
                                                   height: 72,
                                                 ),
@@ -564,7 +562,8 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                     );
                   }else{
                     return Container(
-                      child: Center(child: CircularProgressIndicator()),
+                      child: Center(child: CircularProgressIndicator(
+                      )),
                     );
                   }
                 }

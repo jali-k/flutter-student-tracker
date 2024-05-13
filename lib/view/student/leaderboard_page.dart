@@ -316,7 +316,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
               if(leaderBoardEntries[index].currentUser!)
                 {
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
-                    navigateToPosition(index);
+                    // navigateToPosition(index);
                   });
                   return Container(
                     alignment: Alignment.center,
@@ -328,7 +328,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                     margin: const EdgeInsets.all(2),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      // crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           flex: 1,
@@ -336,12 +336,13 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                             alignment: Alignment.center,
                             child: Text(leaderBoardEntries[index].leaderBoardRank.toString(), style: TextStyle(
                               fontSize: 14,
+                              overflow: TextOverflow.ellipsis,
                             ),),
                           ),
                         ),
                         Expanded(child: SizedBox(), flex: 1,),
                         Expanded(
-                          flex: 3,
+                          flex: 4,
                           child: Text(leaderBoardEntries[index].studentName!, style: TextStyle(
                             fontSize: 14,
                             overflow: TextOverflow.ellipsis,
