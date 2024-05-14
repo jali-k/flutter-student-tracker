@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:spt/model/lecture_video_upload_response_model.dart';
 import 'package:spt/services/admin_service.dart';
 import 'package:spt/services/lecture_folder_service.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../globals.dart';
@@ -78,7 +79,7 @@ class _AddFolderState extends State<AddFolder> {
   final TextEditingController _videoDescriptionController =
       TextEditingController();
   final TextEditingController _videoDurationController =
-      TextEditingController();
+      TextEditingController(text: '0');
   final StreamController<double> uploadProgressController =
       StreamController<double>.broadcast();
 
@@ -141,24 +142,24 @@ class _AddFolderState extends State<AddFolder> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 10),
-                    TextField(
-                      controller: _videoDurationController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Video Duration',
-                        labelStyle: TextStyle(color: AppColors.black),
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.primary),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
+                    // SizedBox(height: 10),
+                    // TextField(
+                    //   controller: _videoDurationController,
+                    //   keyboardType: TextInputType.number,
+                    //   decoration: InputDecoration(
+                    //     labelText: 'Video Duration',
+                    //     labelStyle: TextStyle(color: AppColors.black),
+                    //     contentPadding:
+                    //         EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                    //     enabledBorder: OutlineInputBorder(
+                    //       borderRadius: BorderRadius.circular(10),
+                    //     ),
+                    //     focusedBorder: OutlineInputBorder(
+                    //       borderSide: BorderSide(color: AppColors.primary),
+                    //       borderRadius: BorderRadius.circular(10),
+                    //     ),
+                    //   ),
+                    // ),
                     SizedBox(height: 10),
                     Container(
                       height: 300,
@@ -269,57 +270,65 @@ class _AddFolderState extends State<AddFolder> {
                                             Radius.circular(5))),
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 5),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    child: Column(
                                       children: [
-                                        //Badge with Video Uploaded
-                                        Container(
-                                          decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(10))),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 5, vertical: 2),
-                                          child: Row(
-                                            children: [
-                                              Icon(
-                                                Icons.check_circle,
-                                                color: Colors.white,
-                                              ),
-                                              Gap(5),
-                                              Text(
-                                                'Video Ready To Upload',
-                                                style: TextStyle(
-                                                    color: Colors.white),
-                                              )
-                                            ],
-                                          ),
+                                        Text(
+                                          pickedVideoFile!.toString().split("/")[pickedVideoFile!.toString().split("/").length - 1],
+                                          style: TextStyle(color: Colors.white),
                                         ),
-                                        Container(
-                                          width: 30,
-                                          height: 30,
-                                          child: IconButton(
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                                  MaterialStateProperty.all(
-                                                      Colors.white),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            //Badge with Video Uploaded
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.all(
+                                                      Radius.circular(10))),
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 5, vertical: 2),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.check_circle,
+                                                    color: Colors.white,
+                                                  ),
+                                                  Gap(5),
+                                                  Text(
+                                                    'Video Ready To Upload',
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  )
+                                                ],
+                                              ),
                                             ),
-                                            onPressed: () async {
-                                              final picker = ImagePicker();
-                                              XFile? pickedFile =
-                                                  await picker.pickVideo(
-                                                      source:
-                                                          ImageSource.gallery);
-                                              if (pickedFile != null) {
-                                                pickedVideoFile =
-                                                    pickedFile.path;
-                                                pickedVideoFileController
-                                                    .add(File(pickedFile.path));
-                                              }
-                                            },
-                                            iconSize: 14,
-                                            icon: Icon(Icons.edit),
-                                          ),
+                                            Container(
+                                              width: 30,
+                                              height: 30,
+                                              child: IconButton(
+                                                style: ButtonStyle(
+                                                  backgroundColor:
+                                                      MaterialStateProperty.all(
+                                                          Colors.white),
+                                                ),
+                                                onPressed: () async {
+                                                  final picker = ImagePicker();
+                                                  XFile? pickedFile =
+                                                      await picker.pickVideo(
+                                                          source:
+                                                              ImageSource.gallery);
+                                                  if (pickedFile != null) {
+                                                    pickedVideoFile =
+                                                        pickedFile.path;
+                                                    pickedVideoFileController
+                                                        .add(File(pickedFile.path));
+                                                  }
+                                                },
+                                                iconSize: 14,
+                                                icon: Icon(Icons.edit),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -345,7 +354,7 @@ class _AddFolderState extends State<AddFolder> {
                     File(pickedVideoThumbnailFile!),
                     _videoTitleController.text,
                     _videoDescriptionController.text,
-                    double.parse(_videoDurationController.text),
+                    null
                   );
                   setState(() {
                     uploadLectureVideos.add(uploadResource);
@@ -378,40 +387,55 @@ class _AddFolderState extends State<AddFolder> {
                   color: Colors.black.withOpacity(0.5),
                   child: Center(
                     child: StreamBuilder<double>(
-                      stream: uploadProgressController.stream,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          if(snapshot.data == 100.0){
-                            //Timer
+                        stream: uploadProgressController.stream,
+                        builder: (context, snapshot) {
+                          Timer(Duration(seconds: 5), () {
+                            uploadProgressController.add(100);
+                          });
+                          if (snapshot.hasData) {
+                            if (snapshot.data == 100.0) {
+                              //Timer
+                              return Center(
+                                  child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: AppColors.green,
+                                    size: 50,
+                                  ),
+                                  Gap(10),
+                                  Text(
+                                    'Uploading Completed',
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 18),
+                                  ),
+                                ],
+                              ));
+                            }
                             return Center(
-                                child:Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.check_circle, color: AppColors.green, size: 50,),
-                                    Gap(10),
-                                    Text('Uploading Completed', style: TextStyle(color: Colors.white,fontSize: 18),),
-                                  ],
-                                )
-
-                            );
-                          }
-                          return Center(
-                            child:Column(
+                                child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CircularProgressIndicator(),
                                 Gap(10),
-                                Text('Uploading ${snapshot.data} %', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold),),
+                                Text(
+                                  'Uploading ${snapshot.data} %',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
                               ],
-                            )
-
-                          );
-                        }
-                        return Center(child: CircularProgressIndicator(color: AppColors.primary,));
-                      }
-                    ),
+                            ));
+                          }
+                          return Center(
+                              child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ));
+                        }),
                   ),
                 )
               : SingleChildScrollView(
@@ -631,6 +655,7 @@ class _AddFolderState extends State<AddFolder> {
                               Expanded(
                                 child: TextField(
                                   controller: _emailListController,
+                                  maxLines: 3,
                                   decoration:
                                       InputDecoration(labelText: 'Email List'),
                                 ),
@@ -638,10 +663,20 @@ class _AddFolderState extends State<AddFolder> {
                               IconButton(
                                 onPressed: () {
                                   if (_emailListController.text.isNotEmpty) {
-                                    setState(() {
-                                      emailList.add(_emailListController.text);
+                                    try {
+                                      String text = _emailListController.text;
+                                      //split by '\n'
+                                      List<String> emails = text.split('\n');
+                                      setState(() {
+                                        emailList.addAll(emails);
+                                      });
                                       _emailListController.clear();
-                                    });
+                                    } catch (e) {
+                                      ToastUtil.showErrorToast(
+                                          context,
+                                          "Parsing Error",
+                                          "Enter Email List in New Line");
+                                    }
                                   }
                                 },
                                 icon: Icon(Icons.add),
@@ -667,7 +702,7 @@ class _AddFolderState extends State<AddFolder> {
                                       _folderDescriptionController.text,
                                       _allowType,
                                       emailList);
-                              if(folderCreateResponseModel == null){
+                              if (folderCreateResponseModel == null) {
                                 setState(() {
                                   isUploading = false;
                                 });
@@ -675,7 +710,7 @@ class _AddFolderState extends State<AddFolder> {
                               }
                               String folderId =
                                   folderCreateResponseModel.data!.folderId!;
-                              int count =0;
+                              int count = 0;
                               uploadProgressController.add(0.0);
                               // Upload Videos
                               uploadLectureVideos
@@ -683,24 +718,30 @@ class _AddFolderState extends State<AddFolder> {
                                   .forEach((element) async {
                                 LectureVideoUploadResponseModel?
                                     lectureVideoUploadResponseModel =
-                                    await LectureFolderService.uploadLectureVideo(
-                                        context, folderId, element);
-                                if(lectureVideoUploadResponseModel != null){
+                                    await LectureFolderService
+                                        .uploadLectureVideo(
+                                            context, folderId, element);
+                                if (lectureVideoUploadResponseModel != null) {
                                   count++;
                                 }
-                                if(count == uploadLectureVideos.sublist(1).length - 1){
+                                if (count ==
+                                    uploadLectureVideos.sublist(1).length - 1) {
                                   uploadProgressController.add(100.0);
-                                  Future.delayed(Duration(seconds: 5), (){
+                                  Future.delayed(Duration(seconds: 5), () {
                                     setState(() {
                                       isUploading = false;
                                     });
                                     // Navigator.of(context).pop();
                                   });
                                 }
-                                double value = (count)/uploadLectureVideos.sublist(1).length*100;
+                                double value = (count) /
+                                    uploadLectureVideos.sublist(1).length *
+                                    100;
                                 uploadProgressController.add(value);
                               });
-
+                              Navigator.of(context).pop();
+                              ToastUtil.showSuccessToast(
+                                  context, 'Folder Creation','Folder Creation Perform BackGround');
                             } on Exception catch (e) {
                               print('Error: $e');
                               setState(() {

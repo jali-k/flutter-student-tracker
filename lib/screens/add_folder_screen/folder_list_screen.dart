@@ -21,7 +21,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
   List<FolderInfo> data = [];
   List<FolderInfo> folderList = [];
   List<String> folderName = [];
-  bool isLoading = false;
+  bool isLoading = true;
   @override
   void initState() {
     super.initState();
@@ -94,7 +94,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
-                    color: Colors.purple,
+                    color: Colors.black87,
                     splashColor: AppColors.grey,
                     focusColor: AppColors.grey,
                     hoverColor: AppColors.grey,
@@ -102,12 +102,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                     onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => EditFolder(
-                            isUpdate: true,
-                            callBack: () {
-                              fetch();
-                            },
-                            folderDetails: folder,
-                            folderNames: folderName,
+                            folderInfo: folder,
                           )));
                     },
                     icon: const Icon(Icons.folder)),

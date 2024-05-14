@@ -27,7 +27,7 @@ class InstructorScreen extends StatefulWidget {
 
 class _InstructorScreenState extends State<InstructorScreen> {
   final double _fieldBorderRadius = 30;
-  final double _fieldBorderLineWidth = 1.5;
+  final double _fieldBorderLineWidth = 0.5;
   final double _fieldFontSizeValue = 12;
   final formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
@@ -128,22 +128,22 @@ class _InstructorScreenState extends State<InstructorScreen> {
   Widget build(BuildContext context) {
     final focusedBorder = OutlineInputBorder(
       borderSide: BorderSide(
-        color: AppColors.black,
+        color: Colors.black26,
         width: _fieldBorderLineWidth,
       ),
-      borderRadius: BorderRadius.all(Radius.circular(5)),
+      borderRadius: BorderRadius.all(Radius.circular(10)),
     );
 
     final enabledBorder = OutlineInputBorder(
       borderSide: BorderSide(
-        color: AppColors.black,
+        color: Colors.black26,
         width: _fieldBorderLineWidth,
       ),
-      borderRadius: BorderRadius.all(Radius.circular(5)),
+      borderRadius: BorderRadius.all(Radius.circular(10)),
     );
 
     final valueStyle = TextStyle(
-      color: AppColors.black,
+      color: Colors.black26,
       fontSize: _fieldFontSizeValue,
     );
 
@@ -152,7 +152,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
         color: AppColors.red,
         width: _fieldBorderLineWidth,
       ),
-      borderRadius: const BorderRadius.all(Radius.circular(30)),
+      borderRadius: const BorderRadius.all(Radius.circular(10)),
     );
 
     const errorStyle = TextStyle(
@@ -271,7 +271,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: (width / 2) - 40,
+                        width: (width) - 40,
                         child: TextFormField(
                           style: valueStyle,
                           controller: emailController,
@@ -305,38 +305,38 @@ class _InstructorScreenState extends State<InstructorScreen> {
                           },
                         ),
                       ),
-                      SizedBox(width: 10,),
-                      Container(
-                        width: (width / 2) - 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                            color: AppColors.ligthWhite,
-                            border: Border.all(color: AppColors.black),
-                            borderRadius: BorderRadius.circular(5)
-                        ),
-                        child: DropdownButton<String>(
-                          value: instructorGroup,
-                          hint: const Text('Select Group'),
-                          icon: const Icon(Icons.arrow_drop_down),
-                          iconSize: 24,
-                          elevation: 16,
-                          isExpanded: true,
-                          style: const TextStyle(color: Colors.black),
-                          underline: SizedBox(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              instructorGroup = newValue!;
-                            });
-                          },
-                          items: <String>['A', 'B', 'C', 'D']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        ),
-                      ),
+                      // SizedBox(width: 10,),
+                      // Container(
+                      //   width: (width / 2) - 40,
+                      //   padding: const EdgeInsets.symmetric(horizontal: 10),
+                      //   decoration: BoxDecoration(
+                      //       color: AppColors.ligthWhite,
+                      //       border: Border.all(color: AppColors.black),
+                      //       borderRadius: BorderRadius.circular(5)
+                      //   ),
+                      //   child: DropdownButton<String>(
+                      //     value: instructorGroup,
+                      //     hint: const Text('Select Group'),
+                      //     icon: const Icon(Icons.arrow_drop_down),
+                      //     iconSize: 24,
+                      //     elevation: 16,
+                      //     isExpanded: true,
+                      //     style: const TextStyle(color: Colors.black),
+                      //     underline: SizedBox(),
+                      //     onChanged: (String? newValue) {
+                      //       setState(() {
+                      //         instructorGroup = newValue!;
+                      //       });
+                      //     },
+                      //     items: <String>['A', 'B', 'C', 'D']
+                      //         .map<DropdownMenuItem<String>>((String value) {
+                      //       return DropdownMenuItem<String>(
+                      //         value: value,
+                      //         child: Text(value),
+                      //       );
+                      //     }).toList(),
+                      //   ),
+                      // ),
                     ],
                   ),
                   const Gap(20),
@@ -356,7 +356,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
                               instructorEmail: emailController.text.trim(),
                               firstName: firstNameController.text.trim(),
                               lastName: lastNameController.text.trim(),
-                              group: instructorGroup!
+                              group: instructorGroup
                           );
                         },
                         child: const Center(

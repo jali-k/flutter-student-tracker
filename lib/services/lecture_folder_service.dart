@@ -107,5 +107,30 @@ class LectureFolderService{
     }
   }
 
+  static Future<FolderCreateResponseModel?> editFolder(BuildContext context, String folderID, String folderName,
+      String folderDescription,
+      String allowType,
+      List<String> allowStudents) async{
+    try {
+      Map<String, dynamic> data = {
+        "folderName": folderName,
+        "folderDescription": folderDescription,
+        "allowType": allowType.toUpperCase(),
+        "allowedStudentsEmails": allowStudents,
+      };
+      final response = await APIProvider.instance.postMultipart('/lecture/folder/$folderID',data);
+      if (response.statusCode == 200) {
+        //get response data as AllFolderResponseModel
+        FolderCreateResponseModel allFolderResponseModel = FolderCreateResponseModel.fromJson(response.data);
+        return allFolderResponseModel;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error: $e');
+      return null;
+    }
+  }
+
 
 }

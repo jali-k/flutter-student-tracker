@@ -2,8 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class APIProvider {
-  static const String _baseUrl = 'http://10.0.2.2:9000/api/v1';
-  static const String BASE_URL = 'http://10.0.2.2:9000/api/v1';
+  static const String _baseUrl = 'http://13.251.19.56:9000/api/v1';
+  static const String BASE_URL = 'http://13.251.19.56:9000/api/v1';
   static Dio? dio;
   static APIProvider? _apiProvider;
   int _maxRetry = 3;

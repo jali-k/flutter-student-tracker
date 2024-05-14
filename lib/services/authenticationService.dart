@@ -31,6 +31,7 @@ class AuthenticationService{
           prefs.setString('role', authenticatedStudentModel.role!);
           prefs.setString('accessToken', authenticatedStudentModel.accessToken!);
           prefs.setString('tokenType', authenticatedStudentModel.tokenType!);
+          prefs.setInt('registrationNumber', authenticatedStudentModel.userInfo!.registrationNumber!);
           prefs.setInt('expiresIn', authenticatedStudentModel.expiresIn!);
           prefs.setString('refreshToken', authenticatedStudentModel.refreshToken!);
           prefs.setString('userInfo', jsonEncode(authenticatedStudentModel.userInfo!));

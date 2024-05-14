@@ -32,9 +32,12 @@ import 'dart:math' as math;
 
 import '../model/Paper.dart';
 import '../model/paper_attempt.dart';
+import '../model/student_all_mark_response_model.dart';
 import '../provider/paperProvider.dart';
 import '../services/mark_service.dart';
+import '../services/paper_mark_service.dart';
 import '../util/notification_controller.dart';
+import '../view/student/paper_detail.dart';
 import '../view/student/show_profile.dart';
 
 class MainLayout extends StatefulWidget {
@@ -61,11 +64,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   bool timerShow = false;
 
   getPapers() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String role = prefs.getString('role')!;
-    if (role == 'unknown') {
-      return;
-    }
+
     Map<ExamPaper, AttemptPaper?> p =
         await PaperMarksService.getStudentPapers();
     if (!mounted) return;
@@ -96,6 +95,34 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
       }
       prefs.setString('countDown', jsonEncode(countDown));
     });
+  }
+
+
+  checkFocusSession() async {
+    CurrentFocusSessionResponseModel? isFocusSession = await FocusSessionService.isFocusSession(context);
+    if(isFocusSession != null){
+      DateTime startTime = DateTime.fromMillisecondsSinceEpoch(isFocusSession.data!.startTime!);
+      DateTime now = DateTime.now();
+      if(now.isAfter(startTime)){
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FocusMode(
+              lesson: Lessons(
+                enabled: true,
+                lessonId: isFocusSession.data!.lesson!.lessonId!,
+                lessonName: isFocusSession.data!.lesson!.lessonName!,
+                lessonDescription: isFocusSession.data!.lesson!.lessonDescription!,
+              ),
+              lessonContent: isFocusSession.data!.remarks!,
+              subject: isFocusSession.data!.subject!.subjectName!,
+              enableFocus: true,
+              setCountDownTimer: setCountDownTimer,
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<bool> checkAndSetFocusMode() async {
@@ -225,12 +252,28 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
     Map<String, dynamic> countDown = jsonDecode(prefs.getString('countDown')!);
     setCountDownTimer(countDown.cast<String, int>());
   }
+  List<MarkData> paperMarks = [];
+
+  getMarks() async{
+    try{
+      StudentAllMarkResponseModel? marks = await PaperMarkService.getStudentAllMarks();
+      if(marks != null){
+        List<MarkData> data = marks!.data!;
+        setState(() {
+          paperMarks = data;
+        });
+      }
+    }catch(e){
+      rethrow;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // getPapers();
+    getMarks();
     AwesomeNotifications().setListeners(
         onActionReceivedMethod: NotificationController.onActionReceivedMethod,
         onNotificationCreatedMethod:
@@ -240,7 +283,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
         onDismissActionReceivedMethod:
             NotificationController.onDismissActionReceivedMethod);
 
-    // getUserState();
+    getUserState();
     // FirebaseAuth.instance.authStateChanges().listen((User? user) {
     //   if (user == null) {
     //     Navigator.pushReplacement(context,
@@ -295,23 +338,9 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                                   }
                                   switch (index) {
                                     case 0:
-                                      return FutureBuilder(
-                                          future: checkAndSetFocusMode(),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData) {
-                                              if (snapshot.data == true) {
-                                                return Container();
-                                              } else {
-                                                return SubjectSelectionPage(
-                                                  selectSubject: selectSubject,
-                                                );
-                                              }
-                                            }
-                                            return const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            );
-                                          });
+                                      return SubjectSelectionPage(
+                                        selectSubject: selectSubject,
+                                      );
                                     case 1:
                                       return FocusMode(
                                         lesson: lesson!,
@@ -333,7 +362,15 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                                 }
                               });
                         case 2:
-                          return StudentMarksPage();
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => PaperDetailPage(
+                                      paperMarks: paperMarks,
+                                    )));
+                          });
+                          return const Center();
                         case 3:
                           return NotificationPage();
                         case 4:

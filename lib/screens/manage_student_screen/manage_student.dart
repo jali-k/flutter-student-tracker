@@ -77,7 +77,6 @@ class _MangeStudentState extends State<MangeStudent> {
 
     if (firstName.isNotEmpty &&
         lastName.isNotEmpty &&
-        phone.isNotEmpty &&
         email.isNotEmpty) {
       try {
         //update student details
@@ -88,6 +87,10 @@ class _MangeStudentState extends State<MangeStudent> {
         if (searchStudentResponseModel != null) {
           //show student details
           ToastUtil.showSuccessToast(context,'Success', 'Student details updated successfully');
+          setState(() {
+            isUpdate = false;
+            searchStudentData = null;
+          });
         } else {
           //show error message
           ToastUtil.showErrorToast(context,'Error', 'Failed to update student details');

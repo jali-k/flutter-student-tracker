@@ -10,7 +10,7 @@ class UploadResource{
   File videoThumbnailFile;
   String videoTitle;
   String videoDescription;
-  double videoDuraton;
+  double? videoDuraton;
 
   UploadResource(
       this.videoFile,

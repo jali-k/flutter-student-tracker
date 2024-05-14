@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:gap/gap.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/created_focus_session_data_model.dart';
@@ -16,6 +17,7 @@ import 'package:spt/util/toast_util.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
+import '../../model/current_focus_session_response.dart';
 import '../../model/subject_response_model.dart';
 import '../../widgets/circle_progressbar_painter.dart';
 
@@ -42,9 +44,12 @@ class FocusMode extends StatefulWidget {
 class _FocusModeState extends State<FocusMode> {
   late String lessonId;
   late String lessonContent;
-  final TotalDuration dailyStat = TotalDuration(hours: 0,minutes: 0,seconds: 0);
-  final TotalDuration weeklyStat = TotalDuration(hours: 0,minutes: 0,seconds: 0);
-  final TotalDuration monthlyStat = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+  final TotalDuration dailyStat =
+      TotalDuration(hours: 0, minutes: 0, seconds: 0);
+  final TotalDuration weeklyStat =
+      TotalDuration(hours: 0, minutes: 0, seconds: 0);
+  final TotalDuration monthlyStat =
+      TotalDuration(hours: 0, minutes: 0, seconds: 0);
 
   int selectedTime = 25;
   Map<String, int> countDown = {
@@ -56,7 +61,24 @@ class _FocusModeState extends State<FocusMode> {
   bool enabledFocus = false;
   bool isPaused = false;
   bool isStarted = false;
-  final List<int> _timeDuration = [25, 30, 35, 40, 45, 50, 55, 60];
+  final List<int> _timeDuration = [
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+    90,
+    120,
+    150,
+    180,
+    210,
+    240,
+    270,
+    300
+  ];
   late Map<String, Map<String, int>> focusData = {};
   List<ChartData> dailyChartData = [];
   List<ChartData> weeklyChartData = [];
@@ -97,8 +119,8 @@ class _FocusModeState extends State<FocusMode> {
     getYearlyFocusSession();
     getDailyFocusSession();
     getWeeklyFocusSession();
-    checkEnabledFocus();
-    // getRecentData();
+    // checkEnabledFocus();
+    getRecentData();
     // getFocusData();
   }
 
@@ -108,13 +130,17 @@ class _FocusModeState extends State<FocusMode> {
     if (inWeekStatsDataModel != null) {
       List<InWeekData> data = inWeekStatsDataModel.data!;
       List<ChartData> chartData = [];
-      TotalDuration td = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+      TotalDuration td = TotalDuration(hours: 0, minutes: 0, seconds: 0);
       for (int i = 0; i < data.length; i++) {
-        td = TotalDuration(hours: td.hours! + data[i].totalDuration!.hours!,minutes: td.minutes! + data[i].totalDuration!.minutes!,seconds: td.seconds! + data[i].totalDuration!.seconds!);
+        td = TotalDuration(
+            hours: td.hours! + data[i].totalDuration!.hours!,
+            minutes: td.minutes! + data[i].totalDuration!.minutes!,
+            seconds: td.seconds! + data[i].totalDuration!.seconds!);
         DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
         chartData.add(ChartData(
             "${monthsShort[date.month - 1]} ${date.day.toString().padLeft(2, '0')}",
-            data[i].totalDuration!.hours!.toDouble() *60 + data[i].totalDuration!.minutes!.toDouble()));
+            data[i].totalDuration!.hours!.toDouble() * 60 +
+                data[i].totalDuration!.minutes!.toDouble()));
       }
       setState(() {
         dailyChartData = chartData;
@@ -129,18 +155,19 @@ class _FocusModeState extends State<FocusMode> {
     if (inWeekStatsDataModel != null) {
       List<InWeekData> data = inWeekStatsDataModel.data!;
       List<ChartData> chartData = [];
-      TotalDuration td = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+      TotalDuration td = TotalDuration(hours: 0, minutes: 0, seconds: 0);
       for (int i = 0; i < data.length; i++) {
-        td = TotalDuration(hours: td.hours! + data[i].totalDuration!.hours!,minutes: td.minutes! + data[i].totalDuration!.minutes!,seconds: td.seconds! + data[i].totalDuration!.seconds!);
+        td = TotalDuration(
+            hours: td.hours! + data[i].totalDuration!.hours!,
+            minutes: td.minutes! + data[i].totalDuration!.minutes!,
+            seconds: td.seconds! + data[i].totalDuration!.seconds!);
         DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
-        int weekOfYear = date
-            .toUtc()
-            .difference(DateTime.utc(date.year, 1, 1))
-            .inDays ~/
-            7;
+        int weekOfYear =
+            date.toUtc().difference(DateTime.utc(date.year, 1, 1)).inDays ~/ 7;
         chartData.add(ChartData(
-            "Week ${i+1}",
-            data[i].totalDuration!.hours!.toDouble() *60 + data[i].totalDuration!.minutes!.toDouble()));
+            "Week ${i + 1}",
+            data[i].totalDuration!.hours!.toDouble() * 60 +
+                data[i].totalDuration!.minutes!.toDouble()));
       }
       setState(() {
         weeklyChartData = chartData;
@@ -148,7 +175,6 @@ class _FocusModeState extends State<FocusMode> {
       });
     }
   }
-
 
   getYearlyFocusSession() async {
     FocusSessionsInWeekStatsDataModel? inWeekStatsDataModel =
@@ -158,13 +184,14 @@ class _FocusModeState extends State<FocusMode> {
       List<ChartData> chartData = [];
       int currentMonth = DateTime.now().month;
       for (int i = 0; i < currentMonth; i++) {
-        chartData.add(ChartData(
-            "${monthsShort[i]}",
-            0));
+        chartData.add(ChartData("${monthsShort[i]}", 0));
       }
-      TotalDuration td = TotalDuration(hours: 0,minutes: 0,seconds: 0);
+      TotalDuration td = TotalDuration(hours: 0, minutes: 0, seconds: 0);
       for (int i = 0; i < data.length; i++) {
-        td = TotalDuration(hours: td.hours! + data[i].totalDuration!.hours!,minutes: td.minutes! + data[i].totalDuration!.minutes!,seconds: td.seconds! + data[i].totalDuration!.seconds!);
+        td = TotalDuration(
+            hours: td.hours! + data[i].totalDuration!.hours!,
+            minutes: td.minutes! + data[i].totalDuration!.minutes!,
+            seconds: td.seconds! + data[i].totalDuration!.seconds!);
         DateTime date = DateTime.fromMillisecondsSinceEpoch(data[i].day!);
         String month = monthsShort[date.month - 1];
         // chartData.add(ChartData(
@@ -219,92 +246,81 @@ class _FocusModeState extends State<FocusMode> {
   }
 
   getRecentData() async {
-    List<QueryDocumentSnapshot> snap = await FocusService.getFocusData();
-    List<ChartData> _dailyChartData = [];
-    List<ChartData> _weeklyChartData = [];
-    List<ChartData> _monthlyChartData = [];
-
-    Map<String, int> _averageDailyStat = {"hour": 0, "minutes": 0};
-    Map<String, int> _averageWeeklyStat = {"hour": 0, "minutes": 0};
-    Map<String, int> _averageMonthlyStat = {"hour": 0, "minutes": 0};
-
-    for (var i = 0; i < snap.length; i++) {
-      DateTime startAt = snap[i]['startAt'].toDate();
-      if (snap[i]['endAt'] == null) {
-        continue;
+    CurrentFocusSessionResponseModel? focusData =
+        await FocusSessionService.isFocusSession(context);
+    if (focusData != null) {
+      if (focusData.data! != null) {
+        DateTime startAt =
+            DateTime.fromMillisecondsSinceEpoch(focusData.data!.startTime!);
+        DateTime currentTime = DateTime.now();
+        int setDuration = focusData.data!.duration!;
+        Duration duration = currentTime.difference(startAt);
+        if (duration.inMinutes >= setDuration) {
+          FocusService.endFocusOnLesson();
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Time is up!'),
+                content: const Text('Time to take a break'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+          setState(() {
+            ButtonText = 'Start';
+          });
+          return;
+        }
+        Map<String, dynamic> _countDown = {
+          'minutes': setDuration -
+              duration.inMinutes -
+              (duration.inSeconds % 60 == 0 ? 0 : 1),
+          'seconds': duration.inSeconds % 60,
+        };
+        timer = Timer(
+            Duration(
+                minutes: _countDown['minutes']!,
+                seconds: _countDown['seconds']!), () {
+          // Show the alert
+          endFocussingSession();
+        });
+        timer2 = Timer.periodic(const Duration(seconds: 1), (timer) {
+          calculateRadialProgress();
+          setState(() {
+            if (countDown['seconds'] == 0) {
+              int? minutes = countDown['minutes'];
+              countDown = {
+                'minutes': minutes! - 1,
+                'seconds': 59,
+              };
+            } else {
+              int? seconds = countDown['seconds'];
+              countDown = {
+                'minutes': countDown['minutes']!,
+                'seconds': seconds! - 1,
+              };
+            }
+            if (countDown['minutes'] == 0 && countDown['seconds'] == 0) {
+              timer2?.cancel();
+            }
+          });
+        });
+        setState(() {
+          enabledFocus = true;
+          countDown = _countDown.cast<String, int>();
+          ButtonText = 'Stop';
+          isStarted = true;
+        });
       }
-
-      DateTime endAt = snap[i]['endAt'].toDate();
-      int duration = snap[i]['duration'] as int;
-      if (snap[i]['subjectName'] == widget.subject) {
-        int day = startAt.day;
-        int dayIndex = _dailyChartData
-            .indexWhere((element) => element.x == day.toString());
-        if (dayIndex != -1) {
-          _dailyChartData[dayIndex].y += duration.toDouble();
-        } else {
-          _dailyChartData.add(ChartData(day.toString(), duration.toDouble()));
-        }
-
-        int week = startAt
-                .toUtc()
-                .difference(DateTime.utc(startAt.year, 1, 1))
-                .inDays ~/
-            7;
-        int weekIndex = _weeklyChartData
-            .indexWhere((element) => element.x == week.toString());
-
-        if (weekIndex != -1) {
-          _weeklyChartData[weekIndex].y += duration.toDouble();
-        } else {
-          _weeklyChartData.add(ChartData(week.toString(), duration.toDouble()));
-        }
-
-        int month = startAt.month;
-        int monthIndex = _monthlyChartData
-            .indexWhere((element) => element.x == month.toString());
-        if (monthIndex != -1) {
-          _monthlyChartData[monthIndex].y += duration.toDouble();
-        } else {
-          _monthlyChartData
-              .add(ChartData(month.toString(), duration.toDouble()));
-        }
-      }
     }
-    print(_dailyChartData.map((e) => e.y).toList());
-    int dailyTotal = 0;
-    int weeklyTotal = 0;
-    int monthlyTotal = 0;
-    for (var i = 0; i < _dailyChartData.length; i++) {
-      dailyTotal += _dailyChartData[i].y.toInt();
-    }
-    for (var i = 0; i < _weeklyChartData.length; i++) {
-      weeklyTotal += _weeklyChartData[i].y.toInt();
-    }
-    for (var i = 0; i < _monthlyChartData.length; i++) {
-      monthlyTotal += _monthlyChartData[i].y.toInt();
-    }
-    _averageDailyStat = {
-      "hour": (dailyTotal ~/ _dailyChartData.length) ~/ 60,
-      "minutes": (dailyTotal ~/ _dailyChartData.length) % 60
-    };
-    _averageWeeklyStat = {
-      "hour": (weeklyTotal ~/ _weeklyChartData.length) ~/ 60,
-      "minutes": (weeklyTotal ~/ _weeklyChartData.length) % 60
-    };
-    _averageMonthlyStat = {
-      "hour": (monthlyTotal ~/ _monthlyChartData.length) ~/ 60,
-      "minutes": (monthlyTotal ~/ _monthlyChartData.length) % 60
-    };
-
-    setState(() {
-      dailyChartData = _dailyChartData;
-      weeklyChartData = _weeklyChartData;
-      monthlyChartData = _monthlyChartData;
-      totalDailyStat = _averageDailyStat;
-      totalWeeklyStat = _averageWeeklyStat;
-      totalMonthlyStat = _averageMonthlyStat;
-    });
   }
 
   Future<void> checkEnabledFocus() async {
@@ -315,7 +331,8 @@ class _FocusModeState extends State<FocusMode> {
       CreatedFocusSessionDataModel focusData =
           CreatedFocusSessionDataModel.fromJson(
               jsonDecode(prefs.getString('focusData')!));
-      DateTime startAt = DateTime.fromMillisecondsSinceEpoch(focusData.data!.startTime!);
+      DateTime startAt =
+          DateTime.fromMillisecondsSinceEpoch(focusData.data!.startTime!);
       DateTime currentTime = DateTime.now();
       int setDuration = focusData.data!.duration!;
       Duration duration = currentTime.difference(startAt);
@@ -345,7 +362,9 @@ class _FocusModeState extends State<FocusMode> {
       }
 
       Map<String, dynamic> _countDown = {
-        'minutes': setDuration - duration.inMinutes -(duration.inSeconds % 60 == 0 ? 0 : 1),
+        'minutes': setDuration -
+            duration.inMinutes -
+            (duration.inSeconds % 60 == 0 ? 0 : 1),
         'seconds': duration.inSeconds % 60,
       };
       timer = Timer(
@@ -537,16 +556,31 @@ class _FocusModeState extends State<FocusMode> {
     });
   }
 
-  endFocussingSession() async {
-    bool stopped = await FocusSessionService.stopFocusSession(context);
-    if(stopped == false){
-      ToastUtil.showErrorToast(context, "Error", "Failed to stop focus session");
+  stopFocusSession() async {
+    //TODO : Complete the Focus Session
+    bool stopped = await FocusSessionService.cancelFocusSession(context);
+    if (stopped == false) {
+      ToastUtil.showErrorToast(
+          context, "Error", "Failed to stop focus session");
       return;
     }
     timer?.cancel();
     timer2?.cancel();
-    SharedPreferences prefs =await SharedPreferences.getInstance();
-    prefs.setBool('enabledFocus',false);
+    ToastUtil.showSuccessToast(context, "Success", "Focus Session Stopped");
+    Navigator.of(context).pop();
+  }
+
+  endFocussingSession() async {
+    bool stopped = await FocusSessionService.stopFocusSession(context);
+    if (stopped == false) {
+      ToastUtil.showErrorToast(
+          context, "Error", "Failed to stop focus session");
+      return;
+    }
+    timer?.cancel();
+    timer2?.cancel();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('enabledFocus', false);
     prefs.remove('countDown');
     prefs.remove('focusData');
     ToastUtil.showSuccessToast(context, "Success", "Focus Session Ended");
@@ -574,7 +608,6 @@ class _FocusModeState extends State<FocusMode> {
     });
   }
 
-
   calculateRadialProgress() {
     double percentage = (countDown['minutes']! * 60 + countDown['seconds']!) /
         (selectedTime * 60);
@@ -586,334 +619,398 @@ class _FocusModeState extends State<FocusMode> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.9,
-      height: MediaQuery.of(context).size.height * 0.9,
-      alignment: Alignment.center,
-      margin: const EdgeInsets.all(10),
-      color: Color(0xFFFAFAFA),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const Row(
+    return Scaffold(
+      body: SafeArea(
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.9,
+          alignment: Alignment.center,
+          margin: const EdgeInsets.all(10),
+          color: Color(0xFFFAFAFA),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Stay ',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Focused',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF00C897),
-                ),
-              ),
-            ],
-          ),
-          // Text(
-          //   '${lessonContent}',
-          //   style: TextStyle(
-          //     fontSize: 24,
-          //     fontWeight: FontWeight.bold,
-          //   ),
-          // ),
-          const SizedBox(
-            height: 20,
-          ),
-          // Time selection
-          if (!isStarted)
-            DropdownButton(
-              value: selectedTime,
-              disabledHint: const Text('Timer Started'),
-              items: _timeDuration
-                  .map((e) => DropdownMenuItem(
-                        enabled: isStarted ? e == selectedTime : true,
-                        value: e,
-                        child: Text('$e mins'),
-                        alignment: Alignment.center,
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedTime = value as int;
-                  countDown = {
-                    'minutes': selectedTime,
-                    'seconds': 0,
-                  };
-                });
-              },
-            ),
-          const SizedBox(
-            height: 20,
-          ),
-          // Show Clock here
-          Container(
-            width: 200,
-            height: 200,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: CustomPaint(
-              foregroundPainter: CircleProgressBarPainter(
-                lineColor: Colors.grey,
-                completeColor: primaryColor,
-                completePercent: !isStarted ? 100 : (percentage) * 100,
-                width: 15.0,
-              ),
-              child: Container(
-                alignment: Alignment.center,
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: borderColor,
-                    width: 10,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '${countDown['minutes']}:${countDown['seconds']! < 10 ? '0' + countDown['seconds'].toString() : countDown['seconds']}',
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Stay ',
                     style: TextStyle(
-                      fontSize: 32,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 40,
-          ),
-          // Start button
-          ElevatedButton(
-            onPressed: () {
-              if (isStarted) {
-                endFocussingSession();
-              } else {
-                startFocusSession();
-              }
-            },
-            child: Text(
-              ButtonText,
-              style: TextStyle(
-                fontSize: 24,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Color(0xFFC3E2C2),
-              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                "STATISTICS",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          // Statistics Button as a Row Daily, Weekly, Monthly
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        initialStatIndex = 0;
-                        selectedStat = totalDailyStat;
-                      });
-                      showStatistics(dailyChartData);
-                    },
-                    child: const Text(
-                      'Daily',
-                      style: TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      // fixedSize: const Size(110, 50),
-                      foregroundColor: Colors.white,
-                      backgroundColor: Color(0xFF424242),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
                   Text(
-                    '${totalDailyStat["hour"]}h ${totalDailyStat["minutes"]}mins',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                    'Focused',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF00C897),
+                    ),
                   ),
                 ],
               ),
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        initialStatIndex = 1;
-                        selectedStat = totalWeeklyStat;
-                      });
-                      showStatistics(weeklyChartData);
-                    },
-                    child: const Text(
-                      'Weekly',
-                      style: TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      // fixedSize: const Size(110, 50),
-                      foregroundColor: Colors.white,
-                      backgroundColor: Color(0xFF424242),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${totalWeeklyStat["hour"]}h ${totalWeeklyStat["minutes"]}mins',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
-                  ),
-                ],
+              // Text(
+              //   '${lessonContent}',
+              //   style: TextStyle(
+              //     fontSize: 24,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
+              const SizedBox(
+                height: 20,
               ),
-              Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        initialStatIndex = 2;
-                        selectedStat = totalMonthlyStat;
-                      });
-                      showStatistics(monthlyChartData);
-                    },
-                    child: const Text(
-                      'Monthly',
-                      style: TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      // fixedSize: const Size(110, 50),
-                      foregroundColor: Colors.white,
-                      backgroundColor: Color(0xFF424242),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${totalMonthlyStat["hour"]}h ${totalMonthlyStat["minutes"]}mins',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          // See more button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              //report button
-              TextButton(
-                onPressed: () {
-                  showReport();
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              // Time selection
+              if (!isStarted)
+                DropdownButton(
+                  value: selectedTime,
+                  disabledHint: const Text('Timer Started'),
+                  items: _timeDuration
+                      .map((e) => DropdownMenuItem(
+                            enabled: isStarted ? e == selectedTime : true,
+                            value: e,
+                            alignment: Alignment.center,
+                            child:
+                                // if e is greater than 60 then show hours and minutes
+                                Text(
+                              e > 60
+                                  ? '${e ~/ 60} h ${e % 60 != 0 ? '${e % 60} min' : ''}'
+                                  : '$e mins',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedTime = value as int;
+                      countDown = {
+                        'minutes': selectedTime,
+                        'seconds': 0,
+                      };
+                    });
+                  },
                 ),
-                child: const Row(
+              const SizedBox(
+                height: 20,
+              ),
+              // Show Clock here
+              Container(
+                width: 200,
+                height: 200,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: CustomPaint(
+                  foregroundPainter: CircleProgressBarPainter(
+                    lineColor: Colors.grey,
+                    completeColor: primaryColor,
+                    completePercent: !isStarted ? 100 : (percentage) * 100,
+                    width: 15.0,
+                  ),
+                  child: Container(
+                    alignment: Alignment.center,
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: borderColor,
+                        width: 10,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${countDown['minutes']}:${countDown['seconds']! < 10 ? '0' + countDown['seconds'].toString() : countDown['seconds']}',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 40,
+              ),
+              if (ButtonText == "Start")
+                ElevatedButton(
+                  onPressed: ButtonText == "Start"
+                      ? () {
+                          startFocusSession();
+                        }
+                      : null,
+                  child: Text(
+                    "Start",
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Color(0xFFC3E2C2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              // Start button
+              if (ButtonText != "Start")
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      'Report',
-                      style: TextStyle(
-                        fontSize: 14,
+                    ElevatedButton(
+                      onPressed: () {
+                        stopFocusSession();
+                      },
+                      child: Text(
+                        "Stop",
+                        style: TextStyle(
+                          fontSize: 24,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Color(0xFFC3E2C2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
                     ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                    Icon(
-                      Icons.ac_unit,
-                      size: 15,
+                    Gap(10),
+                    ElevatedButton(
+                      onPressed: () {
+                        endFocussingSession();
+                      },
+                      child: Text(
+                        "Complete",
+                        style: TextStyle(
+                          fontSize: 24,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Color(0xFFC3E2C2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 50, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
                     ),
                   ],
                 ),
+              SizedBox(
+                height: 20,
               ),
-              TextButton(
-                onPressed: () {
-                  showStatistics(weeklyChartData);
-                  selectedStat = totalWeeklyStat;
-                },
-                child: Row(
-                  children: const [
-                    Text(
-                      'See more',
-                      style: TextStyle(
-                        fontSize: 14,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    "STATISTICS",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              // Statistics Button as a Row Daily, Weekly, Monthly
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            initialStatIndex = 0;
+                            selectedStat = totalDailyStat;
+                          });
+                          showStatistics(dailyChartData);
+                        },
+                        child: const Text(
+                          'Daily',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          // fixedSize: const Size(110, 50),
+                          foregroundColor: Colors.white,
+                          backgroundColor: Color(0xFF424242),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_right,
-                      size: 30,
-                    ),
-                  ],
-                ),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                ),
+                      Text(
+                        '${totalDailyStat["hour"]}h ${totalDailyStat["minutes"]}mins',
+                        style:
+                            TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            initialStatIndex = 1;
+                            selectedStat = totalWeeklyStat;
+                          });
+                          showStatistics(weeklyChartData);
+                        },
+                        child: const Text(
+                          'Weekly',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          // fixedSize: const Size(110, 50),
+                          foregroundColor: Colors.white,
+                          backgroundColor: Color(0xFF424242),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${totalWeeklyStat["hour"]}h ${totalWeeklyStat["minutes"]}mins',
+                        style:
+                            TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            initialStatIndex = 2;
+                            selectedStat = totalMonthlyStat;
+                          });
+                          showStatistics(monthlyChartData);
+                        },
+                        child: const Text(
+                          'Monthly',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          // fixedSize: const Size(110, 50),
+                          foregroundColor: Colors.white,
+                          backgroundColor: Color(0xFF424242),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${totalMonthlyStat["hour"]}h ${totalMonthlyStat["minutes"]}mins',
+                        style:
+                            TextStyle(fontSize: 14, color: Color(0xFF9E9393)),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          )
+              SizedBox(
+                height: 20,
+              ),
+              // See more button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  //report button
+                  TextButton(
+                    onPressed: () {
+                      showReport();
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                    ),
+                    child: const Row(
+                      children: [
+                        Text(
+                          'Report',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Icon(
+                          Icons.ac_unit,
+                          size: 15,
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      showStatistics(weeklyChartData);
+                      selectedStat = totalWeeklyStat;
+                    },
+                    child: Row(
+                      children: const [
+                        Text(
+                          'See more',
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_right,
+                          size: 30,
+                        ),
+                      ],
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                    ),
+                  ),
+                ],
+              )
 
-          // Start button
-        ],
+              // Start button
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1092,8 +1189,7 @@ class _FocusModeState extends State<FocusMode> {
                     series: <CartesianSeries>[
                       ColumnSeries<ChartData, String>(
                           dataSource: cData,
-                          xValueMapper: (ChartData data, _) =>
-                              "${data.x}",
+                          xValueMapper: (ChartData data, _) => "${data.x}",
                           yValueMapper: (ChartData data, _) => data.y,
                           color: Color(0xFFACE194),
                           borderRadius: BorderRadius.all(Radius.circular(3)))

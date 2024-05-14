@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:spt/model/folder.dart';
 import 'package:spt/services/lecture_folder_service.dart';
@@ -36,6 +37,74 @@ class _LecturesPageState extends State<LecturesPage> {
     // TODO: implement initState
     super.initState();
     getLectures();
+  }
+
+  showVideoInfoDialog(Videos video)async{
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(video.videoName!),
+          content: Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  child: Stack(
+                    children: [
+                      Image.network("https://dopamine-storage.s3.ap-southeast-1.amazonaws.com/${video.videoThumbnailUrl!}",
+                        width: MediaQuery.of(context).size.width,
+                        height: 200,
+                        fit: BoxFit.fill,
+                      ),
+                      Positioned(
+                        top: 80,
+                        left: (MediaQuery.of(context).size.width/2 - 50),
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Icon(Icons.play_arrow,color: Colors.white,size: 30,)
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text("Title : \n${video.videoName}",style: TextStyle(fontSize: 16,fontWeight: FontWeight.bold)),
+                SizedBox(height: 10),
+                Text("Description: \n${video.videoDescription}",style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Watch Video'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => VideoPage(videoId: video.videoId!)),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
 
@@ -136,7 +205,7 @@ class _LecturesPageState extends State<LecturesPage> {
                                         Videos video = folder.videos![i];
                                         return GestureDetector(
                                           onTap: () {
-                                            Navigator.push(context, MaterialPageRoute(builder: (context) => VideoPage(videoId: video.videoResourceKey!,)));
+                                            showVideoInfoDialog(video);
                                           },
                                           child: Container(
                                             margin: EdgeInsets.all(5),

@@ -115,4 +115,15 @@ class FocusSessionService{
     }
     return false;
   }
+
+  static Future<bool> cancelFocusSession(BuildContext context) async{
+    final response = await APIProvider.instance.post('/student/focus-session/cancel',{});
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if(response.statusCode == 200) {
+      prefs.setBool('enabledFocus', false);
+      prefs.remove('focusData');
+      return true;
+    }
+    return false;
+  }
 }
