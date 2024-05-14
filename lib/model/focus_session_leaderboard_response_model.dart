@@ -31,6 +31,7 @@ class FSLeaderboardPosition {
   String? studentId;
   String? studentName;
   int? totalFocusTime;
+  double? totalMarks;
   int? totalFocusSessions;
   int? leaderBoardRank;
   bool? currentUser;
@@ -47,6 +48,7 @@ class FSLeaderboardPosition {
     studentId = json['studentId'];
     studentName = json['studentName'];
     totalFocusTime = json['totalFocusTime'];
+    totalMarks = json['totalMarks'];
     totalFocusSessions = json['totalFocusSessions'];
     leaderBoardRank = json['leaderBoardRank'];
     currentUser = json['currentUser'];
@@ -57,6 +59,7 @@ class FSLeaderboardPosition {
     data['studentId'] = this.studentId;
     data['studentName'] = this.studentName;
     data['totalFocusTime'] = this.totalFocusTime;
+    data['totalMarks'] = this.totalMarks;
     data['totalFocusSessions'] = this.totalFocusSessions;
     data['leaderBoardRank'] = this.leaderBoardRank;
     data['currentUser'] = this.currentUser;

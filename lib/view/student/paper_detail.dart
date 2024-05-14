@@ -9,6 +9,7 @@ import 'package:spt/model/student_all_mark_response_model.dart';
 import 'package:spt/provider/attemptedPaperProvider.dart';
 import 'package:spt/provider/paperProvider.dart';
 import 'package:spt/services/mark_service.dart';
+import 'package:spt/view/student/paper_leaderboard_page.dart';
 import 'package:spt/view/student/student_paper_position_view.dart';
 
 import '../../model/Paper.dart';
@@ -96,27 +97,11 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
     showOverlay();
   }
 
-  getPapers() async {
-    Map<ExamPaper,AttemptPaper?> p = await PaperMarksService.getStudentPapers();
-    setState(() {
-      papers = p;
-      isLoadingPapers = false;
-    });
-  }
-
-  void getPaperLeaderBoard() async {
-    Map<String, List<LeaderBoardEntries>> leaderBoard =
-    await LeaderBoardService.getLeaderBoard();
-    List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
-    if(!mounted) return;
-    Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
-  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getPapers();
     // getPaperLeaderBoard();
 
 
@@ -129,14 +114,6 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Papers'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            onPressed: () {
-              ShowReleaseSoonBanner(context);
-            },
-          ),
-        ],
       ),
       body: Container(
         height: MediaQuery.of(context).size.height - 60,
@@ -165,7 +142,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           // Title : What’s catching your interest today?
                           children: [
@@ -245,7 +222,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                             ),
                             SizedBox(height: 10),
                             Container(
-                                height: MediaQuery.of(context).size.height - 370,
+                                height: MediaQuery.of(context).size.height - 300,
                                 width: MediaQuery.of(context).size.width,
                                 child: ListView.builder(
                                     itemCount: widget.paperMarks.length,
@@ -288,7 +265,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                               children: [
                                                 Container(
                                                   child: Text(
-                                                    '${markData.totalMark} %',
+                                                    markData.markId != null ? '${markData.totalMark!} %' : 'N/A',
                                                     style: TextStyle(
                                                       /*
                                                       * background: linear-gradient(180deg, #1A8D71 0%, #FAFAFA 100%);
@@ -344,6 +321,10 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                     Container(
                                                       child: TextButton(
                                                         onPressed: (){
+                                                          Navigator.push(context, MaterialPageRoute(builder: (context) => PaperLeaderBoardPage(
+                                                              selectedPaper: markData.paper!,
+                                                              papers: widget.paperMarks.map((e) => e.paper!).toList()
+                                                          )));
                                                         },
                                                         child: Text('Leader Board',style: TextStyle(color: Colors.white),),
                                                       ),

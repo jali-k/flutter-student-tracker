@@ -42,7 +42,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
         : _selectedBottomNavBarItemIndex = 0;
 
     //
-    _selectedBottomNavBarItemIndex = 4;
+    // _selectedBottomNavBarItemIndex = 4;
     bottomNavBarItems.addAll([
       const HomeScreen(),
       const EntryScreen(),

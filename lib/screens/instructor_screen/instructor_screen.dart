@@ -51,6 +51,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
     InstructorResponseModel? response = await InstructorService.getAllInstructor();
     if(response == null) {
       ToastUtil.showErrorToast(context, "Network Error", "Failed to fetch data");
+      return;
     }
     List<InstructorInfo> instructors = response!.data!;
     setState(() {
