@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 // import 'package:flutter_overlay_apps/flutter_overlay_apps.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:spt/layout/main_layout.dart';
 import 'package:spt/model/student_all_mark_response_model.dart';
+import 'package:spt/model/user_role_model.dart';
 import 'package:spt/provider/attemptedPaperProvider.dart';
 import 'package:spt/provider/paperProvider.dart';
 import 'package:spt/services/mark_service.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:spt/view/student/paper_leaderboard_page.dart';
 import 'package:spt/view/student/student_paper_position_view.dart';
 
@@ -43,6 +47,16 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
     setState(() {
       selected = i;
     });
+  }
+
+  checkStatus()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String role = prefs.getString('role')!;
+    if(role == UserRole.UNKNOWN){
+      ToastUtil.showErrorToast(context, "Not Authorized", "You are not a student of this class");
+      Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout()));
+      return;
+    }
   }
 
   ShowReleaseSoonBanner(BuildContext context) {
@@ -101,8 +115,10 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
   @override
   void initState() {
     // TODO: implement initState
+    checkStatus();
     super.initState();
-    // getPaperLeaderBoard();
+    // if press back button navigate to home page
+    
 
 
     // _requestOverlayPermission(context);
@@ -115,278 +131,285 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
       appBar: AppBar(
         title: Text('Papers'),
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height - 60,
-        width: MediaQuery.of(context).size.width,
-        color: Colors.red,
-        child: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Image.asset(
-                'assets/images/student_marks_background.png',
-                fit: BoxFit.fitWidth,
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                alignment: Alignment.center,
+      body: PopScope(
+        canPop: false,
+        onPopInvoked: (pop) {
+          MaterialPageRoute route = MaterialPageRoute(builder: (context) => MainLayout());
+          Navigator.push(context, route);
+        },
+        child: Container(
+          height: MediaQuery.of(context).size.height - 60,
+          width: MediaQuery.of(context).size.width,
+          color: Colors.red,
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Image.asset(
+                  'assets/images/student_marks_background.png',
+                  fit: BoxFit.fitWidth,
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  alignment: Alignment.center,
+                ),
               ),
-            ),
-            Positioned(
-                bottom: 10,
-                height: MediaQuery.of(context).size.height - 70,
-                width: MediaQuery.of(context).size.width ,
-                child: Container(
-                  margin: EdgeInsets.only(top: 50),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          // Title : What’s catching your interest today?
-                          children: [
-                            Container(
-                              height: 150,
-                              margin: EdgeInsets.all(10),
-                              padding: EdgeInsets.all(20),
-                              //Linear Color 00C897 to 245247
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF00C897),
-                                    Color(0x55245247),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                //Linear Color 00C897 to 245247 border
-                                border: Border.all(
-                                  color: const Color(0xFF00C897),
-                                  width: 2,
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.white54,
-                                    blurRadius: 5,
-                                    offset: Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              width: 280,
-                              alignment: Alignment.topCenter,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      SizedBox(height: 40),
-                                      Text(
-                                        'Daily Reminder',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+              Positioned(
+                  bottom: 10,
+                  height: MediaQuery.of(context).size.height - 70,
+                  width: MediaQuery.of(context).size.width ,
+                  child: Container(
+                    margin: EdgeInsets.only(top: 50),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            // Title : What’s catching your interest today?
+                            children: [
+                              Container(
+                                height: 150,
+                                margin: EdgeInsets.all(10),
+                                padding: EdgeInsets.all(20),
+                                //Linear Color 00C897 to 245247
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFF00C897),
+                                      Color(0x55245247),
                                     ],
                                   ),
-                                  Container(
-                                    child: Text(
-                                      '\“ Work hard in silence. Let your success be the noise. \"',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  //Linear Color 00C897 to 245247 border
+                                  border: Border.all(
+                                    color: const Color(0xFF00C897),
+                                    width: 2,
                                   ),
-                                  SizedBox(height: 10),
-                                  // Row(
-                                  //   mainAxisAlignment: MainAxisAlignment.end,
-                                  //   children: [
-                                  //     Container(
-                                  //       child: Text(
-                                  //         'Lord Buddha',
-                                  //         textAlign: TextAlign.right,
-                                  //         style: TextStyle(
-                                  //           color: Colors.white,
-                                  //           fontWeight: FontWeight.bold,
-                                  //         ),
-                                  //       ),
-                                  //     ),
-                                  //   ],
-                                  // ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Container(
-                                height: MediaQuery.of(context).size.height - 300,
-                                width: MediaQuery.of(context).size.width,
-                                child: ListView.builder(
-                                    itemCount: widget.paperMarks.length,
-                                    itemBuilder: (context,index){
-                                      MarkData markData = widget.paperMarks[index];
-                                      return Container(
-                                        margin: EdgeInsets.all(10),
-                                        padding: EdgeInsets.all(10),
-                                        //Linear Color 00C897 to 245247
-                                        decoration: BoxDecoration(
-                                          gradient: const LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: [
-                                              Color(0xFF001906),
-                                              Color(0xEE022720),
-                                            ],
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.white54,
+                                      blurRadius: 5,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                width: 280,
+                                alignment: Alignment.topCenter,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        SizedBox(height: 40),
+                                        Text(
+                                          'Daily Reminder',
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
                                           ),
-                                          borderRadius: BorderRadius.circular(20),
-                                          //Linear Color 00C897 to 245247 border
-                                          border: Border.all(
-                                            color: const Color(0xFF00C897),
-                                            width: 2,
-                                          ),
-                                          boxShadow: const [
-                                            BoxShadow(
-                                              color: Colors.white54,
-                                              blurRadius: 5,
-                                              offset: Offset(0, 5),
-                                            ),
-                                          ],
                                         ),
-                                        width: 280,
-                                        alignment: Alignment.topCenter,
-                                        child: Stack(
-                                          children: [
-                                            Column(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: [
-                                                Container(
-                                                  child: Text(
-                                                    markData.markId != null ? '${markData.totalMark!} %' : 'N/A',
-                                                    style: TextStyle(
-                                                      /*
-                                                      * background: linear-gradient(180deg, #1A8D71 0%, #FAFAFA 100%);
-                                                      * */
-                                                        foreground: Paint()..shader =LinearGradient(
-                                                          colors: <Color>[Color(0xff1A8D71), Color(0xffFAFAFA)],
-                                                        ).createShader(Rect.fromLTWH(0.0, 0.0, 300.0, 70.0)),
-                                                        fontSize: 30,
-                                                        fontWeight: FontWeight.bold),
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    SizedBox(height: 40),
-                                                    Text(
-                                                      '${markData.paper!.paperName!}',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Container(
-                                                  margin: EdgeInsets.only(top: 5),
-                                                  child: Text(
-                                                    'MCQ Marks : ${markData.totalMark}',
-                                                    style: TextStyle(color: Colors.white),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin: EdgeInsets.only(top: 5),
-
-                                                  child: Text(
-                                                    'Structured Marks : ${markData.totalMark}',
-                                                    style: TextStyle(color: Colors.white),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin: EdgeInsets.only(top: 5),
-
-                                                  child: Text(
-                                                    'Essay Marks : ${markData.totalMark}',
-                                                    style: TextStyle(color: Colors.white),
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.end,
-                                                  children: [
-                                                    Container(
-                                                      child: TextButton(
-                                                        onPressed: (){
-                                                          Navigator.push(context, MaterialPageRoute(builder: (context) => PaperLeaderBoardPage(
-                                                              selectedPaper: markData.paper!,
-                                                              papers: widget.paperMarks.map((e) => e.paper!).toList()
-                                                          )));
-                                                        },
-                                                        child: Text('Leader Board',style: TextStyle(color: Colors.white),),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                // Row(
-                                                //   mainAxisAlignment: MainAxisAlignment.end,
-                                                //   children: [
-                                                //     Container(
-                                                //       child: Text(
-                                                //         'Lord Buddha',
-                                                //         textAlign: TextAlign.right,
-                                                //         style: TextStyle(
-                                                //           color: Colors.white,
-                                                //           fontWeight: FontWeight.bold,
-                                                //         ),
-                                                //       ),
-                                                //     ),
-                                                //   ],
-                                                // ),
+                                      ],
+                                    ),
+                                    Container(
+                                      child: Text(
+                                        '\“ Work hard in silence. Let your success be the noise. \"',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    // Row(
+                                    //   mainAxisAlignment: MainAxisAlignment.end,
+                                    //   children: [
+                                    //     Container(
+                                    //       child: Text(
+                                    //         'Lord Buddha',
+                                    //         textAlign: TextAlign.right,
+                                    //         style: TextStyle(
+                                    //           color: Colors.white,
+                                    //           fontWeight: FontWeight.bold,
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //   ],
+                                    // ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Container(
+                                  height: MediaQuery.of(context).size.height - 300,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: ListView.builder(
+                                      itemCount: widget.paperMarks.length,
+                                      itemBuilder: (context,index){
+                                        MarkData markData = widget.paperMarks[index];
+                                        return Container(
+                                          margin: EdgeInsets.all(10),
+                                          padding: EdgeInsets.all(10),
+                                          //Linear Color 00C897 to 245247
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Color(0xFF001906),
+                                                Color(0xEE022720),
                                               ],
                                             ),
-                                            Positioned(
-                                              top: 0,
-                                              right: 0,
-                                              child: Container(
-                                                  height: 40,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(20),
+                                            borderRadius: BorderRadius.circular(20),
+                                            //Linear Color 00C897 to 245247 border
+                                            border: Border.all(
+                                              color: const Color(0xFF00C897),
+                                              width: 2,
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Colors.white54,
+                                                blurRadius: 5,
+                                                offset: Offset(0, 5),
+                                              ),
+                                            ],
+                                          ),
+                                          width: 280,
+                                          alignment: Alignment.topCenter,
+                                          child: Stack(
+                                            children: [
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Container(
+                                                    child: Text(
+                                                      markData.markId != null ? '${markData.totalMark!} %' : 'N/A',
+                                                      style: TextStyle(
+                                                        /*
+                                                        * background: linear-gradient(180deg, #1A8D71 0%, #FAFAFA 100%);
+                                                        * */
+                                                          foreground: Paint()..shader =LinearGradient(
+                                                            colors: <Color>[Color(0xff1A8D71), Color(0xffFAFAFA)],
+                                                          ).createShader(Rect.fromLTWH(0.0, 0.0, 300.0, 70.0)),
+                                                          fontSize: 30,
+                                                          fontWeight: FontWeight.bold),
+                                                    ),
                                                   ),
-                                                  child: Row(
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
-                                                      Icon(
-                                                        Icons.local_fire_department_rounded,
-                                                        color: Color(0xFFF2513B),
-                                                        size: 30,
-                                                      ),
-                                                      SizedBox(width: 5),
+                                                      SizedBox(height: 40),
                                                       Text(
-                                                        '120',
+                                                        '${markData.paper!.paperName!}',
                                                         style: TextStyle(
-                                                          color: Colors.white,
+                                                          fontSize: 16,
                                                           fontWeight: FontWeight.bold,
+                                                          color: Colors.white,
                                                         ),
                                                       ),
                                                     ],
-                                                  )
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.only(top: 5),
+                                                    child: Text(
+                                                      'MCQ Marks : ${markData.totalMark}',
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.only(top: 5),
+        
+                                                    child: Text(
+                                                      'Structured Marks : ${markData.totalMark}',
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    margin: EdgeInsets.only(top: 5),
+        
+                                                    child: Text(
+                                                      'Essay Marks : ${markData.totalMark}',
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      Container(
+                                                        child: TextButton(
+                                                          onPressed: (){
+                                                            Navigator.push(context, MaterialPageRoute(builder: (context) => PaperLeaderBoardPage(
+                                                                selectedPaper: markData.paper!,
+                                                                papers: widget.paperMarks.map((e) => e.paper!).toList()
+                                                            )));
+                                                          },
+                                                          child: Text('Leader Board',style: TextStyle(color: Colors.white),),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  // Row(
+                                                  //   mainAxisAlignment: MainAxisAlignment.end,
+                                                  //   children: [
+                                                  //     Container(
+                                                  //       child: Text(
+                                                  //         'Lord Buddha',
+                                                  //         textAlign: TextAlign.right,
+                                                  //         style: TextStyle(
+                                                  //           color: Colors.white,
+                                                  //           fontWeight: FontWeight.bold,
+                                                  //         ),
+                                                  //       ),
+                                                  //     ),
+                                                  //   ],
+                                                  // ),
+                                                ],
                                               ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                )
-                            ),
-                          ]),
-                    ],
-                  ),
-                )),
-          ],
+                                              Positioned(
+                                                top: 0,
+                                                right: 0,
+                                                child: Container(
+                                                    height: 40,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(20),
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.local_fire_department_rounded,
+                                                          color: Color(0xFFF2513B),
+                                                          size: 30,
+                                                        ),
+                                                        SizedBox(width: 5),
+                                                        Text(
+                                                          '120',
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                ),
+                                              ),
+        
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                  )
+                              ),
+                            ]),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
         ),
       )
     );

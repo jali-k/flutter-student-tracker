@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
       }
 
     }catch(e){
-      ToastUtil.showErrorToast(context, "Error", "Error getting focus session summary + ${e.toString()}");
+      print(e);
     }
   }
 

@@ -3,7 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class APIProvider {
   static const String _baseUrl = 'http://3.1.1.79:9000/api/v1';
+  // static const String _baseUrl = 'http://10.0.2.2:9000/api/v1';
   static const String BASE_URL = 'http://3.1.1.79:9000/api/v1';
+  // static const String BASE_URL = 'http://10.0.2.2:9000/api/v1';
   static Dio? dio;
   static APIProvider? _apiProvider;
   int _maxRetry = 3;
@@ -56,9 +58,9 @@ class APIProvider {
       },
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 401) {
-          if(_currentRetry >= _maxRetry) {
-            return handler.next(e);
-          }
+          // if(_currentRetry >= _maxRetry) {
+          //   return handler.next(e);
+          // }
           _currentRetry++;
           String accessToken = await refreshToken();
           e.requestOptions.headers['Authorization'] = 'Bearer $accessToken';

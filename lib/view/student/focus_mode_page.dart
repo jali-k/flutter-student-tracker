@@ -734,7 +734,7 @@ class _FocusModeState extends State<FocusMode> {
                     ),
                     child: Center(
                       child: Text(
-                        '${countDown['minutes']}:${countDown['seconds']! < 10 ? '0' + countDown['seconds'].toString() : countDown['seconds']}',
+                        generateTimeString(countDown),
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -773,44 +773,42 @@ class _FocusModeState extends State<FocusMode> {
               // Start button
               if (ButtonText != "Start")
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ElevatedButton(
+                    IconButton(
                       onPressed: () {
                         stopFocusSession();
                       },
-                      child: Text(
-                        "Stop",
-                        style: TextStyle(
-                          fontSize: 24,
-                        ),
+                      icon: Icon(
+                        Icons.close,
+                        size: 40,
+                        color: Colors.white,
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.red,
                         foregroundColor: Color(0xFFC3E2C2),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 50, vertical: 10),
+                            horizontal: 10, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
                     ),
-                    Gap(10),
-                    ElevatedButton(
+                    Gap(30),
+                    IconButton(
                       onPressed: () {
                         endFocussingSession();
                       },
-                      child: Text(
-                        "Complete",
-                        style: TextStyle(
-                          fontSize: 24,
-                        ),
+                      icon: Icon(
+                        Icons.check,
+                        size: 40,
+                        color: Colors.white,
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.green,
                         foregroundColor: Color(0xFFC3E2C2),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 50, vertical: 10),
+                            horizontal: 10, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -1357,6 +1355,15 @@ class _FocusModeState extends State<FocusMode> {
                 ),
               ]));
         });
+  }
+
+  String generateTimeString(Map<String, int> countDown) {
+    //if minutes > 60 theb show hh:mm if not show mm:ss
+    if (countDown['minutes']! >= 60) {
+      return '${countDown['minutes']! ~/ 60}h ${countDown['minutes']! % 60}m';
+    } else {
+      return '${countDown['minutes']!}m ${countDown['seconds']}s';
+    }
   }
 }
 

@@ -172,7 +172,7 @@ class _LeaderBoardPageState extends State<PaperLeaderBoardPage> {
                   Expanded(
                     flex: 2,
                     child: Text(
-                      'Minutes',
+                      'Total Mark',
                       style: TextStyle(
                         fontSize: 12,
                       ),

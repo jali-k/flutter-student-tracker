@@ -28,7 +28,7 @@ class Data {
   String? videoDescription;
   double? videoDuration;
   String? videoThumbnailUrl;
-  String? uploadDate;
+  int? uploadDate;
   String? folderId;
   String? videoResourceKey;
   String? thumbnailResourceKey;

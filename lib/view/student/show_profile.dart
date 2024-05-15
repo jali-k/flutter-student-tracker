@@ -272,6 +272,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: ElevatedButton(
                                 onPressed: () {
                                   // Change Password
+                                  AuthService.signOut();
                                   AuthenticationService.logout();
                                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage()));
                                 },

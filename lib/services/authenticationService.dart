@@ -35,7 +35,8 @@ class AuthenticationService{
           prefs.setInt('expiresIn', authenticatedStudentModel.expiresIn!);
           prefs.setString('refreshToken', authenticatedStudentModel.refreshToken!);
           prefs.setString('userInfo', jsonEncode(authenticatedStudentModel.userInfo!));
-        }else if(authenticatedUserModel.role == UserRole.INSTRUCTOR){
+        }
+        else if(authenticatedUserModel.role == UserRole.INSTRUCTOR){
           //get response data as AuthenticatedInstructorModel
           AuthenticatedInstructorModel authenticatedInstructorModel = AuthenticatedInstructorModel.fromJson(response.data);
           prefs.setString('firstName', authenticatedInstructorModel.firstName!);
@@ -47,7 +48,8 @@ class AuthenticationService{
           prefs.setInt('expiresIn', authenticatedInstructorModel.expiresIn!);
           prefs.setString('refreshToken', authenticatedInstructorModel.refreshToken!);
           prefs.setString('userInfo', jsonEncode(authenticatedInstructorModel.userInfo!));
-        }else if(authenticatedUserModel.role == UserRole.ADMIN){
+        }
+        else if(authenticatedUserModel.role == UserRole.ADMIN){
           //get response data as AuthenticatedAdminModel
           AuthenticatedAdminModel authenticatedAdminModel = AuthenticatedAdminModel.fromJson(response.data);
           prefs.setString('firstName', authenticatedAdminModel.firstName!);
@@ -61,9 +63,16 @@ class AuthenticationService{
           prefs.setString('userInfo', authenticatedAdminModel.userInfo!.toJson().toString());
 
         }
+        else{
+          prefs.setString('firstName', authenticatedUserModel.firstName!);
+          prefs.setString('lastName', authenticatedUserModel.lastName!);
+          prefs.setString('email', authenticatedUserModel.email!);
+          prefs.setString('role', authenticatedUserModel.role!);
+          prefs.setString('accessToken', authenticatedUserModel.accessToken!);
+          prefs.setString('tokenType', authenticatedUserModel.tokenType!);
+          prefs.setInt('expiresIn', authenticatedUserModel.expiresIn!);
+        }
         APIProvider.instance.reInitializeAPIProvider();
-
-
         return true;
       } else {
         return false;

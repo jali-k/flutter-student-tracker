@@ -11,7 +11,6 @@ class PaperService{
     if(response.statusCode == 200){
       return AllPapersDataModel.fromJson(response.data);
     }else{
-      ToastUtil.showErrorToast(context, "Error", "Failed to get focus sessions");
       return null;
     }
   }

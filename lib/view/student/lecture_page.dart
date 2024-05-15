@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/model/folder.dart';
 import 'package:spt/services/lecture_folder_service.dart';
 import 'package:spt/services/lecture_service.dart';
 import 'package:spt/util/toast_util.dart';
 import 'package:spt/view/student/video_page.dart';
 
+import '../../layout/main_layout.dart';
 import '../../model/student_allowed_folder_response_model.dart';
+import '../../model/user_role_model.dart';
 
 class LecturesPage extends StatefulWidget {
   const LecturesPage({super.key});
@@ -22,7 +25,6 @@ class _LecturesPageState extends State<LecturesPage> {
   getLectures() async {
     StudentAllowedFolderResponseModel? folderResponseModel =await LectureFolderService.getLectures();
     if(folderResponseModel == null) {
-      ToastUtil.showErrorToast(context, "Error", "Failed to get lectures");
       return;
     }
     List<FolderData> _folders = folderResponseModel!.data!;
@@ -36,7 +38,18 @@ class _LecturesPageState extends State<LecturesPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    checkStatus();
     getLectures();
+  }
+
+  checkStatus()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String role = prefs.getString('role')!;
+    if(role == UserRole.UNKNOWN){
+      ToastUtil.showErrorToast(context, "Not Authorized", "You are not a student of this class");
+      Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout()));
+      return;
+    }
   }
 
   showVideoInfoDialog(Videos video)async{
@@ -44,6 +57,7 @@ class _LecturesPageState extends State<LecturesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+
           title: Text(video.videoName!),
           content: Container(
             height: MediaQuery.of(context).size.height,
@@ -60,17 +74,26 @@ class _LecturesPageState extends State<LecturesPage> {
                         height: 200,
                         fit: BoxFit.fill,
                       ),
+
                       Positioned(
                         top: 80,
-                        left: (MediaQuery.of(context).size.width/2 - 50),
+                        left: (MediaQuery.of(context).size.width/2 - 80),
                         child: Align(
                           alignment: Alignment.center,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(50),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => VideoPage(videoId: video.videoResourceKey!)),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Icon(Icons.play_arrow,color: Colors.white,size: 50,)
                             ),
-                            child: Icon(Icons.play_arrow,color: Colors.white,size: 30,)
                           ),
                         ),
                       ),
@@ -97,7 +120,7 @@ class _LecturesPageState extends State<LecturesPage> {
                 Navigator.of(context).pop();
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => VideoPage(videoId: video.videoId!)),
+                  MaterialPageRoute(builder: (context) => VideoPage(videoId: video.videoResourceKey!)),
                 );
               },
             ),

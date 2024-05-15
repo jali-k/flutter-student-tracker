@@ -223,7 +223,7 @@ class _LoginPageState extends State<LoginPage> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         if (prefs.containsKey('role')) {
           String role = prefs.getString('role')!;
-          if (role == 'role_student') {
+          if (role == 'role_student' || role == 'role_unknown') {
             ToastUtil.showSuccessToast(context, "Success", "Logged in Successfully !");
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainLayout()));
             return;
@@ -281,8 +281,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 0,vertical: 0),
-          color: const Color(0xFF00C897),
+          color: const Color(0xFF10B9B4),
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -290,9 +289,10 @@ class _LoginPageState extends State<LoginPage> {
                 top: 0,
                 left: 0,
                 child: Container(
+                  width: MediaQuery.of(context).size.width,
                   child: Image.asset(
                     'assets/images/login_background.gif',
-                    fit: BoxFit.fitWidth,
+                    fit: BoxFit.cover,
                     height: MediaQuery.of(context).size.height * 0.55,
                     width: MediaQuery.of(context).size.width,
                     alignment: Alignment.center,

@@ -43,7 +43,6 @@ class _AddFolderState extends State<EditFolder> {
   Video? videoDetail;
   List<LectureVideoInfo> videoList = [];
   List<String> emailList = [];
-  List<String> allEmailList = [];
   List<UploadResource> uploadLectureVideos = [
     UploadResource(
       File(''),
@@ -63,7 +62,6 @@ class _AddFolderState extends State<EditFolder> {
   @override
   void initState() {
     super.initState();
-    fetchEmail();
     setData();
   }
 
@@ -87,14 +85,6 @@ class _AddFolderState extends State<EditFolder> {
     });
   }
 
-  fetchEmail() async {
-    AllStudentResponseModel? allStudentResponseModel =
-    await AdminService.getAllStudent();
-    List<StudentInfo> studentInfo = allStudentResponseModel!.data!;
-    setState(() {
-      allEmailList.addAll(studentInfo.map((e) => e.user!.username!).toList());
-    });
-  }
 
 
 
@@ -370,7 +360,7 @@ class _AddFolderState extends State<EditFolder> {
                     File(pickedVideoThumbnailFile!),
                     _videoTitleController.text,
                     _videoDescriptionController.text,
-                    null
+                    0
                   );
                   setState(() {
                     uploadLectureVideos.add(uploadResource);
@@ -389,12 +379,9 @@ class _AddFolderState extends State<EditFolder> {
 
   @override
   Widget build(BuildContext context) {
-    // setState(() {
-    //   isUploading = false;
-    // });
     return Scaffold(
         appBar: AppBar(
-          title: Text('Add Folder'),
+          title: const Text('Edit Folder'),
           centerTitle: true,
         ),
         body: SafeArea(
@@ -441,7 +428,10 @@ class _AddFolderState extends State<EditFolder> {
                     return Center(child: CircularProgressIndicator(color: AppColors.primary,));
                   }
               ),
-            ) :isLoading ? Center(child: Column(
+            ) :isLoading ?
+            Center(child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircularProgressIndicator(color: AppColors.primary,),
                 Gap(10),
@@ -560,7 +550,7 @@ class _AddFolderState extends State<EditFolder> {
                                 MainAxisAlignment.start,
                                 children: [
                                   uploadLectureVideos[index]
-                                      .videoThumbnailFile.path!.startsWith('http') ?
+                                      .videoThumbnailFile.path.startsWith('http') ?
                                   Image.network(
                                     uploadLectureVideos[index]
                                         .videoThumbnailFile.path!,
@@ -569,8 +559,7 @@ class _AddFolderState extends State<EditFolder> {
                                     fit: BoxFit.cover,
                                   ):
                                       Image.file(
-                                        uploadLectureVideos[index]
-                                            .videoThumbnailFile,
+                                        uploadLectureVideos[index].videoThumbnailFile,
                                         width: 150,
                                         height: 150,
                                         fit: BoxFit.cover,
@@ -740,17 +729,18 @@ class _AddFolderState extends State<EditFolder> {
                         // Upload Videos compare with prevVideoDetail and upload only new videos
                         uploadLectureVideos.sublist(1).removeWhere((element) => element.videoFile.path == '');
 
-                        uploadLectureVideos
-                            .sublist(1)
+                        List<UploadResource> toUpload = uploadLectureVideos.sublist(1).where((element) => !prevVideoDetail.map((e) => e.videoName).contains(element.videoTitle)).toList();
+
+                        toUpload
                             .forEach((element) async {
-                          LectureVideoUploadResponseModel?
-                          lectureVideoUploadResponseModel =
-                          await LectureFolderService.uploadLectureVideo(
+                          LectureVideoUploadResponseModel? lectureVideoUploadResponseModel = await LectureFolderService.uploadLectureVideo(
                               context, folderId, element);
                           if(lectureVideoUploadResponseModel != null){
                             count++;
+                          }else{
+                            ToastUtil.showErrorToast(context, 'Error', 'Error Occurred');
                           }
-                          if(count == uploadLectureVideos.sublist(1).length - 1){
+                          if(count == toUpload.length - 1){
                             uploadProgressController.add(100.0);
                             Future.delayed(Duration(seconds: 5), (){
                               setState(() {

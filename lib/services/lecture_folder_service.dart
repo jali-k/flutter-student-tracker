@@ -6,6 +6,7 @@ import 'package:spt/model/all_lecture_video_response_model.dart';
 import 'package:spt/model/folder_create_response_model.dart';
 import 'package:spt/model/lecture_video_upload_response_model.dart';
 import 'package:spt/model/upload_resource.dart';
+import 'package:spt/util/toast_util.dart';
 
 import '../model/all_folder_response_model.dart';
 import '../model/student_allowed_folder_response_model.dart';
@@ -48,6 +49,7 @@ class LectureFolderService{
         FolderCreateResponseModel folderCreateResponseModel = FolderCreateResponseModel.fromJson(response.data);
         return folderCreateResponseModel;
       } else {
+        ToastUtil.showErrorToast(context, "Error", response.data['message'] ?? "Error Occurred");
         return null;
       }
     } catch (e) {
@@ -112,6 +114,11 @@ class LectureFolderService{
       String allowType,
       List<String> allowStudents) async{
     try {
+
+      //allowStudents email delete same email
+      allowStudents.removeWhere((element) => element == "");
+      allowStudents = allowStudents.toSet().toList();
+
       Map<String, dynamic> data = {
         "folderName": folderName,
         "folderDescription": folderDescription,
@@ -124,6 +131,7 @@ class LectureFolderService{
         FolderCreateResponseModel allFolderResponseModel = FolderCreateResponseModel.fromJson(response.data);
         return allFolderResponseModel;
       } else {
+        ToastUtil.showErrorToast(context, "Error", response.data['message'] ?? "Error Occurred");
         return null;
       }
     } catch (e) {

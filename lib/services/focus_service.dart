@@ -47,7 +47,6 @@ class FocusSessionService{
     if(response.statusCode == 200){
       return FocusSessionsDataModel.fromJson(response.data);
     }else{
-      ToastUtil.showErrorToast(context, "Error", "Failed to get focus sessions");
       return null;
     }
   }
@@ -56,7 +55,6 @@ class FocusSessionService{
     if(response.statusCode == 200){
       return FocusSessionsInWeekStatsDataModel.fromJson(response.data);
     }else{
-      ToastUtil.showErrorToast(context, "Error", "Failed to get focus sessions");
       return null;
     }
   }
@@ -65,7 +63,6 @@ class FocusSessionService{
     if(response.statusCode == 200){
       return FocusSessionsInWeekStatsDataModel.fromJson(response.data);
     }else{
-      ToastUtil.showErrorToast(context, "Error", "Failed to get focus sessions");
       return null;
     }
   }
@@ -74,7 +71,6 @@ class FocusSessionService{
     if(response.statusCode == 200){
       return FocusSessionsInWeekStatsDataModel.fromJson(response.data);
     }else{
-      ToastUtil.showErrorToast(context, "Error", "Failed to get focus sessions");
       return null;
     }
   }

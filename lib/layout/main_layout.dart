@@ -63,13 +63,6 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   bool unknown = true;
   bool timerShow = false;
 
-  getPapers() async {
-
-    Map<ExamPaper, AttemptPaper?> p =
-        await PaperMarksService.getStudentPapers();
-    if (!mounted) return;
-    Provider.of<paperProvider>(context, listen: false).setPapers(p);
-  }
 
   selectSubject(
       int index, Lessons lesson, String lessonContent, String subjectName) {
@@ -189,7 +182,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
     if (role == null) {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => LoginPage()));
-    } else if (role == 'unknown') {
+    } else if (role == 'role_unknown') {
       setState(() {
         unknown = true;
       });
@@ -363,12 +356,13 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                               });
                         case 2:
                           WidgetsBinding.instance.addPostFrameCallback((_) {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => PaperDetailPage(
                                       paperMarks: paperMarks,
-                                    )));
+                                    )
+                                ));
                           });
                           return const Center();
                         case 3:

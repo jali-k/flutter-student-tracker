@@ -389,9 +389,6 @@ class _AddFolderState extends State<AddFolder> {
                     child: StreamBuilder<double>(
                         stream: uploadProgressController.stream,
                         builder: (context, snapshot) {
-                          Timer(Duration(seconds: 5), () {
-                            uploadProgressController.add(100);
-                          });
                           if (snapshot.hasData) {
                             if (snapshot.data == 100.0) {
                               //Timer
@@ -410,6 +407,13 @@ class _AddFolderState extends State<AddFolder> {
                                     'Uploading Completed',
                                     style: TextStyle(
                                         color: Colors.white, fontSize: 18),
+                                  ),
+                                  Gap(10),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Close'),
                                   ),
                                 ],
                               ));
@@ -708,6 +712,7 @@ class _AddFolderState extends State<AddFolder> {
                                 });
                                 return;
                               }
+                              emailList.clear();
                               String folderId =
                                   folderCreateResponseModel.data!.folderId!;
                               int count = 0;
@@ -727,19 +732,15 @@ class _AddFolderState extends State<AddFolder> {
                                 if (count ==
                                     uploadLectureVideos.sublist(1).length - 1) {
                                   uploadProgressController.add(100.0);
-                                  Future.delayed(Duration(seconds: 5), () {
-                                    setState(() {
-                                      isUploading = false;
-                                    });
-                                    // Navigator.of(context).pop();
-                                  });
+                                  ToastUtil.showSuccessToast(context, 'Folder Creation','Folder Creation Success');
+                                  ToastUtil.showSuccessToast(
+                                      context, 'Folder Creation','Folder Creation Perform BackGround');
                                 }
                                 double value = (count) /
                                     uploadLectureVideos.sublist(1).length *
                                     100;
                                 uploadProgressController.add(value);
                               });
-                              Navigator.of(context).pop();
                               ToastUtil.showSuccessToast(
                                   context, 'Folder Creation','Folder Creation Perform BackGround');
                             } on Exception catch (e) {
