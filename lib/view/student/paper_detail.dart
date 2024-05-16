@@ -317,7 +317,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                   Container(
                                                     margin: EdgeInsets.only(top: 5),
                                                     child: Text(
-                                                      'MCQ Marks : ${markData.totalMark}',
+                                                      'MCQ Marks : ${markData.mcqMark}',
                                                       style: TextStyle(color: Colors.white),
                                                     ),
                                                   ),
@@ -325,7 +325,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                     margin: EdgeInsets.only(top: 5),
         
                                                     child: Text(
-                                                      'Structured Marks : ${markData.totalMark}',
+                                                      'Structured Marks : ${markData.structuredMark}',
                                                       style: TextStyle(color: Colors.white),
                                                     ),
                                                   ),
@@ -333,7 +333,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                     margin: EdgeInsets.only(top: 5),
         
                                                     child: Text(
-                                                      'Essay Marks : ${markData.totalMark}',
+                                                      'Essay Marks : ${markData.essayMark}',
                                                       style: TextStyle(color: Colors.white),
                                                     ),
                                                   ),

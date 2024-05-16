@@ -28,6 +28,11 @@ class _FolderListScreenState extends State<FolderListScreen> {
     fetch();
   }
 
+  void refresh() {
+    fetch();
+  }
+
+
   Future<void> fetch() async {
     data.clear();
     folderList.clear();
@@ -103,6 +108,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => EditFolder(
                             folderInfo: folder,
+                            refresh: refresh,
                           )));
                     },
                     icon: const Icon(Icons.folder)),

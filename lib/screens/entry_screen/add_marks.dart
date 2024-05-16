@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/model/add_mark_response_model.dart';
 import 'package:spt/model/all_mark_data_model.dart';
+import 'package:spt/util/toast_util.dart';
 
 import '../../globals.dart';
 import '../../model/authenticated_instructor_model.dart';
@@ -128,7 +129,7 @@ class _AddMarksState extends State<AddMarks> {
     }
     List<MarkInfo> paperMarks = allMarkDataModel.data!;
     setState(() {
-      marks.addAll(paperMarks);
+      marks = paperMarks;
       if (marks.isNotEmpty) {
         marks.forEach((element) {
           double? mcq = element.mcqMark;
@@ -228,6 +229,27 @@ class _AddMarksState extends State<AddMarks> {
         });
       }
     });
+  }
+
+  deleteMarks({required String markID}) async {
+    try {
+      final loading = LoadingPopup(context);
+      loading.show();
+      await PaperMarkService.deleteMarks(markID: markID);
+      loading.dismiss();
+      setState(() {
+        TableRow r = rows[0];
+        rows.clear();
+        rows.add(r);
+      });
+      fetchStudentMarks();
+      ToastUtil.showSuccessToast(context, "Success","Marks Deleted");
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    } catch (error) {
+      // ignore: avoid_print
+      print("Failed to delete marks: $error");
+    }
   }
 
   getInstructorAssignedStudentIds() async {
@@ -387,68 +409,6 @@ class _AddMarksState extends State<AddMarks> {
                   backgroundColor: AppColors.green,
                 ),
                 onPressed: () async {
-                  if (editMcqController.text.trim().isNotEmpty) {
-                    if (int.tryParse(editMcqController.text.trim()) == null) {
-                      Globals.showSnackBar(
-                          context: context,
-                          message: 'Please enter valid mcq marks',
-                          isSuccess: false);
-                      return;
-                    }
-                    if (0 > int.parse(editMcqController.text.trim()) ||
-                        int.parse(editMcqController.text.trim()) > 2000) {
-                      Globals.showSnackBar(
-                          context: context,
-                          message: 'mcq marks'
-                              ' should be between 0 and 100',
-                          isSuccess: false);
-                      return;
-                    }
-                  }
-                  if (editStructureController.text.trim().isNotEmpty) {
-                    if (int.tryParse(editStructureController.text.trim()) ==
-                        null) {
-                      Globals.showSnackBar(
-                          context: context,
-                          message: 'Please enter valid structure marks',
-                          isSuccess: false);
-                      return;
-                    }
-                    if (0 > int.parse(editStructureController.text.trim()) ||
-                        int.parse(editStructureController.text.trim()) > 2000) {
-                      Globals.showSnackBar(
-                          context: context,
-                          message: 'structure marks'
-                              ' should be between 0 and 100',
-                          isSuccess: false);
-                      return;
-                    }
-                  }
-                  if (editEssayController.text.trim().isNotEmpty) {
-                    if (int.tryParse(editEssayController.text.trim()) == null) {
-                      Globals.showSnackBar(
-                          context: context,
-                          message: 'Please enter valid essay marks',
-                          isSuccess: false);
-                      return;
-                    }
-                    if (0 > int.parse(editEssayController.text.trim()) ||
-                        int.parse(editEssayController.text.trim()) > 2000) {
-                      Globals.showSnackBar(
-                          context: context,
-                          message: 'essay marks'
-                              ' should be between 0 and 100',
-                          isSuccess: false);
-                      return;
-                    }
-                  }
-                  if (editTotalMarksController.text.trim().isEmpty) {
-                    Globals.showSnackBar(
-                        context: context,
-                        message: 'Please enter the total marks',
-                        isSuccess: false);
-                    return;
-                  }
 
                   AddMarkResponseModel? updatedResponse = await
                       PaperMarkService.updateMarks(
@@ -502,6 +462,7 @@ class _AddMarksState extends State<AddMarks> {
                                           color: AppColors.black),
                                     )))),
                           ),
+                          if(widget.paper.isMcq)
                           TableCell(
                               child: Container(
                                   height: 40,
@@ -516,7 +477,8 @@ class _AddMarksState extends State<AddMarks> {
                                     style:
                                         const TextStyle(color: AppColors.black),
                                   )))),
-                          TableCell(
+                          if(widget.paper.isStructure)
+                            TableCell(
                               child: Container(
                                   height: 40,
                                   color: widget.paper.isStructure
@@ -532,7 +494,8 @@ class _AddMarksState extends State<AddMarks> {
                                     style:
                                         const TextStyle(color: AppColors.black),
                                   )))),
-                          TableCell(
+                          if(widget.paper.isEssay)
+                            TableCell(
                               child: Container(
                                   height: 40,
                                   color: widget.paper.isEssay
@@ -593,30 +556,8 @@ class _AddMarksState extends State<AddMarks> {
                         ),
                         TextButton(
                           onPressed: () async {
-                            await FirebaseFirestore.instance
-                                .collection('marks')
-                                .where('paperId',
-                                    isEqualTo: widget.paper.paperId)
-                                .where('studentId', isEqualTo: studentId)
-                                .get()
-                                .then((value) {
-                              value.docs.forEach((element) {
-                                element.reference.delete();
-                              });
-                            });
-                            //delete row in table
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Marks deleted'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => AddMarks(
-                                      paper: widget.paper,
-                                    )));
+                            deleteMarks(markID: markID);
+
                           },
                           child: const Text('Delete'),
                         ),
@@ -925,10 +866,7 @@ class _AddMarksState extends State<AddMarks> {
         );
         addCount++;
       } else {
-        Globals.showSnackBar(
-            context: context,
-            message: 'You have to add marks',
-            isSuccess: false);
+        ToastUtil.showErrorToast(context, "Error", "Please complete the row");
       }
     });
   }

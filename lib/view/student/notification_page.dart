@@ -15,26 +15,13 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
 
   QuerySnapshot? notifications;
-  bool _loading = true;
+  bool _loading = false;
   int? registrationNumber;
-
-  getNotifications() async {
-    String uid = FirebaseAuth.instance.currentUser!.uid;
-    int _registrationNumber = (await FirebaseFirestore.instance.collection('students').doc(uid).get())['registrationNumber'];
-
-    QuerySnapshot _notifications = await NotificationService.getNotifications();
-    setState(() {
-      notifications = _notifications;
-      _loading = false;
-      registrationNumber = _registrationNumber;
-    });
-  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getNotifications();
   }
 
   @override
@@ -82,63 +69,17 @@ class _NotificationPageState extends State<NotificationPage> {
                       alignment: Alignment.topCenter,
                       height: MediaQuery.of(context).size.height * 0.6,
                       width: MediaQuery.of(context).size.width,
-                      child: (notifications == null || _loading)
-                          ? Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : !_loading && (notifications== null || !notifications!.docs.map((e) => e['target']).toList().contains(registrationNumber))
-                              ? Center(
-                                  child: Text('No Notifications'),
-                                )
-                              : ListView.builder(
-                        itemCount: notifications!.docs.map((e) => e['target']).toList().contains(registrationNumber) ? notifications!.docs.length : 0,
-                        itemBuilder: (context, index) {
-                          DateTime d = notifications!.docs[index]['date'].toDate();
-                          return Container(
-                            margin: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                      child:
+                        //No Notification Text
+                        Center(
+                          child: Text(
+                            'No Notifications',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
                             ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  notifications!.docs[index]['title'],
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Text(
-                                  notifications!.docs[index]['description'],
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '${d.day}/${d.month}/${d.year}',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                          ),
+                        ),
                     ),
                   ])),
         ],

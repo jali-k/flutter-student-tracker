@@ -130,6 +130,25 @@ class _EntryScreenState extends State<EntryScreen> {
       print('Error deleting instructor: $e');
     }
   }
+  void generateLeaderBoard(String paperID, int index) async {
+    try {
+      final loading = LoadingPopup(context);
+      loading.show();
+      ResponseModel? deletePaperResponseModel = await PaperMarkService.generateLeaderBoard(paperID: paperID);
+      if(deletePaperResponseModel == null) {
+        loading.dismiss();
+        ToastUtil.showErrorToast(context, "Error", "Leader Board Generation Unsuccessful");
+        return;
+      }
+      loading.dismiss();
+
+      // ignore: use_build_context_synchronously
+      ToastUtil.showSuccessToast(context, "Success", "Leader Board Generated Successfully");
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error deleting instructor: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -520,22 +539,46 @@ class _EntryScreenState extends State<EntryScreen> {
                                 Expanded(
                                   child: Align(
                                     alignment: Alignment.centerRight,
-                                    child: IconButton(
-                                        onPressed: () {
-                                          ConfirmationPopup(context)
-                                              .show(
-                                              message:
-                                              'Are you sure you want to delete the ${paperList[index].paperName} paper?',
-                                              callbackOnYesPressed:
-                                                  () {
-                                                deletePaper(paper.paperId!,
-                                                    index);
-                                              });
-                                        },
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: AppColors.red,
-                                        )),
+                                    child: Container(
+                                      width: 100,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          IconButton(
+                                              onPressed: () {
+                                                ConfirmationPopup(context)
+                                                    .show(
+                                                    message:
+                                                    'Are you sure you want to generate Leader Board for this paper?',
+                                                    callbackOnYesPressed:
+                                                        () {
+                                                      generateLeaderBoard(paper.paperId!,
+                                                          index);
+                                                    });
+                                              },
+                                              icon: const Icon(
+                                                Icons.settings,
+                                                color: AppColors.blue,
+                                              )),
+                                          IconButton(
+                                              onPressed: () {
+                                                ConfirmationPopup(context)
+                                                    .show(
+                                                    message:
+                                                    'Are you sure you want to delete the ${paperList[index].paperName} paper?',
+                                                    callbackOnYesPressed:
+                                                        () {
+                                                      deletePaper(paper.paperId!,
+                                                          index);
+                                                    });
+                                              },
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: AppColors.red,
+                                              )),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 )
                               ],

@@ -434,16 +434,17 @@ class _InstructorScreenState extends State<InstructorScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                    onPressed: () {
-                                      ConfirmationPopup(context).show(
-                                          message:
-                                          'Are you sure you want to delete the email?',
-                                          callbackOnYesPressed: () {
-                                            deleteInstructor(
-                                                instructor[index].instructorId!,
-                                                index);
-                                          });
-                                    },
+                                    // onPressed: () {
+                                    //   ConfirmationPopup(context).show(
+                                    //       message:
+                                    //       'Are you sure you want to delete the email?',
+                                    //       callbackOnYesPressed: () {
+                                    //         deleteInstructor(
+                                    //             instructor[index].instructorId!,
+                                    //             index);
+                                    //       });
+                                    // },
+                                   onPressed: null,
                                     icon: const Icon(
                                       Icons.delete,
                                       color: AppColors.red,

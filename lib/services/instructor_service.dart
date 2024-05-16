@@ -5,6 +5,7 @@ import '../model/focus_session_in_week_stat_data_model.dart';
 import '../model/instructor_create_response_model.dart';
 import '../model/instructor_response_model.dart';
 import '../model/response_model.dart';
+import '../model/student_all_mark_response_model.dart';
 import 'api_provider.dart';
 
 class InstructorService{
@@ -85,4 +86,23 @@ class InstructorService{
       return null;
     }
   }
+
+
+  static Future<StudentAllMarkResponseModel?> getStudentAttempts(String regNo) async{
+    try{
+      final response = await APIProvider.instance.get('/mark/student/$regNo');
+      if(response.statusCode == 200){
+        //get response data as StudentAllMarkResponseModel
+        StudentAllMarkResponseModel studentAllMarkResponseModel = StudentAllMarkResponseModel.fromJson(response.data);
+        return studentAllMarkResponseModel;
+      }else{
+        return null;
+      }
+
+    }catch(e){
+      print('Error: $e');
+      return null;
+    }
+  }
+
 }

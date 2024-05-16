@@ -28,7 +28,8 @@ import 'add_video.dart';
 
 class EditFolder extends StatefulWidget {
   final FolderInfo folderInfo;
-  EditFolder({super.key, required this.folderInfo});
+  void Function() refresh;
+  EditFolder({super.key, required this.folderInfo, required this.refresh});
 
   @override
   State<EditFolder> createState() => _AddFolderState();
@@ -387,7 +388,7 @@ class _AddFolderState extends State<EditFolder> {
         body: SafeArea(
           child: isUploading || isLoading
               ? Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withOpacity(0.8),
             child: isUploading ?
                   const Center(
               child: Center(
@@ -395,9 +396,11 @@ class _AddFolderState extends State<EditFolder> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(),
+                      CircularProgressIndicator(
+                        color: Colors.white,
+                      ),
                       Gap(10),
-                      Text('Uploading', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold),),
+                      Text('Update Changes', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold),),
                     ],
                   )
 
@@ -704,23 +707,34 @@ class _AddFolderState extends State<EditFolder> {
                         uploadLectureVideos.sublist(1).removeWhere((element) => element.videoFile.path == '');
 
                         List<UploadResource> toUpload = uploadLectureVideos.sublist(1).where((element) => !prevVideoDetail.map((e) => e.videoName).contains(element.videoTitle)).toList();
-
-                        toUpload
-                            .forEach((element) async {
-                          LectureVideoUploadResponseModel? lectureVideoUploadResponseModel = await LectureFolderService.uploadLectureVideo(
+                        List<String> toDelete = prevVideoDetail.where((element) => !uploadLectureVideos.sublist(1).map((e) => e.videoTitle).contains(element.videoName)).map((e) => e.videoId!).toList();
+                        for (UploadResource element in toUpload) {
+                          LectureVideoUploadResponseModel?
+                          lectureVideoUploadResponseModel =
+                          await LectureFolderService.uploadLectureVideo(
                               context, folderId, element);
-                          if(lectureVideoUploadResponseModel != null){
-                            count++;
-                          }else{
-                            ToastUtil.showErrorToast(context, 'Error', 'Error Occurred');
-                          }
-                          Future.delayed(Duration(seconds: 5), (){
+                          if (lectureVideoUploadResponseModel == null) {
                             setState(() {
                               isUploading = false;
                             });
-                            // Navigator.of(context).pop();
+                            return;
+                          }
+                          count++;
+                          uploadProgressController.add(count / toUpload.length);
+                        }
+                        for (String element in toDelete) {
+                          await LectureFolderService.deleteLectureVideo(context, element);
+                        }
+                        widget.refresh();
+
+                        Future.delayed(Duration(seconds: 2), (){
+                          setState(() {
+                            isUploading = false;
                           });
+                          Navigator.of(context).pop();
+                          ToastUtil.showSuccessToast(context, 'Success', 'Folder Edited Successfully');
                         });
+
 
                       } on Exception catch (e) {
                         print('Error: $e');

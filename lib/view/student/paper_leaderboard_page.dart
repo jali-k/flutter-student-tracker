@@ -243,7 +243,7 @@ class _LeaderBoardPageState extends State<PaperLeaderBoardPage> {
                                   flex: 2,
                                   child: Text(
                                     leaderBoardEntries[index]
-                                        .totalFocusTime
+                                        .totalMarks!
                                         .toString(),
                                     style: TextStyle(
                                       fontSize: 14,

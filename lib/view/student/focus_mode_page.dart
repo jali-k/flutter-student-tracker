@@ -1306,6 +1306,9 @@ class _FocusModeState extends State<FocusMode> {
                           itemBuilder: (context, index) {
                             SubjectWiseFocusData subjectWiseFocusSession = focusData[index];
                             return ExpansionTile(
+                              visualDensity: VisualDensity.compact,
+                              childrenPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
                               title: Text(subjectWiseFocusSession.subject!.subjectName!,
                                 style: TextStyle(
                                   fontSize: 16,
@@ -1313,18 +1316,23 @@ class _FocusModeState extends State<FocusMode> {
                                   color: Colors.white,
                                 ),
                               ),
-                              backgroundColor: Color(0xFF818181),
+                              backgroundColor: Colors.transparent,
                               collapsedBackgroundColor: Color(0xFF565656),
                               children: [
                                 Container(
                                   height: 200,
+                                  constraints: BoxConstraints(
+                                    minHeight: 50,
+                                    maxHeight: 200,
+                                  ),
                                   child: ListView.builder(
                                     itemCount: subjectWiseFocusSession.focusSessions!.length,
                                     itemBuilder: (context, j) {
                                       SubjectWiseFocusSessions focusSession = subjectWiseFocusSession.focusSessions![j];
                                       return ListTile(
-                                        selectedColor: Color(0xFF424242),
+                                        selectedColor: Colors.transparent,
                                         tileColor: Colors.transparent,
+                                        visualDensity: VisualDensity.compact,
                                         title: Text(getTimeAndDate(DateTime.fromMillisecondsSinceEpoch(focusSession.startTime!)),
                                           style: TextStyle(
                                             fontSize: 18,

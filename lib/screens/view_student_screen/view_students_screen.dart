@@ -4,12 +4,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:spt/model/focus_session_in_week_stat_data_model.dart';
 import 'package:spt/model/students_of_instructor_model.dart';
 import 'package:spt/services/instructor_service.dart';
 
 import '../../model/authenticated_student_model.dart';
 import '../../model/paper_attempt.dart';
+import '../../model/student_all_mark_response_model.dart';
 import '../../model/student_details.dart';
 
 class ViewStudentsScreen extends StatefulWidget {
@@ -137,6 +139,81 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
     }
 
   }
+  showPaperAttemptDetails(StudentInfo studentDetails) async {
+    //show the student's details as a dialog AlertDialog FocusData and AttemptPapers
+    try{
+      StudentAllMarkResponseModel? data =await InstructorService.getStudentAttempts(studentDetails.registrationNumber!.toString());
+      if(data == null){
+        return;
+      }
+      List<MarkData> marks = data.data!;
+
+
+      marks.sort((a,b) => a.paper!.paperName!.compareTo(b.paper!.paperName!));
+      //show the student's details as a dialog AlertDialog FocusData
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Student Focus Sessions', style: TextStyle(fontSize: 16)),
+            content: Container(
+              height: 500,
+              width: 300,
+              child: marks.isEmpty ? Center(child: Text('No Focus Sessions'),) :
+              ListView.builder(
+                itemCount: marks.length,
+                itemBuilder: (context, index) {
+                  MarkData focusSession = marks[index];
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListTile(
+                      title: Text(focusSession.paper!.paperName!,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('MCQ: ${focusSession.paper!.mcq! && focusSession.markId!=null ? focusSession.mcqMark! : 'N/A'}',style: TextStyle(fontSize: 10)),
+                          Text('Structured: ${focusSession.paper!.structured! && focusSession.markId!=null ? focusSession.structuredMark! : 'N/A'}',style: TextStyle(fontSize: 10)),
+                          Text('Essay: ${focusSession.paper!.essay! && focusSession.markId!=null ? focusSession.essayMark! : 'N/A'}',style: TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                      trailing: Badge(
+                        backgroundColor: focusSession.markId!=null ? Colors.green : Colors.redAccent,
+                        label: Text( focusSession.markId!=null ? focusSession.totalMark!.toString() : "N/A",style: TextStyle(fontSize: 10)
+                      ),
+                    ),
+                  )
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                ),
+                child: Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+
+    }catch(e){
+      print('Error: $e');
+    }
+
+  }
 
 
   @override
@@ -171,6 +248,7 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: ListTile(
+                        visualDensity: VisualDensity.compact,
                         title: Text(studentDetails[index].displayName!),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,11 +257,22 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                             Text('${studentDetails[index].firstName!} ${studentDetails[index].lastName!}'),
                           ],
                         ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.remove_red_eye),
-                          onPressed: () {
-                            showStudentDetails(studentDetails[index]);
-                          },
+                        trailing: Container(
+                          width: 100,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove_red_eye),
+                                onPressed: () {
+                                  showStudentDetails(studentDetails[index]);
+                                },
+                              ),
+                              IconButton(onPressed: (){
+                                showPaperAttemptDetails(studentDetails[index]);
+                              }, icon: Icon(Icons.ac_unit_outlined)
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     );

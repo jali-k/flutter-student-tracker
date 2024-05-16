@@ -140,5 +140,13 @@ class LectureFolderService{
     }
   }
 
+  static deleteLectureVideo(BuildContext context, String element) {
+    try{
+      APIProvider.instance.delete('/lecture/video/$element', null);
+    }catch(e){
+      print('Error: $e');
+    }
+  }
+
 
 }
