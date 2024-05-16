@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/model/current_focus_session_response.dart';
+import 'package:spt/model/focus_session_by_student.dart';
 import 'package:spt/model/response_model.dart';
 import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/util/toast_util.dart';
@@ -121,5 +122,19 @@ class FocusSessionService{
       return true;
     }
     return false;
+  }
+
+  static Future<FocusSessionByStudent?> getFocusSessionByStudent(BuildContext context) async {
+    try{
+      final response = await APIProvider.instance.get('/student/focus-session/subject-summary');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if(response.statusCode == 200) {
+        return FocusSessionByStudent.fromJson(response.data);
+      }
+      return null;
+    }catch(e){
+      print("Error: $e");
+      return null;
+    }
   }
 }

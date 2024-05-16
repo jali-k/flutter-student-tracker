@@ -389,47 +389,21 @@ class _AddFolderState extends State<EditFolder> {
               ? Container(
             color: Colors.black.withOpacity(0.5),
             child: isUploading ?
-                  Center(
-              child: StreamBuilder<double>(
-                  stream: uploadProgressController.stream,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      if(snapshot.data == 100.0){
-                        ToastUtil.showSuccessToast(context,'Success', 'Folder Updated Successfully');
-                        Timer(Duration(seconds: 2), (){
-                          Navigator.of(context).pop();
-                        });
-                        return Center(
-                            child:Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(Icons.check_circle, color: AppColors.green, size: 50,),
-                                Gap(10),
-                                Text('Uploading Completed', style: TextStyle(color: Colors.white,fontSize: 18),),
-                              ],
-                            )
+                  const Center(
+              child: Center(
+                  child:Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      Gap(10),
+                      Text('Uploading', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold),),
+                    ],
+                  )
 
-                        );
-                      }
-                      return Center(
-                          child:Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                              Gap(10),
-                              Text('Uploading ${snapshot.data} %', style: TextStyle(color: Colors.white,fontSize: 18,fontWeight: FontWeight.bold),),
-                            ],
-                          )
-
-                      );
-                    }
-                    return Center(child: CircularProgressIndicator(color: AppColors.primary,));
-                  }
-              ),
+              )
             ) :isLoading ?
-            Center(child: Column(
+            const Center(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -740,17 +714,12 @@ class _AddFolderState extends State<EditFolder> {
                           }else{
                             ToastUtil.showErrorToast(context, 'Error', 'Error Occurred');
                           }
-                          if(count == toUpload.length - 1){
-                            uploadProgressController.add(100.0);
-                            Future.delayed(Duration(seconds: 5), (){
-                              setState(() {
-                                isUploading = false;
-                              });
-                              // Navigator.of(context).pop();
+                          Future.delayed(Duration(seconds: 5), (){
+                            setState(() {
+                              isUploading = false;
                             });
-                          }
-                          double value = (count)/uploadLectureVideos.sublist(1).length*100;
-                          uploadProgressController.add(value);
+                            // Navigator.of(context).pop();
+                          });
                         });
 
                       } on Exception catch (e) {

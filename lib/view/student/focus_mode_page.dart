@@ -18,6 +18,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
 import '../../model/current_focus_session_response.dart';
+import '../../model/focus_session_by_student.dart';
 import '../../model/subject_response_model.dart';
 import '../../widgets/circle_progressbar_painter.dart';
 
@@ -79,7 +80,7 @@ class _FocusModeState extends State<FocusMode> {
     270,
     300
   ];
-  late Map<String, Map<String, int>> focusData = {};
+  List<SubjectWiseFocusData> focusData = [];
   List<ChartData> dailyChartData = [];
   List<ChartData> weeklyChartData = [];
   List<ChartData> monthlyChartData = [];
@@ -121,7 +122,15 @@ class _FocusModeState extends State<FocusMode> {
     getWeeklyFocusSession();
     // checkEnabledFocus();
     getRecentData();
+    getSubjectWiseFocusData();
     // getFocusData();
+  }
+
+  getSubjectWiseFocusData() async {
+    FocusSessionByStudent? tFocus =await FocusSessionService.getFocusSessionByStudent(context);
+    setState(() {
+      focusData = tFocus!.data!;
+    });
   }
 
   getDailyFocusSession() async {
@@ -199,7 +208,8 @@ class _FocusModeState extends State<FocusMode> {
         //     data[i].totalDuration!.hours!.toDouble()));
         int monthIndex = chartData.indexWhere((element) => element.x == month);
         if (monthIndex != -1) {
-          chartData[monthIndex].y += data[i].totalDuration!.hours!.toDouble();
+          chartData[monthIndex].y += data[i].totalDuration!.hours!.toDouble() * 60 +
+              data[i].totalDuration!.minutes!.toDouble();
         }
       }
       // remove next months
@@ -209,14 +219,6 @@ class _FocusModeState extends State<FocusMode> {
         totalMonthlyStat = {"hour": td.hours!, "minutes": td.minutes!};
       });
     }
-  }
-
-  getFocusData() async {
-    Map<String, Map<String, int>> _focusData =
-        await FocusService.getFocusDataBySubjectAndLesson();
-    setState(() {
-      focusData = _focusData;
-    });
   }
 
   changeStat(int index, StateSetter changeState) {
@@ -736,7 +738,7 @@ class _FocusModeState extends State<FocusMode> {
                       child: Text(
                         generateTimeString(countDown),
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1302,14 +1304,9 @@ class _FocusModeState extends State<FocusMode> {
                       : ListView.builder(
                           itemCount: focusData.length,
                           itemBuilder: (context, index) {
+                            SubjectWiseFocusData subjectWiseFocusSession = focusData[index];
                             return ExpansionTile(
-                              title: Text(
-                                focusData.keys
-                                        .elementAt(index)[0]
-                                        .toUpperCase() +
-                                    focusData.keys
-                                        .elementAt(index)
-                                        .substring(1),
+                              title: Text(subjectWiseFocusSession.subject!.subjectName!,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -1322,23 +1319,27 @@ class _FocusModeState extends State<FocusMode> {
                                 Container(
                                   height: 200,
                                   child: ListView.builder(
-                                    itemCount: focusData[
-                                            focusData.keys.elementAt(index)]!
-                                        .length,
-                                    itemBuilder: (context, i) {
+                                    itemCount: subjectWiseFocusSession.focusSessions!.length,
+                                    itemBuilder: (context, j) {
+                                      SubjectWiseFocusSessions focusSession = subjectWiseFocusSession.focusSessions![j];
                                       return ListTile(
-                                        title: Text(
-                                          focusData[focusData.keys
-                                                  .elementAt(index)]!
-                                              .keys
-                                              .elementAt(i),
+                                        selectedColor: Color(0xFF424242),
+                                        tileColor: Colors.transparent,
+                                        title: Text(getTimeAndDate(DateTime.fromMillisecondsSinceEpoch(focusSession.startTime!)),
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        subtitle: Text(focusSession.remarks!,
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
                                           ),
                                         ),
                                         trailing: Text(
-                                          '${focusData[focusData.keys.elementAt(index)]!.values.elementAt(i)} mins',
+                                          '${focusSession.duration!} mins',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: Colors.white,
@@ -1364,6 +1365,10 @@ class _FocusModeState extends State<FocusMode> {
     } else {
       return '${countDown['minutes']!}m ${countDown['seconds']}s';
     }
+  }
+
+  String getTimeAndDate(DateTime dateTime) {
+    return '${dateTime.hour}:${dateTime.minute} ${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 }
 
