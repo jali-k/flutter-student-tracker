@@ -51,15 +51,6 @@ class _AddVideoState extends State<AddVideo> {
     });
   }
 
-  // void fetch() {
-  //   setState(() {
-  //     titleController.text = widget.videoDetails!.title;
-
-  //     descriptionController.text = widget.videoDetails!.description;
-  //     selectedLesson = widget.videoDetails!.lesson;
-  //     dateController.text = widget.videoDetails!.date;
-  //   });
-  // }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(

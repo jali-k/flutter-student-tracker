@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:spt/model/add_paper_response_model.dart';
+import 'package:spt/model/response_model.dart';
+import 'package:spt/services/paper_mark_service.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../globals.dart';
+import '../../model/all_papers_data_model.dart';
 import '../../model/model.dart';
 import '../../popups/confirmation_popup.dart';
 import '../../popups/loading_popup.dart';
 import '../../services/auth_services.dart';
+import '../../services/paper_service.dart';
 import '../../view/student/login_page.dart';
 import '../res/app_colors.dart';
 
@@ -20,7 +26,7 @@ class EntryScreen extends StatefulWidget {
 }
 
 class _EntryScreenState extends State<EntryScreen> {
-  final double _fieldBorderRadius = 30;
+  final double _fieldBorderRadius = 5;
   final double _fieldBorderLineWidth = 1.5;
   final double _fieldFontSizeValue = 12;
   final formKey = GlobalKey<FormState>();
@@ -28,8 +34,8 @@ class _EntryScreenState extends State<EntryScreen> {
   bool isMCQ = false;
   bool isStructured = false;
   bool isEssay = false;
-  List<DocumentSnapshot> papers = [];
-  List<Paper> paperList = [];
+  List<PaperInfo> papers = [];
+  List<PaperInfo> paperList = [];
   bool isLoading = false;
 
   @override
@@ -54,93 +60,93 @@ class _EntryScreenState extends State<EntryScreen> {
       final loading = LoadingPopup(context);
       loading.show();
       String paperId = const Uuid().v1();
-      await FirebaseFirestore.instance
-          .collection('papers') // Reference to the collection
-          .add({
-        'id': paperList.length,
-        'paperId': paperId,
-        'paperName': paperName,
-        'isMcq': isMcqSelected,
-        'isStructured': isStructuredSelected,
-        'isEssay': isEssaySelected,
-      }).then((paper) {
-        setState(() {
-          paperList.insert(
-              0,
-              Paper(
-                  paperId: paperId,
-                  paperName: paperName,
-                  isMcq: isMcqSelected,
-                  isStructure: isStructuredSelected,
-                  isEssay: isEssaySelected,
-                  paperDocId: paper.id));
-          entryController.clear();
-          isMCQ = false;
-          isStructured = false;
-          isEssay = false;
-        });
+      AddPaperResponseModel? addPaperResponseModel = await PaperMarkService.addPaper(
+          paperName: paperName,
+          isMcq: isMcqSelected,
+          isStructured: isStructuredSelected,
+          isEssay: isEssaySelected);
+
+      if(addPaperResponseModel == null) {
+        loading.dismiss();
+        Globals.showSnackBar(
+            context: context,
+            message: 'Failed to add paper',
+            isSuccess: false);
+        return;
+      }
+      PaperInfo paperInfo = PaperInfo(
+          paperId: paperId,
+          paperName: paperName,
+          mcq: isMcqSelected,
+          structured: isStructuredSelected,
+          essay: isEssaySelected);
+      setState(() {
+        paperList.add(paperInfo);
       });
       loading.dismiss();
+      //clear the text field
+      entryController.clear();
+
 
       // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context, isSuccess: true, message: 'Success');
+      ToastUtil.showSuccessToast(context, "Success", "Paper Added Successfully");
     } catch (error) {
       // ignore: avoid_print
       print("Failed to add user: $error");
     }
   }
 
+
   Future<void> fetchPapers() async {
     setState(() {
       isLoading = true;
     });
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('papers')
-        .orderBy('id', descending: true)
-        .get();
+    AllPapersDataModel allPapersDataModel = await PaperService.getAllPaperList(context);
+    List<PaperInfo>? p = allPapersDataModel.data;
     setState(() {
-      papers.addAll(querySnapshot.docs);
-      papers.forEach((data) {
-        paperList.add(Paper(
-            paperId: data['paperId'],
-            paperName: data['paperName'],
-            isMcq: data['isMcq'],
-            isStructure: data['isStructured'],
-            isEssay: data['isEssay'],
-            paperDocId: data.id));
-      });
+      paperList.addAll(p!);
       isLoading = false;
     });
   }
 
-  void deletePaper(String paperDocId, int index) async {
+
+
+  void deletePaper(String paperID, int index) async {
     try {
       final loading = LoadingPopup(context);
       loading.show();
-      DocumentReference documentReference =
-      FirebaseFirestore.instance.collection('papers').doc(paperDocId);
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('marks')
-          .where('paperId', isEqualTo: paperDocId)
-          .get();
-      await documentReference.delete();
-      querySnapshot.docs.forEach((element) async {
-        await FirebaseFirestore.instance
-            .collection('marks')
-            .doc(element.id)
-            .delete();
-      });
+      ResponseModel? deletePaperResponseModel = await PaperMarkService.deletePaper(paperID: paperID);
+      if(deletePaperResponseModel == null) {
+        loading.dismiss();
+        ToastUtil.showSuccessToast(context, "Error", "Paper Deletion Unsuccessful");
+        return;
+      }
       loading.dismiss();
       setState(() {
         paperList.removeAt(index);
       });
 
       // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context,
-          message: 'Paper deleted successfully',
-          isSuccess: true);
+      ToastUtil.showSuccessToast(context, "Success", "Paper Deleted Successfully");
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error deleting instructor: $e');
+    }
+  }
+  void generateLeaderBoard(String paperID, int index) async {
+    try {
+      final loading = LoadingPopup(context);
+      loading.show();
+      ResponseModel? deletePaperResponseModel = await PaperMarkService.generateLeaderBoard(paperID: paperID);
+      if(deletePaperResponseModel == null) {
+        loading.dismiss();
+        ToastUtil.showErrorToast(context, "Error", "Leader Board Generation Unsuccessful");
+        return;
+      }
+      loading.dismiss();
+
+      // ignore: use_build_context_synchronously
+      ToastUtil.showSuccessToast(context, "Success", "Leader Board Generated Successfully");
     } catch (e) {
       // ignore: avoid_print
       print('Error deleting instructor: $e');
@@ -162,7 +168,7 @@ class _EntryScreenState extends State<EntryScreen> {
         color: AppColors.black,
         width: _fieldBorderLineWidth,
       ),
-      borderRadius: BorderRadius.all(Radius.circular(_fieldBorderRadius)),
+      borderRadius: BorderRadius.all(Radius.circular(5)),
     );
 
     final valueStyle = TextStyle(
@@ -203,49 +209,58 @@ class _EntryScreenState extends State<EntryScreen> {
               ),
             ),
             const Gap(50),
-            RichText(
-                text: const TextSpan(children: [
-                  TextSpan(
-                    text: 'Add a ',
-                    style: TextStyle(color: AppColors.black, fontSize: 20),
-                  ),
-                  TextSpan(
-                    text: 'new',
-                    style: TextStyle(color: AppColors.green, fontSize: 20),
-                  ),
-                  TextSpan(
-                    text: ' Entry',
-                    style: TextStyle(color: AppColors.black, fontSize: 20),
-                  ),
-                ])),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: RichText(
+                  text: const TextSpan(children: [
+                    TextSpan(
+                      text: 'Add a ',
+                      style: TextStyle(color: AppColors.black, fontSize: 20),
+                    ),
+                    TextSpan(
+                      text: 'new',
+                      style: TextStyle(color: AppColors.green, fontSize: 20),
+                    ),
+                    TextSpan(
+                      text: ' Entry',
+                      style: TextStyle(color: AppColors.black, fontSize: 20),
+                    ),
+                  ])),
+            ),
             const Gap(10),
-            Form(
-              key: formKey,
-              child: SizedBox(
-                width: width / 2,
-                child: TextFormField(
-                  style: valueStyle,
-                  controller: entryController,
-                  cursorColor: cursorColor,
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.ligthWhite,
-                    labelText: 'Enter paper name',
-                    labelStyle: const TextStyle(fontSize: 10),
-                    focusedBorder: focusedBorder,
-                    enabledBorder: enabledBorder,
-                    border: focusedBorder,
-                    errorBorder: errorBorder,
-                    errorStyle: errorStyle,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Form(
+                key: formKey,
+                child: SizedBox(
+                  width: width / 2,
+                  height: 30,
+                  child: TextFormField(
+                    style: valueStyle,
+                    controller: entryController,
+                    cursorColor: cursorColor,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      filled: true,
+                      fillColor: AppColors.ligthWhite,
+                      labelText: 'Enter paper name',
+                      labelStyle: const TextStyle(fontSize: 10),
+                      focusedBorder: focusedBorder,
+                      enabledBorder: enabledBorder,
+                      border: focusedBorder,
+                      errorBorder: errorBorder,
+                      errorStyle: errorStyle,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter the paper name';
+                      }
+                      return null;
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the paper name';
-                    }
-                    return null;
-                  },
                 ),
               ),
             ),
@@ -254,7 +269,7 @@ class _EntryScreenState extends State<EntryScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Card(
-                  elevation: 10,
+                  elevation: 2,
                   shadowColor: AppColors.purple,
                   child: Container(
                     height: 40,
@@ -298,7 +313,7 @@ class _EntryScreenState extends State<EntryScreen> {
                   ),
                 ),
                 Card(
-                  elevation: 10,
+                  elevation: 2,
                   shadowColor: AppColors.green,
                   child: Container(
                     height: 40,
@@ -344,7 +359,7 @@ class _EntryScreenState extends State<EntryScreen> {
                   ),
                 ),
                 Card(
-                  elevation: 10,
+                  elevation: 2,
                   shadowColor: AppColors.red,
                   child: Container(
                     height: 40,
@@ -390,14 +405,15 @@ class _EntryScreenState extends State<EntryScreen> {
               ],
             ),
             const Gap(20),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Container(
-                  height: 35,
-                  width: 60,
+                  height: 40,
+                  width: 120,
                   decoration: BoxDecoration(
-                      color: AppColors.black,
+                      color: AppColors.purple,
                       borderRadius: BorderRadius.circular(29)),
                   child: TextButton(
                     onPressed: () {
@@ -411,7 +427,7 @@ class _EntryScreenState extends State<EntryScreen> {
                     },
                     child: const Center(
                         child: Text(
-                          'Send',
+                          'Add Paper',
                           style: TextStyle(
                             color: AppColors.ligthWhite,
                           ),
@@ -420,17 +436,22 @@ class _EntryScreenState extends State<EntryScreen> {
                 ),
               ],
             ),
-            const Gap(30),
+            const Gap(10),
+            Divider(
+              color: AppColors.black,
+              thickness: 1,
+            ),
+            const Gap(10),
             Padding(
               padding: const EdgeInsets.only(left: 20),
               child: RichText(
                   text: const TextSpan(children: [
                     TextSpan(
-                      text: 'Entries ',
+                      text: 'Papers ',
                       style: TextStyle(color: AppColors.green),
                     ),
                     TextSpan(
-                      text: ' sent',
+                      text: ' Available',
                       style: TextStyle(color: AppColors.black),
                     ),
                   ])),
@@ -453,6 +474,7 @@ class _EntryScreenState extends State<EntryScreen> {
                     : ListView.builder(
                     itemCount: paperList.length,
                     itemBuilder: (BuildContext context, int index) {
+                      PaperInfo paper = paperList[index];
                       return Column(
                         children: [
                           Container(
@@ -470,7 +492,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                   CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      paperList[index].paperName,
+                                      paper.paperName!,
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.black),
@@ -480,7 +502,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                       children: [
                                         Visibility(
                                           visible:
-                                          paperList[index].isMcq,
+                                          paper.mcq!,
                                           child: const SizedBox(
                                             height: 10,
                                             width: 20,
@@ -491,8 +513,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                           ),
                                         ),
                                         Visibility(
-                                          visible: paperList[index]
-                                              .isStructure,
+                                          visible: paper.structured!,
                                           child: const SizedBox(
                                             height: 10,
                                             width: 20,
@@ -504,7 +525,7 @@ class _EntryScreenState extends State<EntryScreen> {
                                         ),
                                         Visibility(
                                           visible:
-                                          paperList[index].isEssay,
+                                          paper.essay!,
                                           child: const SizedBox(
                                             height: 10,
                                             width: 20,
@@ -521,24 +542,46 @@ class _EntryScreenState extends State<EntryScreen> {
                                 Expanded(
                                   child: Align(
                                     alignment: Alignment.centerRight,
-                                    child: IconButton(
-                                        onPressed: () {
-                                          ConfirmationPopup(context)
-                                              .show(
-                                              message:
-                                              'Are you sure you want to delete the ${paperList[index].paperName} paper?',
-                                              callbackOnYesPressed:
-                                                  () {
-                                                deletePaper(
-                                                    paperList[index]
-                                                        .paperDocId,
-                                                    index);
-                                              });
-                                        },
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: AppColors.red,
-                                        )),
+                                    child: Container(
+                                      width: 100,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          IconButton(
+                                              onPressed: () {
+                                                ConfirmationPopup(context)
+                                                    .show(
+                                                    message:
+                                                    'Are you sure you want to generate Leader Board for this paper?',
+                                                    callbackOnYesPressed:
+                                                        () {
+                                                      generateLeaderBoard(paper.paperId!,
+                                                          index);
+                                                    });
+                                              },
+                                              icon: const Icon(
+                                                Icons.settings,
+                                                color: AppColors.blue,
+                                              )),
+                                          IconButton(
+                                              onPressed: () {
+                                                ConfirmationPopup(context)
+                                                    .show(
+                                                    message:
+                                                    'Are you sure you want to delete the ${paperList[index].paperName} paper?',
+                                                    callbackOnYesPressed:
+                                                        () {
+                                                      deletePaper(paper.paperId!,
+                                                          index);
+                                                    });
+                                              },
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: AppColors.red,
+                                              )),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 )
                               ],

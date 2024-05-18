@@ -4,6 +4,7 @@ import 'package:spt/services/auth_services.dart';
 import 'package:spt/view/student/login_page.dart';
 
 import '../add_folder_screen/folder_list_screen.dart';
+import '../manage_student_screen/manage_student.dart';
 import '../entry_screen/entry_screen.dart';
 import '../home_screen/home_screen.dart';
 import '../instructor_screen/instructor_screen.dart';
@@ -17,7 +18,8 @@ class BottomBarScreen extends StatefulWidget {
       {super.key,
         required this.isEntryScreen,
         required this.isInstructorScreen,
-        required this.isAddFolderScreen});
+        required this.isAddFolderScreen,
+      });
 
   @override
   State<BottomBarScreen> createState() => _BottomBarScreenState();
@@ -39,11 +41,14 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
         ? _selectedBottomNavBarItemIndex = 3
         : _selectedBottomNavBarItemIndex = 0;
 
+    //
+    // _selectedBottomNavBarItemIndex = 4;
     bottomNavBarItems.addAll([
       const HomeScreen(),
       const EntryScreen(),
       const InstructorScreen(),
-      const FolderListScreen()
+      const FolderListScreen(),
+      const MangeStudent()
     ]);
 
     super.initState();
@@ -82,6 +87,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
                 BottomNavigationBarItem(icon: Icon(Icons.file_copy), label: ''),
                 BottomNavigationBarItem(icon: Icon(Icons.people), label: ''),
                 BottomNavigationBarItem(icon: Icon(Icons.folder), label: ''),
+                BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
               ],
               currentIndex: _selectedBottomNavBarItemIndex,
               selectedItemColor: AppColors.green,

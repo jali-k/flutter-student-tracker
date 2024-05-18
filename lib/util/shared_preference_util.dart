@@ -10,5 +10,10 @@ class SharedPreferenceUtil{
     await _sharedPreference.setString(userKey, user.toString());
   }
 
+  //get instance of SharedPreferences
+  static Future<SharedPreferences> getInstance() async {
+    return await SharedPreferences.getInstance();
+  }
+
 
 }

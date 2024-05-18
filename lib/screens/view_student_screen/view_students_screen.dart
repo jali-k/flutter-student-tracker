@@ -4,8 +4,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:spt/model/focus_session_in_week_stat_data_model.dart';
+import 'package:spt/model/students_of_instructor_model.dart';
+import 'package:spt/services/instructor_service.dart';
 
+import '../../model/authenticated_student_model.dart';
 import '../../model/paper_attempt.dart';
+import '../../model/student_all_mark_response_model.dart';
 import '../../model/student_details.dart';
 
 class ViewStudentsScreen extends StatefulWidget {
@@ -16,9 +22,10 @@ class ViewStudentsScreen extends StatefulWidget {
 }
 
 class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
-  List<StudentDetails> studentDetails = [];
+  List<StudentInfo> studentDetails = [];
   Map<String,Map<String,int> > focusDataBySubjectAndLesson = {};
   Map<String,String> lessonIdToLessonName = {};
+  List<FocusSessions> focusSessions = [];
   bool isLoading = true;
 
   @override
@@ -43,169 +50,170 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
 
   }
 
-  Future<void> fetchStudents() async {
-    List<StudentDetails> _studentDetails = [];
-    //get students from firestore of Instructors collection where the instructor id is the current user id
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection('Instructors')
-        .doc(FirebaseAuth.instance.currentUser?.uid)
-        .get();
-    Map<String, dynamic> data = documentSnapshot.data()! as Map<String, dynamic>;
-    List<int> students = data['students'].cast<int>();
-    for (int student in students) {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('students')
-          .where('registrationNumber', isEqualTo: student)
-          .get();
-      List<FocusData> focusData = [];
-      List<AttemptPaper> attemptPapers = [];
-      for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
-        QuerySnapshot focusDataQuerySnapshot = await FirebaseFirestore.instance
-            .collection('focusData')
-            .where('userID', isEqualTo: documentSnapshot.id)
-            .get();
-        for (DocumentSnapshot focusDataDocumentSnapshot
-            in focusDataQuerySnapshot.docs) {
-          focusData.add(FocusData(
-            duration: focusDataDocumentSnapshot.get('duration'),
-            endAt: focusDataDocumentSnapshot.get('endAt'),
-            focusID: focusDataDocumentSnapshot.id,
-            isCompleted: focusDataDocumentSnapshot.get('isCompleted'),
-            lessonContent: focusDataDocumentSnapshot.get('lessonContent'),
-            lessonID: focusDataDocumentSnapshot.get('lessonID'),
-            startAt: focusDataDocumentSnapshot.get('startAt'),
-            subjectName: focusDataDocumentSnapshot.get('subjectName'),
-          ));
-        }
-        QuerySnapshot attemptPapersQuerySnapshot = await FirebaseFirestore.instance
-            .collection('marks')
-            .where('studentId', isEqualTo: student)
-            .get();
-        for (DocumentSnapshot attemptPapersDocumentSnapshot in attemptPapersQuerySnapshot.docs) {
-          String paperId = attemptPapersDocumentSnapshot.get('paperId');
-          QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-              .collection('papers')
-              .where('paperId', isEqualTo: paperId)
-              .get();
-          attemptPapers.add(AttemptPaper(
-            essayMarks: attemptPapersDocumentSnapshot.get('essayMarks'),
-            mcqMarks: attemptPapersDocumentSnapshot.get('mcqMarks'),
-            paperId: attemptPapersDocumentSnapshot.get('paperId'),
-            paperName: querySnapshot.docs[0].get('paperName'),
-            position: 0,
-            structuredMarks: attemptPapersDocumentSnapshot.get('structuredMarks'),
-            studentId: attemptPapersDocumentSnapshot.get('studentId'),
-            totalMarks: attemptPapersDocumentSnapshot.get('totalMarks'),
-          ));
-        }
-        StudentDetails std = StudentDetails(
-          name: documentSnapshot.get('name'),
-          email: documentSnapshot.get('email'),
-          registrationNumber: documentSnapshot.get('registrationNumber'),
-          uid: documentSnapshot.id,
-          focusData: focusData,
-          attemptPapers: attemptPapers,
-        );
-        _studentDetails.add(std);
-      }
+  fetchStudents () async{
+    isLoading = true;
+    //get all the students from firestore
+    StudentOfInstructorModel? studentOfInstructorModel = await InstructorService.getInstructorStudentDetails();
+    if(studentOfInstructorModel != null){
+      setState(() {
+        studentDetails = [];
+        isLoading = false;
+      });
     }
     setState(() {
-      studentDetails = _studentDetails;
+      studentDetails = studentOfInstructorModel!.data!;
       isLoading = false;
     });
   }
 
-  showStudentDetails(StudentDetails studentDetails) {
+
+
+  showStudentDetails(StudentInfo studentDetails) async {
     //show the student's details as a dialog AlertDialog FocusData and AttemptPapers
     focusDataBySubjectAndLesson = {};
-    for (FocusData focusData in studentDetails.focusData) {
-      if (focusDataBySubjectAndLesson.containsKey(focusData.subjectName)) {
-        if (focusDataBySubjectAndLesson[focusData.subjectName]!.containsKey(focusData.lessonContent)) {
-          focusDataBySubjectAndLesson[focusData.subjectName]?[focusData.lessonID] =focusDataBySubjectAndLesson[focusData.subjectName]![focusData.lessonContent]! + focusData.duration;
-        } else {
-          focusDataBySubjectAndLesson[focusData.subjectName]?[focusData.lessonID] = focusData.duration;
-        }
-      } else {
-        focusDataBySubjectAndLesson[focusData.subjectName] = {focusData.lessonID: focusData.duration};
-      }
+    try{
+      FocusSessionsInWeekStatsDataModel? data =await InstructorService.getFocusSessionsInWeekStats(studentDetails.registrationNumber!.toString());
+      focusSessions = data!.data!.map((e) => e.focusSessions!).expand((element) => element).toList();
+
+
+      focusSessions.sort((a,b) => a.startTime!.compareTo(b.startTime!));
+      //show the student's details as a dialog AlertDialog FocusData
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Student Focus Sessions', style: TextStyle(fontSize: 16)),
+            content: Container(
+              height: 500,
+              width: 300,
+              child: focusSessions.isEmpty ? Center(child: Text('No Focus Sessions'),) :
+              ListView.builder(
+                itemCount: focusSessions.length,
+                itemBuilder: (context, index) {
+                  FocusSessions focusSession = focusSessions[index];
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListTile(
+                      title: Text(getDateAndTime(DateTime.fromMillisecondsSinceEpoch(focusSession.startTime!)),style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Subject: ${focusSession.subject!.subjectName!}',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 10)),
+                          Text('Lesson: ${focusSession.remarks!}',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 10)),
+                          Text('Duration: ${focusSession.duration!}',style: TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                      trailing: Badge(
+                        backgroundColor: focusSession.focusSessionStatus == 'Completed'.toUpperCase() ? Colors.green : Colors.red,
+                        label: Text(focusSession.focusSessionStatus!,style: TextStyle(fontSize: 10))
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                ),
+                child: Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+
+    }catch(e){
+      print('Error: $e');
     }
-    print(focusDataBySubjectAndLesson);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(studentDetails.name),
-          content: Container(
-            height: MediaQuery.of(context).size.height - 100,
-            width: MediaQuery.of(context).size.width - 50,
-            child: Column(
-              children: [
-                Text('Email: ${studentDetails.email}',textAlign: TextAlign.start,),
-                Text('Registration Number: ${studentDetails.registrationNumber}',textAlign: TextAlign.start),
-                SizedBox(height: 10),
-                Container(
-                  height: 35,
-                  child: Text(
-                    'Focus Data',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+
+  }
+  showPaperAttemptDetails(StudentInfo studentDetails) async {
+    //show the student's details as a dialog AlertDialog FocusData and AttemptPapers
+    try{
+      StudentAllMarkResponseModel? data =await InstructorService.getStudentAttempts(studentDetails.registrationNumber!.toString());
+      if(data == null){
+        return;
+      }
+      List<MarkData> marks = data.data!;
+
+
+      marks.sort((a,b) => a.paper!.paperName!.compareTo(b.paper!.paperName!));
+      //show the student's details as a dialog AlertDialog FocusData
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Student Focus Sessions', style: TextStyle(fontSize: 16)),
+            content: Container(
+              height: 500,
+              width: 300,
+              child: marks.isEmpty ? Center(child: Text('No Focus Sessions'),) :
+              ListView.builder(
+                itemCount: marks.length,
+                itemBuilder: (context, index) {
+                  MarkData focusSession = marks[index];
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  height: (MediaQuery.of(context).size.height - 400)/2,
-                  child: ListView.builder(
-                    itemCount: studentDetails.focusData.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(studentDetails.focusData[index].subjectName[0].toUpperCase() + studentDetails.focusData[index].subjectName.substring(1)),
-                        subtitle: Text(lessonIdToLessonName[studentDetails.focusData[index].lessonID]!),
-                        trailing: Text('${focusDataBySubjectAndLesson[studentDetails.focusData[index].subjectName]![studentDetails.focusData[index].lessonID]!} mins'),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  height: 35,
-                  child: Text(
-                    'Attempt Papers',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                    child: ListTile(
+                      title: Text(focusSession.paper!.paperName!,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('MCQ: ${focusSession.paper!.mcq! && focusSession.markId!=null ? focusSession.mcqMark! : 'N/A'}',style: TextStyle(fontSize: 10)),
+                          Text('Structured: ${focusSession.paper!.structured! && focusSession.markId!=null ? focusSession.structuredMark! : 'N/A'}',style: TextStyle(fontSize: 10)),
+                          Text('Essay: ${focusSession.paper!.essay! && focusSession.markId!=null ? focusSession.essayMark! : 'N/A'}',style: TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                      trailing: Badge(
+                        backgroundColor: focusSession.markId!=null ? Colors.green : Colors.redAccent,
+                        label: Text( focusSession.markId!=null ? focusSession.totalMark!.toString() : "N/A",style: TextStyle(fontSize: 10)
+                      ),
                     ),
-                  ),
-                ),
-                //marks
-                Container(
-                  height: (MediaQuery.of(context).size.height - 400)/2,
-                  child: ListView.builder(
-                    itemCount: studentDetails.attemptPapers.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(studentDetails.attemptPapers[index].paperName!),
-                        subtitle: Text('MCQ: ${studentDetails.attemptPapers[index].mcqMarks} Structured: ${studentDetails.attemptPapers[index].structuredMarks} Essay: ${studentDetails.attemptPapers[index].essayMarks}'),
-                        trailing: Text('Total: ${studentDetails.attemptPapers[index].totalMarks}'),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                  )
+                  );
+                },
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.blue,
+                ),
+                child: Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+
+    }catch(e){
+      print('Error: $e');
+    }
+
   }
 
 
@@ -213,6 +221,9 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
   Widget build(BuildContext context) {
     //show students Name, email, registration number, and a button to view the student's details of FocusData and AttemptPapers
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Students Detail - ${studentDetails.length}'),
+      ),
       body: SafeArea(
         child: isLoading ?
         const Center(
@@ -221,16 +232,6 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
         :Container(
           child: Column(
             children: [
-              Container(
-                height: 35,
-                child: Text(
-                  'Students - ${studentDetails.length}',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-              )
-              ),
               SizedBox(height: 10),
               Container(
                 height: MediaQuery.of(context).size.height - 150,
@@ -238,15 +239,43 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                 child: ListView.builder(
                   itemCount: studentDetails.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(studentDetails[index].name),
-                      subtitle: Text(studentDetails[index].email),
-                      trailing: Text(studentDetails[index].registrationNumber.toString()),
-                      onTap: () {
-                        showStudentDetails(studentDetails[index]);
-        
-                      },
-                      tileColor: Colors.grey[200],
+                    return Container(
+                      margin: EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ListTile(
+                        visualDensity: VisualDensity.compact,
+                        title: Text(studentDetails[index].displayName!),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(studentDetails[index].registrationNumber!.toString()),
+                            Text('${studentDetails[index].firstName!} ${studentDetails[index].lastName!}'),
+                          ],
+                        ),
+                        trailing: Container(
+                          width: 100,
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.remove_red_eye),
+                                onPressed: () {
+                                  showStudentDetails(studentDetails[index]);
+                                },
+                              ),
+                              IconButton(onPressed: (){
+                                showPaperAttemptDetails(studentDetails[index]);
+                              }, icon: Icon(Icons.ac_unit_outlined)
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -256,5 +285,10 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
         ),
       ),
     );
+  }
+
+  String getDateAndTime(DateTime dateTime) {
+    List<String> months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '${dateTime.day} ${months[dateTime.month-1]} ${dateTime.year} At ${dateTime.hour}:${dateTime.minute}';
   }
 }

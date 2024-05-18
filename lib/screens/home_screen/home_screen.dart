@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:spt/model/Instructor.dart';
+import 'package:spt/services/admin_service.dart';
 import 'package:spt/services/auth_services.dart';
 
 import '../../model/StudentCSV.dart';
@@ -539,45 +540,46 @@ class _HomeScreenState extends State<HomeScreen> {
       isLoading = true;
     });
     if (result != null) {
-      PlatformFile file = result.files.first;
+      PlatformFile platformFile = result.files.first;
+      File file = File(platformFile.path!);
 
-      final input = File(file.path!).openRead();
-      var fields = await input
-          .transform(utf8.decoder)
-          .transform(CsvToListConverter())
-          .toList();
+      // final input = File(file.path!).openRead();
+      // var fields = await input
+      //     .transform(utf8.decoder)
+      //     .transform(CsvToListConverter())
+      //     .toList();
+      //
+      // List<StudentCSV> students = [];
+      // List<String> instructors = [];
+      // fields = fields.sublist(1);
+      // String error = '';
+      // bool isValidated = true;
+      // for (var field in fields) {
+      //   if (field.length != 5) {
+      //     error = 'Invalid CSV format';
+      //     isValidated = false;
+      //     break;
+      //   }
+      //   if(field[0].toString().isEmpty || field[1].toString().isEmpty || field[2].toString().isEmpty){
+      //     error = 'Invalid CSV format';
+      //     isValidated = false;
+      //     break;
+      //   }
+      // }
+      // if (!isValidated) {
+      //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //     content: Text(error),
+      //     duration: const Duration(seconds: 3),
+      //   ));
+      //   setState(() {
+      //     isLoading = false;
+      //   });
+      //   return;
+      // }
 
-      List<StudentCSV> students = [];
-      List<String> instructors = [];
-      fields = fields.sublist(1);
-      String error = '';
-      bool isValidated = true;
-      for (var field in fields) {
-        if (field.length != 5) {
-          error = 'Invalid CSV format';
-          isValidated = false;
-          break;
-        }
-        if(field[0].toString().isEmpty || field[1].toString().isEmpty || field[2].toString().isEmpty){
-          error = 'Invalid CSV format';
-          isValidated = false;
-          break;
-        }
-      }
-      if (!isValidated) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(error),
-          duration: const Duration(seconds: 3),
-        ));
-        setState(() {
-          isLoading = false;
-        });
-        return;
-      }
 
 
-
-      await AuthService.createStudents(fields, context);
+      await AdminService.createStudents(file, context);
       setState(() {
         isLoading = false;
       });

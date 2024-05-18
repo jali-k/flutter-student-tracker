@@ -11,12 +11,21 @@ import 'package:spt/provider/attemptedPaperProvider.dart';
 import 'package:spt/provider/paperProvider.dart';
 import 'package:spt/services/focusService.dart';
 import 'package:spt/services/mark_service.dart';
+import 'package:spt/services/paper_mark_service.dart';
+import 'package:spt/util/toast_util.dart';
 import 'package:spt/view/student/login_page.dart';
+import 'package:spt/view/student/paper_detail.dart';
 
 import '../../model/Paper.dart';
+import '../../model/focus_session_in_week_stat_data_model.dart';
+import '../../model/focus_session_leaderboard_response_model.dart';
 import '../../model/leaderboard_entries.dart';
 import '../../model/model.dart';
+import '../../model/student_all_mark_response_model.dart';
+import '../../model/subject_focus_session_leaderboard_response.dart';
+import '../../services/focus_service.dart';
 import '../../services/leaderboard_service.dart';
+import '../../services/student_leaderboard_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -31,8 +40,15 @@ class _HomePageState extends State<HomePage> {
   int _PhysicsFocus=-1;
   int _AgricultureFocus=-1;
   int _overallFocus=-1;
-  List<AttemptPaper> paperMarks = [];
+  List<MarkData> paperMarks = [];
   bool unknown = true;
+
+  List<FSLeaderboardPosition> overallPositions=[];
+  List<FSLeaderboardPosition> biologyEntries=[];
+  List<FSLeaderboardPosition> chemistryEntries=[];
+  List<FSLeaderboardPosition> physicsEntries=[];
+  List<FSLeaderboardPosition> agricultureEntries=[];
+  List<FSLeaderboardPosition> leaderBoardEntries = [];
 
 
   getSubjectFocus() async {
@@ -53,65 +69,72 @@ class _HomePageState extends State<HomePage> {
   }
 
   getMarks() async{
-    List<QueryDocumentSnapshot>? _paperMarks = await PaperMarksService.getPaperMarksReference();
-    if(_paperMarks == null) {
-      if (!mounted) return;
-      Provider.of<attemptedPaperProvider>(context, listen: false).setLoader(false);
-      return;
+    try{
+      StudentAllMarkResponseModel? marks = await PaperMarkService.getStudentAllMarks();
+      if(marks != null){
+        List<MarkData> data = marks!.data!;
+        setState(() {
+          paperMarks = data;
+        });
+      }
+    }catch(e){
+      rethrow;
     }
-    List<AttemptPaper> _marks = [];
-    for (DocumentSnapshot m in _paperMarks) {
-      AttemptPaper atmp = AttemptPaper.fromMap(m);
-      QuerySnapshot _papers = await PaperMarksService.getPaperByID(atmp.paperId!);
-      if(_papers.docs.isNotEmpty) {
-        atmp.paperName = _papers.docs[0]['paperName'];
-        _marks.add(atmp);
+  }
+
+  getFocusSessionSummary() async{
+    try{
+      FocusSessionsInWeekStatsDataModel? data = await FocusSessionService.getInMonthFocusSessionStat(context);
+      if(data != null){
+        int month = DateTime.now().month;
+        int year = DateTime.now().year;
+        InWeekData? inWeekData = data.data?.firstWhere((element) => DateTime.fromMillisecondsSinceEpoch(element.day!).year == year && DateTime.fromMillisecondsSinceEpoch(element.day!).month == month);
+        print(inWeekData);
       }
 
-
-
-    }
-    if (!mounted) return;
-    Provider.of<attemptedPaperProvider>(context, listen: false).setLoader(false);
-    setState(() {
-      paperMarks = _marks.length > 5 ? _marks.sublist(0, 5) : _marks;
-    });
-  }
-
-  getUserState() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? role = prefs.getString('role');
-    if (role == null) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) =>  LoginPage()));
-    }else if(role == 'unknown'){
-      unknown = true;
-    }else{
-      unknown = false;
+    }catch(e){
+      print(e);
     }
   }
 
-  void getPaperLeaderBoard() async {
-    Map<String, List<LeaderBoardEntries>> leaderBoard =
-    await LeaderBoardService.getLeaderBoard();
-    List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
-    if(!mounted) return;
-    Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,leaderBoard);
+
+  getLeaderboard() async{
+    FocusSessionLeaderboardResponseModel? focusSessionLeaderboardResponseModel = await StudentLeaderboardService.getFocusSessionOverallLeaderBoard();
+    if(focusSessionLeaderboardResponseModel != null){
+      setState(() {
+        overallPositions = focusSessionLeaderboardResponseModel.data!;
+        _overallFocus = focusSessionLeaderboardResponseModel.data!.firstWhere((element) => element.currentUser == true).leaderBoardRank!;
+        leaderBoardEntries = overallPositions;
+      });
+    }
   }
-
-  // void getPaperLeaderBoard() async {
-  //   final ReceivePort receivePort = ReceivePort();
-  //   List<ExamPaper> papers = await LeaderBoardService.getAttemptedPapers();
-  //   await Isolate.spawn(LeaderBoardService.getISOLeaderBoard, receivePort.sendPort);
-  //   receivePort.listen((message) {
-  //     if(!mounted) return;
-  //     Provider.of<attemptedPaperProvider>(context,listen: false).setPapers(papers,message);
-  //   });
-  //
-  // }
-
-
-
+  getSubjectLeaderboard() async{
+    SubjectFocusSessionLeaderboardResponse? focusSessionLeaderboardResponseModel = await StudentLeaderboardService.getSubjectFocusSessionOverallLeaderBoard();
+    if(focusSessionLeaderboardResponseModel != null){
+      setState(() {
+        biologyEntries = focusSessionLeaderboardResponseModel.data!.biology!;
+        int BiologyFocus = focusSessionLeaderboardResponseModel.data!.biology!.indexWhere((element) => element.currentUser == true);
+        if(BiologyFocus != -1){
+          _BiologyFocus = focusSessionLeaderboardResponseModel.data!.biology![BiologyFocus].leaderBoardRank ?? -1;
+        }
+        chemistryEntries = focusSessionLeaderboardResponseModel.data!.chemistry!;
+        int ChemistryFocus = focusSessionLeaderboardResponseModel.data!.chemistry!.indexWhere((element) => element.currentUser == true);
+        if(ChemistryFocus != -1){
+          _ChemistryFocus = focusSessionLeaderboardResponseModel.data!.chemistry![ChemistryFocus].leaderBoardRank ?? -1;
+        }
+        physicsEntries = focusSessionLeaderboardResponseModel.data!.physics!;
+        int PhysicsFocus = focusSessionLeaderboardResponseModel.data!.physics!.indexWhere((element) => element.currentUser == true);
+        if(PhysicsFocus != -1){
+          _PhysicsFocus = focusSessionLeaderboardResponseModel.data!.physics![PhysicsFocus].leaderBoardRank ?? -1;
+        }
+        agricultureEntries = focusSessionLeaderboardResponseModel.data!.agriculture!;
+        int AgricultureFocus = focusSessionLeaderboardResponseModel.data!.agriculture!.indexWhere((element) => element.currentUser == true);
+        if(AgricultureFocus != -1){
+          _AgricultureFocus = focusSessionLeaderboardResponseModel.data!.agriculture![AgricultureFocus].leaderBoardRank ?? -1;
+        }
+      });
+    }
+  }
 
 
 
@@ -120,10 +143,13 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     // TODO: implement initState
-    getUserState();
+    // getUserState();
     getMarks();
+    getFocusSessionSummary();
     super.initState();
-    getSubjectFocus();
+    getLeaderboard();
+    getSubjectLeaderboard();
+    // getSubjectFocus();
     // getPaperLeaderBoard();
   }
 
@@ -387,14 +413,7 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  if(unknown){
-                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                      content: Text('You are not registered as a student in Class'),
-                                                      backgroundColor: Colors.red,
-                                                    ));
-                                                  }
-
-                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1)));
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1,rank: _overallFocus,)));
                                                 },
 
                                               ),
@@ -438,19 +457,11 @@ class _HomePageState extends State<HomePage> {
                                         child: Container(
                                           margin: const EdgeInsets.only(top: 10,right: 5),
                                           width: 150,
-                                          child: context.watch<attemptedPaperProvider>().isLoading ?
-                                          Container(
-                                            alignment: Alignment.center,
-                                            child: CircularProgressIndicator(
-                                              color: Color(0xFF00C897),
-                                            ),
-                                          ) :
+                                          child:
                                           ListView.builder(
-                                            itemCount: context.watch<paperProvider>().paperController.entries.length > 5 ? 5 : context.watch<paperProvider>().paperController.entries.length,
+                                            itemCount: paperMarks.length,
                                             itemBuilder: (context, index) {
-                                              List<AttemptPaper?> paperMarks = context.watch<paperProvider>().paperController.values.toList();
-                                              AttemptPaper? paper = paperMarks[index];
-                                              if(paper == null) return Container();
+                                              MarkData mark = paperMarks[index];
                                               return Container(
                                                 margin: const EdgeInsets.only(top: 5),
                                                 child: SingleChildScrollView(
@@ -461,19 +472,19 @@ class _HomePageState extends State<HomePage> {
                                                       Icon(
                                                         Icons.local_fire_department_rounded,
                                                         color: Color(0xFFECA11B),
-                                                        size: 30,
+                                                        size: 25,
                                                       ),
                                                       SizedBox(width: 5),
-                                                      Text(paperMarks[index]!.totalMarks.toString(),
+                                                      Text((mark.markId != null  && mark.rank !=0) ?mark.rank.toString().padLeft(2,"0") : "__",
                                                         style: TextStyle(
-                                                          fontSize: 20,
+                                                          fontSize: 16,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
                                                       SizedBox(width: 10),
-                                                      Text(paperMarks[index]!.paperName!,
+                                                      Text(mark.paper!.paperName!,
                                                         style: TextStyle(
-                                                          fontSize: 16,
+                                                          fontSize: 12,
                                                           fontWeight: FontWeight.normal,
                                                         ),
                                                       )
@@ -531,18 +542,11 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  if(unknown){
-                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                      content: Text('You are not registered as a student in Class'),
-                                                      backgroundColor: Colors.red,
-                                                    ));
-                                                    return;
-                                                  }
                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
                                                           builder: (context) => MainLayout(
-                                                            mainIndex: 2,
+                                                            mainIndex: 2
                                                           )));
                                                 },
 
@@ -652,13 +656,6 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-                                                  if(unknown){
-                                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                      content: Text('You are not registered as a student in Class'),
-                                                      backgroundColor: Colors.red,
-                                                    ));
-                                                    return;
-                                                  }
                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(

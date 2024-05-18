@@ -1,20 +1,25 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/layout/main_layout.dart';
-import 'package:spt/model/Subject.dart';
+import 'package:spt/model/subject_response_model.dart';
 import 'package:spt/services/focusService.dart';
-import 'package:spt/services/leaderboard_service.dart';
-import 'package:spt/view/student/leaderboard_page.dart';
+import 'package:spt/services/focus_service.dart';
+import 'package:spt/services/subject_service.dart';
+import 'package:spt/util/SubjectColorUtil.dart';
 
+import '../../model/current_focus_session_response.dart' as fsr;
 import 'focus_mode_page.dart';
 
 class SubjectSelectionPage extends StatefulWidget {
-  final Function(int, QueryDocumentSnapshot,String,String) selectSubject;
+  final Function(int, Lessons,String,String) selectSubject;
+  final int rank;
   final bool enableFocus;
-  const SubjectSelectionPage({super.key, required this.selectSubject, this.enableFocus = false});
+  const SubjectSelectionPage({super.key, required this.selectSubject, this.enableFocus = false, required this.rank});
 
   @override
   State<SubjectSelectionPage> createState() => _SubjectSelectionPageState();
@@ -23,36 +28,18 @@ class SubjectSelectionPage extends StatefulWidget {
 class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
   int currentPosition = 0;
   StreamController<int> expandController = StreamController<int>();
+  List<Color> _subjectColors = [SubjectColor.BIOLOGY, SubjectColor.CHEMISTRY, SubjectColor.PHYSICS, SubjectColor.AGRICULTURE, SubjectColor.PAPER_WRITING];
+  List<String> _images = ['assets/images/subjectImage.png','assets/icons/chemistry_icon.png','assets/icons/physics_icon.png','assets/icons/agriculture_icon.png','assets/icons/paper_writing.png'];
+  Timer? countTimer, focusTimer,reminderTimer;
 
-  CollectionReference biologyLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('biology')
-      .collection('lessons');
-  CollectionReference chemistryLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('chemistry')
-      .collection('lessons');
-  CollectionReference physicsLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('physics')
-      .collection('lessons');
-  CollectionReference agricultureLessons = FirebaseFirestore.instance
-      .collection('subject')
-      .doc('agriculture')
-      .collection('lessons');
+
+
 
   int noOfBiologyLessons = -1;
   int noOfChemistryLessons = -1;
   int noOfPhysicsLessons = -1;
   int noOfAgricultureLessons = -1;
 
-  late QuerySnapshot biologyLessonsSnapshot;
-
-  late QuerySnapshot chemistryLessonsSnapshot;
-
-  late QuerySnapshot physicsLessonsSnapshot;
-
-  late QuerySnapshot agricultureLessonsSnapshot;
 
   bool enableFocus = false;
 
@@ -125,39 +112,57 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
     );
   }
 
+  setCountDownTimer(Map<String, int> countDown) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('countDown', jsonEncode(countDown));
+    countTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (countDown['seconds']! > 0) {
+        countDown['seconds'] = countDown['seconds']! - 1;
+      } else if (countDown['minutes']! > 0) {
+        countDown['minutes'] = countDown['minutes']! - 1;
+        countDown['seconds'] = 59;
+      } else {
+        timer.cancel();
+      }
+      prefs.setString('countDown', jsonEncode(countDown));
+    });
+  }
+
+  checkFocusSession() async {
+    fsr.CurrentFocusSessionResponseModel? isFocusSession = await FocusSessionService.isFocusSession(context);
+    if(isFocusSession != null){
+      DateTime startTime = DateTime.fromMillisecondsSinceEpoch(isFocusSession.data!.startTime!);
+      DateTime now = DateTime.now();
+      if(now.isAfter(startTime)){
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FocusMode(
+              lesson: Lessons(
+                enabled: true,
+                lessonId: isFocusSession.data!.lesson!.lessonId!,
+                lessonName: isFocusSession.data!.lesson!.lessonName!,
+                lessonDescription: isFocusSession.data!.lesson!.lessonDescription!,
+              ),
+              lessonContent: isFocusSession.data!.remarks!,
+              subject: isFocusSession.data!.subject!.subjectName!,
+              enableFocus: true,
+              setCountDownTimer: setCountDownTimer,
+            ),
+          ),
+        );
+      }
+    }
+    setState(() {
+      currentPosition = widget.rank;
+    });
+  }
 
 
   @override
   void initState() {
     super.initState();
-    biologyLessons.get().then((value) {
-      setState(() {
-        noOfBiologyLessons = value.docs.length;
-        biologyLessonsSnapshot = value;
-      });
-    });
-
-    chemistryLessons.get().then((value) {
-      setState(() {
-        noOfChemistryLessons = value.docs.length;
-        chemistryLessonsSnapshot = value;
-      });
-    });
-
-    physicsLessons.get().then((value) {
-      setState(() {
-        noOfPhysicsLessons = value.docs.length;
-        physicsLessonsSnapshot = value;
-      });
-    });
-
-    agricultureLessons.get().then((value) {
-      setState(() {
-        noOfAgricultureLessons = value.docs.length;
-        agricultureLessonsSnapshot = value;
-      });
-    });
-    getLeaderBoardPosition();
+    checkFocusSession();
   }
 
   _selectExpand(int index) {
@@ -268,13 +273,13 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                 child: GestureDetector(
                   onTap: () {
                     if(!widget.enableFocus) {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
-                      //   ),
-                      // );
-                      ShowReleaseSoonBanner(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MainLayout(mainIndex: 1,subIndex: 2,),
+                        ),
+                      );
+                      // ShowReleaseSoonBanner(context);
                     }
                   },
                   child: Row(
@@ -318,7 +323,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                     ).createShader(bounds);
                                   },
                                   child: Text(
-                                    currentPosition == 0?'__':currentPosition.toString(),
+                                    widget.rank <= 0?'__':widget.rank.toString(),
                                     style: TextStyle(
                                       fontSize: 36,
                                       fontWeight: FontWeight.bold,
@@ -370,674 +375,202 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
             const SizedBox(height: 20),
             Container(
               height: MediaQuery.of(context).size.height * 0.6,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  child: StreamBuilder<int>(
-                      stream: expandController.stream,
-                      initialData: -1,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          int index = snapshot.data!;
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  _selectExpand(index == 0 ? -1 : 0);
-                                },
-                                child: Container(
-                                  height: 90,
-                                  margin: const EdgeInsets.symmetric(vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFC3E2C2),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black45,
-                                        blurRadius: 1,
-                                        offset: Offset(0, 2),
-                                      )
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/images/subjectImage.png',
-                                        width: 72,
-                                        height: 72,
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Biology',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins',
-                                            ),
-                                          ),
-                                          Text(
-                                            noOfBiologyLessons == -1
-                                                ? ''
-                                                : '$noOfBiologyLessons lessons',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (snapshot.data == 0)
-                                Container(
-                                    child: Column(
-                                  children: [
-                                    for (int i = 0;
-                                        i < biologyLessonsSnapshot.docs.length;
-                                        i++)
-                                      ExpansionTile(
-                                        title: Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                vertical: 3),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 10),
+              child: FutureBuilder<SubjectResponseModel>(
+                future: SubjectService.getAllSubject(),
+                builder: (context,subjectSnapshot) {
+                  if(subjectSnapshot.hasData){
+                    return StreamBuilder<int>(
+                        stream: expandController.stream,
+                        initialData: -1,
+                        builder: (context, snapshot) {
+                          if(snapshot.hasData){
+                            int expandedIndex = snapshot.data!;
+                            return ListView.builder(
+                                itemCount: subjectSnapshot.data!.data!.length,
+                                itemBuilder: (context,index){
+                              Subject subject = subjectSnapshot.data!.data![index];
+                              return Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            _selectExpand(expandedIndex == index ? -1 : index);
+                                          },
+                                          child: Container(
+                                            height: 90,
+                                            margin: const EdgeInsets.symmetric(vertical: 6),
                                             decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
+                                              color: _subjectColors[index % subjectSnapshot.data!.data!.length],
+                                              borderRadius: BorderRadius.circular(10),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 1,
+                                                  offset: Offset(0, 2),
+                                                )
+                                              ],
                                             ),
-                                            child: Text("${i+1}. ${biologyLessonsSnapshot.docs[i]['name']}")),
-                                        trailing: const Icon(Icons.add),
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          side: BorderSide(
-                                            color: Color(0xFF00C897),
-                                            width: 1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        collapsedBackgroundColor: Colors.white,
-                                        children: [
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 5),
                                             child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
                                               children: [
-                                                Expanded(
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 5),
-                                                    child: TextField(
-                                                      decoration: const InputDecoration(
-                                                        hintText:
-                                                            'Specify what you are studying',
-                                                        hintStyle: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              Color(0xFF5A7193),
-                                                        ),
-                                                        border:
-                                                            UnderlineInputBorder(
-                                                          borderSide: BorderSide(
-                                                            color:
-                                                                Color(0xFF5A7193),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      onChanged: (value){
-                                                        setStudyContent(value);
-                                                      },
-                                                    ),
-                                                  ),
+                                                Image.asset(
+                                                  _images[index % subjectSnapshot.data!.data!.length],
+                                                  width: 72,
+                                                  height: 72,
                                                 ),
-                                                Container(
-                                                  margin:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 10),
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      widget.selectSubject(
-                                                          1,
-                                                          biologyLessonsSnapshot
-                                                              .docs[i],studyContent,Subject.BIOLOGY);
-                                                    },
-                                                    icon: Icon(
-                                                      Icons.done,
-                                                      color: Color(0xFF00C897),
-                                                      size: 20,
+                                                SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Column(
+                                                  mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      subject.subjectName!,
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily: 'Poppins',
+                                                      ),
                                                     ),
-                                                  ),
+                                                    Text(
+                                                      '${subject.lessons!.length} lessons',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          // Done Button
-                                        ],
-                                      )
-                                  ],
-                                )),
-                              GestureDetector(
-                                onTap: () {
-                                  _selectExpand(index == 1 ? -1 : 1);
-                                },
-                                child: Container(
-                                  height: 90,
-                                  margin: const EdgeInsets.symmetric(vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFCFE5FD),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black45,
-                                        blurRadius: 1,
-                                        offset: Offset(0, 2),
-                                      )
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/chemistry_icon.png',
-                                        width: 72,
-                                        height: 72,
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Chemistry',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins',
-                                            ),
-                                          ),
-                                          Text(
-                                            noOfChemistryLessons == -1
-                                                ? ''
-                                                : '$noOfChemistryLessons lessons',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (snapshot.data == 1)
-                                Container(
-                                    child: Column(
-                                  children: [
-                                    for (int i = 0;
-                                        i < chemistryLessonsSnapshot.docs.length;
-                                        i++)
-                                      ExpansionTile(
-                                        title: Container(
-                                            height: 50,
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                vertical: 3),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Text("${i+1}. ${chemistryLessonsSnapshot.docs[i]['name']}")),
-                                        trailing: const Icon(Icons.add),
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          side: BorderSide(
-                                            color: Color(0xFF00C897),
-                                            width: 1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        collapsedBackgroundColor: Colors.white,
-                                        children: [
+                                        if (expandedIndex == index)
                                           Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 5),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 5),
-                                                    child: TextField(
-                                                      decoration: const InputDecoration(
-                                                        hintText:
-                                                            'Specify what you are studying',
-                                                        hintStyle: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              Color(0xFF5A7193),
+                                              height: 400,
+                                              child: ListView.separated(
+                                                  itemBuilder: (context, j) {
+                                                    return ExpansionTile(
+                                                      title: Container(
+                                                          width: MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                              0.9,
+                                                          margin: const EdgeInsets.symmetric(
+                                                              vertical: 3),
+                                                          padding: const EdgeInsets.symmetric(
+                                                              horizontal: 10, vertical: 10),
+                                                          decoration: BoxDecoration(
+                                                            borderRadius: BorderRadius.circular(10),
+                                                            color: Colors.transparent,
+                                                          ),
+                                                          child: Text("${j+1}. ${subject.lessons![j].lessonName}")),
+                                                      trailing: const Icon(Icons.checklist_sharp),
+                                                      backgroundColor: Colors.blue.shade50,
+                                                      shape: RoundedRectangleBorder(
+                                                        side: BorderSide(
+                                                          color: Color(0xFF00C897),
+                                                          width: 1,
                                                         ),
-                                                        border:
-                                                            UnderlineInputBorder(
-                                                          borderSide: BorderSide(
-                                                            color:
-                                                                Color(0xFF5A7193),
+                                                        borderRadius: BorderRadius.circular(10),
+                                                      ),
+                                                      collapsedBackgroundColor: Colors.white,
+                                                      children: [
+                                                        Container(
+                                                          width: MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                              0.9,
+                                                          margin: const EdgeInsets.symmetric(
+                                                              horizontal: 5),
+                                                          child: Row(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Container(
+                                                                  margin: const EdgeInsets
+                                                                      .symmetric(
+                                                                      horizontal: 10,
+                                                                      vertical: 5),
+                                                                  child: TextField(
+                                                                    decoration: const InputDecoration(
+                                                                      hintText:
+                                                                      'Specify what you are studying',
+                                                                      hintStyle: TextStyle(
+                                                                        fontSize: 14,
+                                                                        fontWeight:
+                                                                        FontWeight.bold,
+                                                                        color:
+                                                                        Color(0xFF5A7193),
+                                                                      ),
+                                                                      border:
+                                                                      UnderlineInputBorder(
+                                                                        borderSide: BorderSide(
+                                                                          color:
+                                                                          Color(0xFF5A7193),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                    onChanged: (value){
+                                                                      setStudyContent(value);
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Container(
+                                                                margin:
+                                                                const EdgeInsets.symmetric(
+                                                                    horizontal: 10,
+                                                                    vertical: 10),
+                                                                child: IconButton(
+                                                                  onPressed: () {
+                                                                    widget.selectSubject(
+                                                                        1,
+                                                                        subject.lessons![j],studyContent,subject.subjectName!);
+                                                                  },
+                                                                  icon: Icon(
+                                                                    Icons.timer,
+                                                                    color: Colors.black,
+                                                                    size: 20,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
-                                                      ),
-                                                      onChanged: (value){
-                                                        setStudyContent(value);
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 10),
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      widget.selectSubject(
-                                                          1,
-                                                          chemistryLessonsSnapshot
-                                                              .docs[i],studyContent,Subject.CHEMISTRY);
-                                                    },
-                                                    icon: Icon(
-                                                      Icons.done,
-                                                      color: Color(0xFF00C897),
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                                        // Done Button
+                                                      ],
+                                                    );
+                                                  },
+                                                  separatorBuilder: (context, index) {
+                                                    return const Divider();
+                                                  },
+                                                  itemCount: subject.lessons!.length
+                                              )
                                           ),
-                                          // Done Button
-                                        ],
-                                      )
-                                  ],
-                                )),
-                              GestureDetector(
-                                onTap: () {
-                                  _selectExpand(index == 2 ? -1 : 2);
-                                },
-                                child: Container(
-                                  height: 90,
-                                  margin: const EdgeInsets.symmetric(vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFF6F7C4),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black45,
-                                        blurRadius: 1,
-                                        offset: Offset(0, 2),
-                                      )
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/physics_icon.png',
-                                        width: 72,
-                                        height: 72,
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Physics',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins',
-                                            ),
-                                          ),
-                                          Text(
-                                            noOfPhysicsLessons == -1
-                                                ? ''
-                                                : '$noOfPhysicsLessons lessons',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (snapshot.data == 2)
-                                Container(
-                                    child: Column(
-                                  children: [
-                                    for (int i = 0;
-                                        i < physicsLessonsSnapshot.docs.length;
-                                        i++)
-                                      ExpansionTile(
-                                        title: Container(
-                                            height: 50,
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                vertical: 3),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Text("${i+1}. ${physicsLessonsSnapshot.docs[i]['name']}")),
-                                        trailing: const Icon(Icons.add),
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          side: BorderSide(
-                                            color: Color(0xFF00C897),
-                                            width: 1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        collapsedBackgroundColor: Colors.white,
-                                        children: [
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 5),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 5),
-                                                    child: TextField(
-                                                      decoration: const InputDecoration(
-                                                        hintText:
-                                                            'Specify what you are studying',
-                                                        hintStyle: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              Color(0xFF5A7193),
-                                                        ),
-                                                        border:
-                                                            UnderlineInputBorder(
-                                                          borderSide: BorderSide(
-                                                            color:
-                                                                Color(0xFF5A7193),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      onChanged: (value){
-                                                        setStudyContent(value);
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 10),
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      widget.selectSubject(
-                                                          1,
-                                                          physicsLessonsSnapshot
-                                                              .docs[i],studyContent,Subject.PHYSICS);
-                                                    },
-                                                    icon: Icon(
-                                                      Icons.done,
-                                                      color: Color(0xFF00C897),
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          // Done Button
-                                        ],
-                                      )
-                                  ],
-                                )),
-                              GestureDetector(
-                                onTap: () {
-                                  _selectExpand(index == 3 ? -1 : 3);
-                                },
-                                child: Container(
-                                  height: 90,
-                                  margin: const EdgeInsets.symmetric(vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFD1BEDB),
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black45,
-                                        blurRadius: 1,
-                                        offset: Offset(0, 2),
-                                      )
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/agriculture_icon.png',
-                                        width: 72,
-                                        height: 72,
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Agriculture',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins',
-                                            ),
-                                          ),
-                                          Text(
-                                            noOfAgricultureLessons == -1
-                                                ? ''
-                                                : '$noOfAgricultureLessons lessons',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (snapshot.data == 3)
-                                Container(
-                                    child: Column(
-                                  children: [
-                                    for (int i = 0;
-                                        i <
-                                            agricultureLessonsSnapshot
-                                                .docs.length;
-                                        i++)
-                                      ExpansionTile(
-                                        title: Container(
-                                            height: 50,
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                vertical: 3),
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Text("${i+1}. ${agricultureLessonsSnapshot.docs[i]['name']}")),
-                                        trailing: const Icon(Icons.add),
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          side: const BorderSide(
-                                            color: Color(0xFF00C897),
-                                            width: 1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        collapsedBackgroundColor: Colors.white,
-                                        children: [
-                                          Container(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.9,
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 5),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Container(
-                                                    margin: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 10,
-                                                        vertical: 5),
-                                                    child: TextField(
-                                                      decoration: InputDecoration(
-                                                        hintText: 'Specify what you are studying',
-                                                        hintStyle: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              Color(0xFF5A7193),
-                                                        ),
-                                                        border:
-                                                            UnderlineInputBorder(
-                                                          borderSide: BorderSide(
-                                                            color:
-                                                                Color(0xFF5A7193),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      onChanged: (value){
-                                                        setStudyContent(value);
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  margin:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 10),
-                                                  child: IconButton(
-                                                    onPressed: () {
-                                                      widget.selectSubject(
-                                                          1,
-                                                          agricultureLessonsSnapshot
-                                                              .docs[i],studyContent,Subject.AGRICULTURE);
-                                                    },
-                                                    icon: Icon(
-                                                      Icons.done,
-                                                      color: Color(0xFF00C897),
-                                                      size: 20,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          // Done Button
-                                        ],
-                                      )
-                                  ],
-                                )),
-                            ],
-                          );
-                        } else {
-                          print('No data');
+                                      ]
+                                  )
+                              );
+                            });
+                          }
                           return Container(
                             child: CircularProgressIndicator(),
                           );
                         }
-                      }),
-                ),
+                    );
+                  }else{
+                    return Container(
+                      child: Center(child: CircularProgressIndicator(
+                      )),
+                    );
+                  }
+                }
               ),
             )
           ],

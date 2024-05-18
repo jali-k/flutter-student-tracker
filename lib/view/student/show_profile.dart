@@ -6,8 +6,10 @@ import 'package:spt/globals.dart';
 import 'package:spt/model/Student.dart';
 import 'package:spt/model/model.dart';
 import 'package:spt/services/auth_services.dart';
+import 'package:spt/services/authenticationService.dart';
 
 import '../../screens/res/app_colors.dart';
+import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -29,7 +31,13 @@ class _ProfilePageState extends State<ProfilePage> {
     // Get Student Details
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? user = prefs.getStringList('user');
-    Student _student = Student.fromList(user!);
+    Student _student = Student(
+      email: prefs.getString("email") ?? 'Not Available',
+      firstName: prefs.getString("firstName") ?? 'Not Available',
+      lastName: prefs.getString("lastName") ?? 'Not Available',
+      registrationNumber: prefs.getInt("registrationNumber") ?? 0,
+      uid: '',
+    );
     setState(() {
       student = _student;
       isLoading = false;
@@ -185,6 +193,25 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                             const Gap(20),
+                            //Avatar
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  student.firstName[0],
+                                  style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              )
+                            ),
+                            const Gap(20),
                             Divider(
                               color: Colors.black,
                               thickness: 1,
@@ -240,32 +267,21 @@ class _ProfilePageState extends State<ProfilePage> {
                               thickness: 1,
                             ),
                             const Gap(20),
-                            Center(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  // Change Password
-                                  changePasswordPopUp();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: AppColors.green,
-                                ),
-                                child: const Text('Change Password'),
-                              ),
-                            ),
                             const Gap(20),
                             Center(
                               child: ElevatedButton(
                                 onPressed: () {
                                   // Change Password
                                   AuthService.signOut();
+                                  AuthenticationService.logout();
+                                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage()));
                                 },
                                 style: ElevatedButton.styleFrom(
                                   foregroundColor: Colors.white,
                                   backgroundColor: AppColors.red,
                                 ),
                                 child: Container(
-                                  width: 300,
+                                  width: 150,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [

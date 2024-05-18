@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -77,11 +76,11 @@ showOverlay() async {
   }
 }
 
-bool isUserLoggedIn() {
-  FirebaseAuth auth = FirebaseAuth.instance;
-  if (auth.currentUser != null) {
+Future<bool> isUserLoggedIn() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  if (prefs.containsKey('role')) {
     return true;
-  } else {
+  }else{
     return false;
   }
 }
@@ -110,16 +109,17 @@ class _MyAppState extends State<MyApp> {
       );
     }
 
-    if (isUserLoggedIn()) {
+    if (await isUserLoggedIn()) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (prefs.containsKey('role')) {
         String role = prefs.getString('role')!;
-        if (role == 'student') {
+        if (role == 'role_student') {
           return MainLayout();
-        } else if (role == 'instructor') {
+        }
+        else if (role == 'role_instructor') {
           return const InstructorEntryScreen();
-          return const InstructorEntryScreen();
-        } else if (role == 'admin') {
+        }
+        else if (role == 'role_admin') {
           return const BottomBarScreen(
             isEntryScreen: false,
             isInstructorScreen: false,
