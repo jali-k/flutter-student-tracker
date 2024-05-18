@@ -108,6 +108,8 @@ class _FocusModeState extends State<FocusMode> {
     "Nov",
     "Dec"
   ];
+  List<Color> _subjectColors = [SubjectColor.BIOLOGY, SubjectColor.CHEMISTRY, SubjectColor.PHYSICS, SubjectColor.AGRICULTURE, SubjectColor.PAPER_WRITING];
+
 
   @override
   void initState() {
@@ -258,7 +260,7 @@ class _FocusModeState extends State<FocusMode> {
         int setDuration = focusData.data!.duration!;
         Duration duration = currentTime.difference(startAt);
         if (duration.inMinutes >= setDuration) {
-          FocusService.endFocusOnLesson();
+          FocusSessionService.stopFocusSession(context);
           showDialog(
             context: context,
             builder: (context) {
@@ -339,7 +341,7 @@ class _FocusModeState extends State<FocusMode> {
       int setDuration = focusData.data!.duration!;
       Duration duration = currentTime.difference(startAt);
       if (duration.inMinutes >= setDuration) {
-        FocusService.endFocusOnLesson();
+        FocusSessionService.stopFocusSession(context);
         showDialog(
           context: context,
           builder: (context) {
@@ -424,7 +426,7 @@ class _FocusModeState extends State<FocusMode> {
         isStarted = true;
       });
       timer = Timer(Duration(minutes: selectedTime), () {
-        FocusService.endFocusOnLesson();
+        FocusSessionService.stopFocusSession(context);
         showDialog(
           context: context,
           builder: (context) {

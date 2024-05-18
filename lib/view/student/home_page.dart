@@ -413,8 +413,7 @@ class _HomePageState extends State<HomePage> {
                                               child: IconButton(
                                                 icon: const Icon(Icons.arrow_forward,color: Colors.white,),
                                                 onPressed: () {
-
-                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1)));
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout(mainIndex: 1,rank: _overallFocus,)));
                                                 },
 
                                               ),
@@ -473,10 +472,10 @@ class _HomePageState extends State<HomePage> {
                                                       Icon(
                                                         Icons.local_fire_department_rounded,
                                                         color: Color(0xFFECA11B),
-                                                        size: 30,
+                                                        size: 25,
                                                       ),
                                                       SizedBox(width: 5),
-                                                      Text(mark.markId != null ?mark.totalMark.toString() : "__",
+                                                      Text((mark.markId != null  && mark.rank !=0) ?mark.rank.toString().padLeft(2,"0") : "__",
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight: FontWeight.bold,
@@ -546,8 +545,8 @@ class _HomePageState extends State<HomePage> {
                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
-                                                          builder: (context) => PaperDetailPage(
-                                                            paperMarks: paperMarks,
+                                                          builder: (context) => MainLayout(
+                                                            mainIndex: 2
                                                           )));
                                                 },
 

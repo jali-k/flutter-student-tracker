@@ -91,8 +91,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
       instructorGroup = null;
 
       // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context, isSuccess: true, message: 'Success');
+      ToastUtil.showSuccessToast(context, "Success", "Instructor added successfully");
     } catch (error) {
       // ignore: avoid_print
       print("Failed to add user: $error");
@@ -143,7 +142,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
     );
 
     final valueStyle = TextStyle(
-      color: Colors.black26,
+      color: Colors.black,
       fontSize: _fieldFontSizeValue,
     );
 
@@ -282,7 +281,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
                             contentPadding: const EdgeInsets.symmetric(
                                 vertical: 5, horizontal: 10),
                             filled: true,
-                            fillColor: AppColors.ligthWhite,
+                            fillColor: Colors.white,
                             labelStyle: const TextStyle(fontSize: 10),
                             labelText: 'Enter instructor\'s email',
                             focusedBorder: focusedBorder,
@@ -341,10 +340,10 @@ class _InstructorScreenState extends State<InstructorScreen> {
                   ),
                   const Gap(20),
                   Padding(
-                    padding: EdgeInsets.only(right: (width / 4) - 20),
+                    padding: EdgeInsets.only(right: 20),
                     child: Container(
                       height: 35,
-                      width: 60,
+                      width: 150,
                       decoration: BoxDecoration(
                           color: AppColors.black,
                           borderRadius: BorderRadius.circular(29)),
@@ -361,7 +360,7 @@ class _InstructorScreenState extends State<InstructorScreen> {
                         },
                         child: const Center(
                             child: Text(
-                              'Send',
+                              'Add Instructor',
                               style: TextStyle(
                                 color: AppColors.ligthWhite,
                               ),

@@ -48,7 +48,7 @@ class _BottomBarScreenState extends State<BottomBarScreen> {
       const EntryScreen(),
       const InstructorScreen(),
       const FolderListScreen(),
-      MangeStudent()
+      const MangeStudent()
     ]);
 
     super.initState();

@@ -17,8 +17,9 @@ import 'focus_mode_page.dart';
 
 class SubjectSelectionPage extends StatefulWidget {
   final Function(int, Lessons,String,String) selectSubject;
+  final int rank;
   final bool enableFocus;
-  const SubjectSelectionPage({super.key, required this.selectSubject, this.enableFocus = false});
+  const SubjectSelectionPage({super.key, required this.selectSubject, this.enableFocus = false, required this.rank});
 
   @override
   State<SubjectSelectionPage> createState() => _SubjectSelectionPageState();
@@ -152,6 +153,9 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
         );
       }
     }
+    setState(() {
+      currentPosition = widget.rank;
+    });
   }
 
 
@@ -319,7 +323,7 @@ class _SubjectSelectionPageState extends State<SubjectSelectionPage> {
                                     ).createShader(bounds);
                                   },
                                   child: Text(
-                                    currentPosition == 0?'__':currentPosition.toString(),
+                                    widget.rank <= 0?'__':widget.rank.toString(),
                                     style: TextStyle(
                                       fontSize: 36,
                                       fontWeight: FontWeight.bold,

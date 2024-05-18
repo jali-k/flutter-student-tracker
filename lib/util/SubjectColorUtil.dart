@@ -20,7 +20,7 @@ class SubjectColor{
   static const Color AGRICULTURE_BORDER = Color(0xFF8248A0);
 
   static getPrimaryColor(String subjectName){
-    switch(subjectName){
+    switch(subjectName.toLowerCase()){
       case "biology":
         return BIOLOGY;
       case "chemistry":
@@ -29,6 +29,8 @@ class SubjectColor{
         return PHYSICS;
       case "agricultural":
         return AGRICULTURE;
+        case "paper writing":
+        return PAPER_WRITING;
       default:
         return BIOLOGY;
     }

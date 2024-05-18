@@ -33,6 +33,7 @@ class MarkData {
   String? paperId;
   String? instructorId;
   PaperData? paper;
+  int? rank;
   double? essayMark;
   double? mcqMark;
   double? structuredMark;
@@ -48,6 +49,7 @@ class MarkData {
         this.essayMark,
         this.mcqMark,
         this.structuredMark,
+        this.rank,
         this.totalMark,
         this.suspended});
 
@@ -63,6 +65,7 @@ class MarkData {
     structuredMark = json['structuredMark'];
     totalMark = json['totalMark'];
     suspended = json['suspended'];
+    rank = json['rank'];
   }
 
   Map<String, dynamic> toJson() {
@@ -89,7 +92,7 @@ class Student {
   String? firstName;
   String? lastName;
   String? displayName;
-  Null? phoneNumber;
+  String? phoneNumber;
   int? registrationNumber;
   Null? user;
 

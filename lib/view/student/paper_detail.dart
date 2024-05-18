@@ -1,6 +1,8 @@
 
 
 // import 'package:dash_bubble/dash_bubble.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 // import 'package:flutter_overlay_apps/flutter_overlay_apps.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -57,6 +59,11 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
       Navigator.push(context, MaterialPageRoute(builder: (context) => MainLayout()));
       return;
     }
+    Timer(Duration(seconds: 2), () {
+      setState(() {
+        isLoadingPapers = false;
+      });
+    });
   }
 
   ShowReleaseSoonBanner(BuildContext context) {
@@ -127,20 +134,24 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Papers'),
-      ),
-      body: PopScope(
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      width: MediaQuery.of(context).size.width * 0.95,
+      alignment: Alignment.center,
+      color: Color(0xFFFAFAFA),
+      child: PopScope(
         canPop: false,
         onPopInvoked: (pop) {
           MaterialPageRoute route = MaterialPageRoute(builder: (context) => MainLayout());
           Navigator.push(context, route);
         },
-        child: Container(
+        child: isLoadingPapers ?
+        Center(
+          child: CircularProgressIndicator(),
+        )
+            :Container(
           height: MediaQuery.of(context).size.height - 60,
           width: MediaQuery.of(context).size.width,
-          color: Colors.red,
           child: Stack(
             children: [
               Positioned(
@@ -290,8 +301,8 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                       markData.markId != null ? '${markData.totalMark!} %' : 'N/A',
                                                       style: TextStyle(
                                                         /*
-                                                        * background: linear-gradient(180deg, #1A8D71 0%, #FAFAFA 100%);
-                                                        * */
+                                                          * background: linear-gradient(180deg, #1A8D71 0%, #FAFAFA 100%);
+                                                          * */
                                                           foreground: Paint()..shader =LinearGradient(
                                                             colors: <Color>[Color(0xff1A8D71), Color(0xffFAFAFA)],
                                                           ).createShader(Rect.fromLTWH(0.0, 0.0, 300.0, 70.0)),
@@ -323,7 +334,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                   ),
                                                   Container(
                                                     margin: EdgeInsets.only(top: 5),
-        
+
                                                     child: Text(
                                                       'Structured Marks : ${markData.structuredMark}',
                                                       style: TextStyle(color: Colors.white),
@@ -331,7 +342,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                   ),
                                                   Container(
                                                     margin: EdgeInsets.only(top: 5),
-        
+
                                                     child: Text(
                                                       'Essay Marks : ${markData.essayMark}',
                                                       style: TextStyle(color: Colors.white),
@@ -387,7 +398,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                         ),
                                                         SizedBox(width: 5),
                                                         Text(
-                                                          '120',
+                                                          markData.rank! == 0 ? 'N/A' : '${markData.rank!}',
                                                           style: TextStyle(
                                                             color: Colors.white,
                                                             fontWeight: FontWeight.bold,
@@ -397,7 +408,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                                     )
                                                 ),
                                               ),
-        
+
                                             ],
                                           ),
                                         );
@@ -411,7 +422,7 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
             ],
           ),
         ),
-      )
+      ),
     );
 
   }

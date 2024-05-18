@@ -43,8 +43,9 @@ import '../view/student/show_profile.dart';
 class MainLayout extends StatefulWidget {
   int mainIndex = 0;
   int subIndex = 0;
+  int rank = 0;
 
-  MainLayout({super.key, this.mainIndex = 0, this.subIndex = 0});
+  MainLayout({super.key, this.mainIndex = 0, this.subIndex = 0,this.rank = 0});
 
   @override
   State<MainLayout> createState() => _MainLayoutState();
@@ -333,6 +334,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                                     case 0:
                                       return SubjectSelectionPage(
                                         selectSubject: selectSubject,
+                                        rank: widget.rank,
                                       );
                                     case 1:
                                       return FocusMode(
@@ -355,16 +357,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                                 }
                               });
                         case 2:
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => PaperDetailPage(
-                                      paperMarks: paperMarks,
-                                    )
-                                ));
-                          });
-                          return const Center();
+                          return PaperDetailPage(paperMarks: paperMarks);
                         case 3:
                           return NotificationPage();
                         case 4:

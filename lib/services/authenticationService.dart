@@ -25,8 +25,8 @@ class AuthenticationService{
         if(authenticatedUserModel.role == UserRole.STUDENT){
           //get response data as AuthenticatedStudentModel
           AuthenticatedStudentModel authenticatedStudentModel = AuthenticatedStudentModel.fromJson(response.data);
-          prefs.setString('firstName', authenticatedStudentModel.firstName!);
-          prefs.setString('lastName', authenticatedStudentModel.lastName!);
+          prefs.setString('firstName', authenticatedStudentModel.userInfo!.firstName!);
+          prefs.setString('lastName', authenticatedStudentModel.userInfo!.lastName!);
           prefs.setString('email', authenticatedStudentModel.email!);
           prefs.setString('role', authenticatedStudentModel.role!);
           prefs.setString('accessToken', authenticatedStudentModel.accessToken!);

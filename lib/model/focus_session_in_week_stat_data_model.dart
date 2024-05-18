@@ -1,3 +1,5 @@
+import 'package:spt/model/current_focus_session_response.dart';
+
 class FocusSessionsInWeekStatsDataModel {
   String? status;
   String? message;
@@ -90,6 +92,7 @@ class FocusSessions {
   int? endTime;
   int? duration;
   String? remarks;
+  Subject? subject;
 
   FocusSessions(
       {this.focusSessionId,
@@ -97,6 +100,7 @@ class FocusSessions {
         this.startTime,
         this.endTime,
         this.duration,
+        this.subject,
         this.remarks});
 
   FocusSessions.fromJson(Map<String, dynamic> json) {
@@ -106,6 +110,9 @@ class FocusSessions {
     endTime = json['endTime'];
     duration = json['duration'];
     remarks = json['remarks'];
+    subject = json['subject'] != null
+        ? Subject.fromJson(json['subject'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {

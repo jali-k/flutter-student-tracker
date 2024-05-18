@@ -65,6 +65,7 @@ class _EntryScreenState extends State<EntryScreen> {
           isMcq: isMcqSelected,
           isStructured: isStructuredSelected,
           isEssay: isEssaySelected);
+
       if(addPaperResponseModel == null) {
         loading.dismiss();
         Globals.showSnackBar(
@@ -83,10 +84,12 @@ class _EntryScreenState extends State<EntryScreen> {
         paperList.add(paperInfo);
       });
       loading.dismiss();
+      //clear the text field
+      entryController.clear();
+
 
       // ignore: use_build_context_synchronously
-      Globals.showSnackBar(
-          context: context, isSuccess: true, message: 'Success');
+      ToastUtil.showSuccessToast(context, "Success", "Paper Added Successfully");
     } catch (error) {
       // ignore: avoid_print
       print("Failed to add user: $error");

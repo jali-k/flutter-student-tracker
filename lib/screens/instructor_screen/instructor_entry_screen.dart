@@ -50,7 +50,7 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
     AllPapersDataModel allPapersDataModel = await PaperService.getAllPaperList(context);
     List<PaperInfo>? p = allPapersDataModel.data;
     setState(() {
-      papers.addAll(p!);
+      papers = p!;
       isLoading = false;
     });
   }
@@ -91,6 +91,23 @@ class _InstructorEntryScreenState extends State<InstructorEntryScreen> {
                 style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(
                         AppColors.green)),
+              ),
+            ),
+            const Gap(5),
+            Center(
+              child: ElevatedButton(
+                onPressed: (){
+                  fetchPapers();
+                },
+                child: Text(
+                  'Refresh Data',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(
+                        AppColors.blue)),
               ),
             ),
             const Gap(50),

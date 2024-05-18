@@ -105,7 +105,8 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Subject: ${focusSession.remarks!}',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 10)),
+                          Text('Subject: ${focusSession.subject!.subjectName!}',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 10)),
+                          Text('Lesson: ${focusSession.remarks!}',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 10)),
                           Text('Duration: ${focusSession.duration!}',style: TextStyle(fontSize: 10)),
                         ],
                       ),
@@ -287,6 +288,7 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
   }
 
   String getDateAndTime(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute}';
+    List<String> months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return '${dateTime.day} ${months[dateTime.month-1]} ${dateTime.year} At ${dateTime.hour}:${dateTime.minute}';
   }
 }

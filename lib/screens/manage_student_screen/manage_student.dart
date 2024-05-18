@@ -109,6 +109,7 @@ class _MangeStudentState extends State<MangeStudent> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Student'),
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -171,9 +172,9 @@ class _MangeStudentState extends State<MangeStudent> {
                   child: Builder(builder: (context) {
                     if (searchStudentData != null) {
                       firstNameController.text =
-                          searchStudentData!.user!.firstName!;
+                          searchStudentData!.firstName!;
                       lastNameController.text =
-                          searchStudentData!.user!.lastName!;
+                          searchStudentData!.lastName!;
                       phoneController.text =
                           searchStudentData!.phoneNumber ?? '';
                       registrationNumberController.text =
@@ -324,40 +325,40 @@ class _MangeStudentState extends State<MangeStudent> {
                                           )
                                         ],
                                       ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 100,
-                                            child: Text(
-                                              'Phone: ',
-                                              style: TextStyle(fontSize: 12),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: TextField(
-                                              enabled: isUpdate,
-                                              keyboardType: TextInputType.phone,
-                                              style: TextStyle(fontSize: 12),
-                                              controller: phoneController,
-                                              decoration: InputDecoration(
-                                                  contentPadding:
-                                                      const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 5,
-                                                          vertical: 0),
-                                                  border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                  )),
-                                            ),
-                                          )
-                                        ],
-                                      ),
+                                      // SizedBox(
+                                      //   height: 5,
+                                      // ),
+                                      //
+                                      // Row(
+                                      //   children: [
+                                      //     Container(
+                                      //       width: 100,
+                                      //       child: Text(
+                                      //         'Phone: ',
+                                      //         style: TextStyle(fontSize: 12),
+                                      //       ),
+                                      //     ),
+                                      //     Expanded(
+                                      //       child: TextField(
+                                      //         enabled: isUpdate,
+                                      //         keyboardType: TextInputType.phone,
+                                      //         style: TextStyle(fontSize: 12),
+                                      //         controller: phoneController,
+                                      //         decoration: InputDecoration(
+                                      //             contentPadding:
+                                      //                 const EdgeInsets
+                                      //                     .symmetric(
+                                      //                     horizontal: 5,
+                                      //                     vertical: 0),
+                                      //             border: OutlineInputBorder(
+                                      //               borderRadius:
+                                      //                   BorderRadius.circular(
+                                      //                       10),
+                                      //             )),
+                                      //       ),
+                                      //     )
+                                      //   ],
+                                      // ),
                                       SizedBox(
                                         height: 5,
                                       ),
