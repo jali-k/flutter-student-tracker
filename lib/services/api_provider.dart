@@ -3,8 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class APIProvider {
   static const String _baseUrl = 'http://3.1.1.79:9000/api/v1';
+  // static const String _baseUrl = 'http://localhost:9000/api/v1';
   // static const String _baseUrl = 'http://10.0.2.2:9000/api/v1';
   static const String BASE_URL = 'http://3.1.1.79:9000/api/v1';
+  static const String BASE_URL = 'http://localshost:9000/api/v1';
   // static const String BASE_URL = 'http://10.0.2.2:9000/api/v1';
   static Dio? dio;
   static APIProvider? _apiProvider;

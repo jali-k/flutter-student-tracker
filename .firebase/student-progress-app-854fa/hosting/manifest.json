@@ -1,6 +1,6 @@
 {
-    "name": "spt",
-    "short_name": "spt",
+    "name": "Dopamine",
+    "short_name": "Dopamine",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

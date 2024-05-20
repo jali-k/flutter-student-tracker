@@ -382,8 +382,8 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Image.network(
-                                        'http://pngimg.com/uploads/google/google_PNG19635.png',
+                                    Image.asset(
+                                        'assets/icons/google.png',
                                         fit: BoxFit.cover),
                                     const SizedBox(width: 10),
                                     const Text('Sign in with Google',
