@@ -100,14 +100,14 @@ class _MyAppState extends State<MyApp> {
   Future<Widget> getLandingPage(BuildContext context) async {
     bool isMobile = TargetPlatform.android == defaultTargetPlatform ||
         TargetPlatform.iOS == defaultTargetPlatform;
-    // if (!isMobile) {
-    //   return const Scaffold(
-    //     backgroundColor: Colors.white,
-    //     body: Center(
-    //       child: Text('This app is only available for mobile devices'),
-    //     ),
-    //   );
-    // }
+    if (!isMobile) {
+      return const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Text('This app is only available for mobile devices'),
+        ),
+      );
+    }
 
     if (await isUserLoggedIn()) {
       SharedPreferences prefs = await SharedPreferences.getInstance();

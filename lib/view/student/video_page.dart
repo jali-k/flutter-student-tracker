@@ -4,6 +4,7 @@ import 'package:appinio_video_player/appinio_video_player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spt/services/lecture_service.dart';
 import 'package:video_player/video_player.dart';
 
@@ -26,14 +27,16 @@ class _VideoPageState extends State<VideoPage> {
   final StreamController<int> _progressController = StreamController<int>();
   final CustomVideoPlayerSettings _customVideoPlayerSettings =
   const CustomVideoPlayerSettings(showSeekButtons: true);
-  int bottom = 600;
-  late String _userEmail;
+  int bottom = 0;
+  String _userEmail = "";
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getVideoFromFirebaseStorage();
+    getUserEmail();
+    // animateWatermark();
   }
 
 
@@ -44,15 +47,26 @@ class _VideoPageState extends State<VideoPage> {
     _streamController.close();
     _progressController.close();
     _controller.dispose();
-
+    getUserEmail();
     super.dispose();
+  }
+
+  getUserEmail()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userEmail = prefs.getString('email') ?? "CopyRight 2024 Dopamine";
+    });
+    if(kIsWeb) {
+      animateWatermark();
+    }
   }
 
   animateWatermark() {
     int height = MediaQuery.of(context).size.height.toInt();
     Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      print("Animating watermark $bottom and height $height");
       setState(() {
-        if (bottom > 100+height * 0.5) {
+        if (bottom > height) {
           bottom = 0;
         }
         bottom += 2;
