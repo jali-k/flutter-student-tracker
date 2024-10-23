@@ -254,6 +254,54 @@ class _PaperDetailPageState extends State<PaperDetailPage> {
                                 ),
                               ),
                               SizedBox(height: 10),
+                              if(widget.paperMarks.isEmpty)
+                                Container(
+                                  height: 200,
+                                  width: 280,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF00C897),
+                                        Color(0x55245247),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    //Linear Color 00C897 to 245247 border
+                                    border: Border.all(
+                                      color: const Color(0xFF00C897),
+                                      width: 2,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.white54,
+                                        blurRadius: 5,
+                                        offset: Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Oops!',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        'No papers yet',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               Container(
                                   height: MediaQuery.of(context).size.height - 300,
                                   width: MediaQuery.of(context).size.width,

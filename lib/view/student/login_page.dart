@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,7 +9,6 @@ import 'package:spt/model/model.dart';
 import 'package:spt/services/auth_services.dart';
 import 'package:spt/services/authenticationService.dart';
 import 'package:spt/util/toast_util.dart';
-import 'package:toastification/toastification.dart';
 
 import '../../model/Admin.dart';
 import '../../model/Student.dart';
@@ -18,7 +16,8 @@ import '../../screens/bottomBar_screen/bottom_bar_screen.dart';
 import '../../screens/instructor_screen/instructor_entry_screen.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool sessionExpired;
+  const LoginPage({super.key, this.sessionExpired=false});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -26,6 +25,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool loading = false;
+  static bool _toastShown = false;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -53,6 +53,20 @@ class _LoginPageState extends State<LoginPage> {
       // emailController.text = "ehasikaherath@gmail.com";
       // passwordController.text = "pwd_100748";
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      if(widget.sessionExpired && !_toastShown){
+        ToastUtil.showErrorToast(context, "Expired",
+            "Your Session has Expired");
+        _toastShown = true;
+        Future.delayed(const Duration(seconds: 5),(){
+          _toastShown = false;
+        });
+
+
+      }
+    });
+
   }
 
   void _checkLogin() async {
@@ -278,6 +292,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: SafeArea(
         child: Container(

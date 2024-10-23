@@ -23,7 +23,7 @@ class FocusSessionService{
       "lessonId": lesson.lessonId,
       "remark": remark,
       "duration": duration,
-      "startTime": DateTime.now().subtract(Duration(hours:5,minutes: 30)).toIso8601String(),
+      "startTime": DateTime.now().toUtc().toIso8601String(),
     });
     if(response.statusCode == 200){
       CreatedFocusSessionDataModel focusSessionData = CreatedFocusSessionDataModel.fromJson(response.data);
@@ -106,7 +106,11 @@ class FocusSessionService{
   }
 
   static Future<bool> stopFocusSession(BuildContext context) async{
-    final response = await APIProvider.instance.post('/student/focus-session/stop',{});
+    DateTime now = DateTime.now();
+    Object data = {
+      "endTime": DateTime.now().toUtc().toIso8601String(),
+    };
+    final response = await APIProvider.instance.post('/student/focus-session/stop',data);
     if(response.statusCode == 200) {
         return true;
     }

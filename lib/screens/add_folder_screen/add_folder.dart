@@ -716,33 +716,37 @@ class _AddFolderState extends State<AddFolder> {
                               String folderId =
                                   folderCreateResponseModel.data!.folderId!;
                               int count = 0;
-                              uploadProgressController.add(0.0);
-                              // Upload Videos
-                              uploadLectureVideos
-                                  .sublist(1)
-                                  .forEach((element) async {
-                                LectureVideoUploadResponseModel?
-                                    lectureVideoUploadResponseModel =
-                                    await LectureFolderService
-                                        .uploadLectureVideo(
-                                            context, folderId, element);
-                                if (lectureVideoUploadResponseModel != null) {
-                                  count++;
-                                }
-                                if (count ==
-                                    uploadLectureVideos.sublist(1).length - 1) {
-                                  uploadProgressController.add(100.0);
-                                  ToastUtil.showSuccessToast(context, 'Folder Creation','Folder Creation Success');
-                                  ToastUtil.showSuccessToast(
-                                      context, 'Folder Creation','Folder Creation Perform BackGround');
-                                }
-                                double value = (count) /
-                                    uploadLectureVideos.sublist(1).length *
-                                    100;
-                                uploadProgressController.add(value);
-                              });
-                              ToastUtil.showSuccessToast(
-                                  context, 'Folder Creation','Folder Creation Perform BackGround');
+                              if(uploadLectureVideos.length > 1){
+                                uploadProgressController.add(0.0);
+                                // Upload Videos
+                                uploadLectureVideos
+                                    .sublist(1)
+                                    .forEach((element) async {
+                                  LectureVideoUploadResponseModel?
+                                  lectureVideoUploadResponseModel =
+                                  await LectureFolderService
+                                      .uploadLectureVideo(
+                                      context, folderId, element);
+                                  if (lectureVideoUploadResponseModel != null) {
+                                    count++;
+                                  }
+                                  if (count ==
+                                      uploadLectureVideos.sublist(1).length - 1) {
+                                    uploadProgressController.add(100.0);
+                                    ToastUtil.showSuccessToast(context, 'Folder Creation','Folder Creation Success');
+                                    ToastUtil.showSuccessToast(
+                                        context, 'Folder Creation','Folder Creation Perform BackGround');
+                                  }
+                                  double value = (count) /
+                                      uploadLectureVideos.sublist(1).length *
+                                      100;
+                                  uploadProgressController.add(value);
+                                });
+                                ToastUtil.showSuccessToast(
+                                    context, 'Folder Creation','Folder Creation Perform BackGround');
+                              }
+
+
                             } on Exception catch (e) {
                               print('Error: $e');
                               setState(() {

@@ -475,7 +475,7 @@ class _HomePageState extends State<HomePage> {
                                                         size: 25,
                                                       ),
                                                       SizedBox(width: 5),
-                                                      Text((mark.markId != null  && mark.rank !=0) ?mark.rank.toString().padLeft(2,"0") : "__",
+                                                      Text((mark.markId != null  && mark.rank! <= 0) ?mark.rank.toString().padLeft(2,"0") : "__",
                                                         style: TextStyle(
                                                           fontSize: 16,
                                                           fontWeight: FontWeight.bold,
